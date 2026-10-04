@@ -1,6 +1,6 @@
 package model;
 
-public enum pecaBonus {
+enum pecaBonus {
 	VOTO,         // 1 voto extra imediato no Kurultai
 	ESPADAS,      // recebe 2 peças de tributo de espada
 	MOEDAS,       // recebe 2 peças de tributo de moeda

@@ -1,6 +1,6 @@
 package model;
 
-public enum tipoTributo {
+enum tipoTributo {
 	ESPADA(10), //ataca cidades
 	YURT(10), // coloca yurts no tabuleiro
 	MOEDA(15); //moedas compram melhorias

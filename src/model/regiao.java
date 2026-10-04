@@ -1,6 +1,6 @@
 package model;
 
-public enum regiao {
+enum regiao {
 	RUSSIA("Rússia"),
 	CHINA("China"),
 	PERSIA("Pérsia");
