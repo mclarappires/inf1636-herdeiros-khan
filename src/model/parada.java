@@ -16,7 +16,55 @@ class parada {
 	
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
 	
-	private final List<Yurt> yurts = new LinkedList<Yurt>();
+	private final List<yurt> yurts = new LinkedList<yurt>();
+	
+	parada(int id, int capacidadePeoes, int capacidadeYurts){
+		this.id = id;
+		this.capacidadePeoes = capacidadePeoes;
+		this.capacidadeYurts = capacidadeYurts;
+	}
+	
+	int getId() {
+		return id;
+	}
+	
+	int getCapacidadePeoes(){
+		return capacidadePeoes;
+	}
+	
+	int getCapacidadeYurts(){
+		return capacidadeYurts;
+	}
+	
+	/** Cria a rota nos dois sentidos entre esta parada e outra. */
+	void ligar(parada outra) {
+		if (outra == null || outra == this) {
+			throw new IllegalArgumentException("Ligação inválida na parada " + id);
+		}
+		adjacentes.put(outra.id, outra);
+		outra.adjacentes.put(this.id, this);
+	}
+	
+	Collection<parada> getAdjacentes() {
+		return Collections.unmodifiableCollection(adjacentes.values());
+	}
+	
+	boolean podeConstruirYurt() {
+		return yurts.size() < capacidadeYurts;
+	}
+ 
+	void adicionarYurt(yurt y) {
+		if (y == null) {
+			throw new IllegalArgumentException("Yurt nulo");
+		}
+		if (!podeConstruirYurt()) {
+			throw new IllegalStateException("Parada " + id + " não aceita mais yurts");
+		}
+		yurts.add(y);
+	}
+	
+	
+	
 	
 	
 }
