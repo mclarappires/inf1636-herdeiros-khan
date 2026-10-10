@@ -36,18 +36,18 @@ public class JogadorTest {
 	@Before
 	public void montarCenario() {
 		inicio = new karakorum(0);
-		vizinha = new parada(1, 1, 1);
-		distante = new parada(2, 1, 1);
+		vizinha = new parada(1, 1, 1, regiao.CHINA);
+		distante = new parada(2, 1, 1, regiao.CHINA);
 
 		Map<tipoTesouro, Integer> pedido = new HashMap<tipoTesouro, Integer>();
 		pedido.put(tipoTesouro.FERRO, 2);
-		paradaDoConselheiro = new paradaConselheiro(3, new Conselheiro(pedido, 1, pecaBonus.MOEDAS));
+		paradaDoConselheiro = new paradaConselheiro(3, regiao.CHINA, new Conselheiro(pedido, 1, pecaBonus.MOEDAS));
 
 		inicio.ligar(vizinha);
 		vizinha.ligar(distante);
 		distante.ligar(paradaDoConselheiro);
 
-		paradaDupla = new parada(4, 2, 2);
+		paradaDupla = new parada(4, 2, 2, regiao.CHINA);
 		inicio.ligar(paradaDupla);
 
 		provinciaDaVizinha = new Provincia(10, tipoTributo.ESPADA);
