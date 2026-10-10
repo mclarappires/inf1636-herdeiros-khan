@@ -14,14 +14,17 @@ class parada {
 	private final int capacidadePeoes;
 	private final int capacidadeYurts;
 	
+	private final regiao regiao;
+	
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
 	
 	private final List<yurt> yurts = new LinkedList<yurt>();
 	
-	parada(int id, int capacidadePeoes, int capacidadeYurts){
+	parada(int id, int capacidadePeoes, int capacidadeYurts, regiao regiao){
 		this.id = id;
 		this.capacidadePeoes = capacidadePeoes;
 		this.capacidadeYurts = capacidadeYurts;
+		this.regiao = regiao;
 	}
 	
 	int getId() {
@@ -34,6 +37,10 @@ class parada {
 	
 	int getCapacidadeYurts(){
 		return capacidadeYurts;
+	}
+	
+	regiao getRegiao() {
+		return regiao;
 	}
 	
 	/** Cria a rota nos dois sentidos entre esta parada e outra. */
@@ -62,6 +69,8 @@ class parada {
 		}
 		yurts.add(y);
 	}
+	
+	
 	
 	
 	
