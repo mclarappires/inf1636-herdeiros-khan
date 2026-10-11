@@ -8,7 +8,7 @@ class CartaCavaleiro extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int total = 0;
 		for (Melhoria m : j.getTabuleiroJogador().getTodasMelhorias()) {
 			if (m.getTipo() == TipoMelhoria.DOIS_CAVALOS || m.getTipo() == TipoMelhoria.PUNHO) {

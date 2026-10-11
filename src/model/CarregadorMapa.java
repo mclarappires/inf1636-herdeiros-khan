@@ -3,6 +3,8 @@ package model;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 class CarregadorMapa {
@@ -57,8 +59,23 @@ class CarregadorMapa {
 			t.adicionarParada(new parada(inteiro(p[1]), peoes, yurts, regiaoLida));
 			break;
 		case "KARAKORUM":
-			exigir(p, 2, 2);
-			t.adicionarParada(new Karakorum(inteiro(p[1])));
+			exigir(p, 2, 5);
+			if (p.length == 2) {
+				t.adicionarParada(new Karakorum(inteiro(p[1])));
+				break;
+			}
+
+			// Se houver mais argumentos, deve ser o número de tesouros e os tipos de tesouro (ex: KARAKORUM 1 PRATA PELE BOI)
+			if (p.length != 2 + Karakorum.TESOUROS_POR_ENTREGA) {
+				throw new IllegalArgumentException("KARAKORUM pede " + Karakorum.TESOUROS_POR_ENTREGA + " tesouros");
+			}
+			Map<TipoTesouro, Integer> pedido = new HashMap<TipoTesouro, Integer>();
+			for (int i = 2; i < p.length; i++) {
+				TipoTesouro tesouro = TipoTesouro.valueOf(p[i].toUpperCase());
+				Integer atual = pedido.get(tesouro);
+				pedido.put(tesouro, atual == null ? 1 : atual + 1);
+			}
+			t.adicionarParada(new Karakorum(inteiro(p[1]), pedido));
 			break;
 		case "PROVINCIA":
 			exigir(p, 3, 3);

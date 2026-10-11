@@ -8,7 +8,7 @@ class CartaLinhaDeMelhorias extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		TabuleiroJogador doJogador = j.getTabuleiroJogador();
 		int linhas = 0;
 		for (int linha = 0; linha < TabuleiroJogador.LINHAS; linha++) {

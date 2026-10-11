@@ -11,9 +11,9 @@ class CartaGovernador extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int regioes = 0;
-		for (regiao r : regiao.values()) {
+		for (Regiao r : Regiao.values()) {
 			if (ContagemDeYurts.naRegiao(j.getCor(), t, r) >= MINIMO_YURTS
 					&& j.getTabuleiroJogador().contarMelhorias(r) >= MINIMO_MELHORIAS) {
 				regioes++;

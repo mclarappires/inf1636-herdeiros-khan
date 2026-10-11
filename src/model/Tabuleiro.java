@@ -191,7 +191,7 @@ class Tabuleiro {
 		return Collections.unmodifiableCollection(provincias.values());
 	}
 
-	Collection<cidade> getCidades() {
+	Collection<Cidade> getCidades() {
 		return Collections.unmodifiableCollection(cidades.values());
 	}
  

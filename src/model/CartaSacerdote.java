@@ -11,7 +11,7 @@ class CartaSacerdote extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		Map<Enum<?>, Integer> porSimbolo = new HashMap<Enum<?>, Integer>();
 		for (Melhoria m : j.getTabuleiroJogador().getTodasMelhorias()) {
 			Integer atual = porSimbolo.get(m.getSimbolo());

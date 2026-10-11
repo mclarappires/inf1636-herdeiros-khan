@@ -10,7 +10,7 @@ class CartaBajulador extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int provincias = 0;
 		for (Provincia p : t.getProvincias()) {
 			if (p.isDoKhan()

@@ -9,9 +9,9 @@ class CartaYurtsPorRegiao extends CartaConselheiroAberto {
 
 	//a região com menos yurts decide se a carta foi cumprida
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int menor = Integer.MAX_VALUE;
-		for (regiao r : regiao.values()) {
+		for (Regiao r : Regiao.values()) {
 			menor = Math.min(menor, ContagemDeYurts.naRegiao(j.getCor(), t, r));
 		}
 		return menor;

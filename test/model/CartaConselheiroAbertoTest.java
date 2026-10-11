@@ -11,7 +11,7 @@ public class CartaConselheiroAbertoTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
 
-	private tabuleiro mapa;
+	private Tabuleiro mapa;
 	private parada naChina;
 	private parada naPersia;
 	private Jogador azul;
@@ -19,15 +19,15 @@ public class CartaConselheiroAbertoTest {
 
 	@Before
 	public void montarCenario() {
-		karakorum inicio = new karakorum(0);
-		naChina = new parada(1, 1, 1, regiao.CHINA);
-		naPersia = new parada(2, 1, 1, regiao.PERSIA);
-		mapa = new tabuleiro();
+		Karakorum inicio = new Karakorum(0);
+		naChina = new parada(1, 1, 1, Regiao.CHINA);
+		naPersia = new parada(2, 1, 1, Regiao.PERSIA);
+		mapa = new Tabuleiro();
 		mapa.adicionarParada(inicio);
 		mapa.adicionarParada(naChina);
 		mapa.adicionarParada(naPersia);
-		azul = new Jogador(cor.AZUL, Heroi.OGEDEI, inicio, 0);
-		vermelho = new Jogador(cor.VERMELHO, Heroi.OGEDEI, inicio, 0);
+		azul = new Jogador(Cor.AZUL, Heroi.OGEDEI, inicio, 0);
+		vermelho = new Jogador(Cor.VERMELHO, Heroi.OGEDEI, inicio, 0);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -65,8 +65,8 @@ public class CartaConselheiroAbertoTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void yurtsPorRegiao_semYurtNaRussia_naoCumprida() {
-		naChina.adicionarYurt(new yurt(cor.AZUL));
-		naPersia.adicionarYurt(new yurt(cor.AZUL));
+		naChina.adicionarYurt(new Yurt(Cor.AZUL));
+		naPersia.adicionarYurt(new Yurt(Cor.AZUL));
 		assertFalse("Falta yurt na Rússia", new CartaYurtsPorRegiao(1).cumprida(azul, mapa));
 	}
 
@@ -84,7 +84,7 @@ public class CartaConselheiroAbertoTest {
 
 	private void receberEspadas(Jogador j, int quantidade) {
 		for (int i = 0; i < quantidade; i++) {
-			j.receberTributo(tipoTributo.ESPADA);
+			j.receberTributo(TipoTributo.ESPADA);
 		}
 	}
 

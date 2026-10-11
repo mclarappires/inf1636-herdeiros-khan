@@ -26,7 +26,7 @@ abstract class CartaConselheiroSecreto {
 	}
 
 	/** Quanto o jogador já tem daquilo que a carta pede. */
-	abstract int medir(Jogador j, tabuleiro t);
+	abstract int medir(Jogador j, Tabuleiro t);
 
 	String getNome() {
 		return nome;

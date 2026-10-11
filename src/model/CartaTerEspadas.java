@@ -8,8 +8,8 @@ class CartaTerEspadas extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
-		return j.getDisponivel(tipoTributo.ESPADA);
+	int medir(Jogador j, Tabuleiro t) {
+		return j.getDisponivel(TipoTributo.ESPADA);
 	}
 
 }

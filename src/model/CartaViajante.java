@@ -8,7 +8,7 @@ class CartaViajante extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		return ContagemDeYurts.maiorGrupo(j.getCor(), t);
 	}
 

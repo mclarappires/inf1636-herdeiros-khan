@@ -10,8 +10,8 @@ public class CartaConselheiroSecretoTest {
 	private static final int DEFAULT_TIMEOUT = 2000;
 
 	// a - b - c em linha; d isolada; dupla ligada a Karakorum
-	private tabuleiro mapa;
-	private karakorum inicio;
+	private Tabuleiro mapa;
+	private Karakorum inicio;
 	private parada a;
 	private parada b;
 	private parada c;
@@ -21,17 +21,17 @@ public class CartaConselheiroSecretoTest {
 
 	@Before
 	public void montarCenario() {
-		inicio = new karakorum(0);
-		a = new parada(1, 1, 1, regiao.CHINA);
-		b = new parada(2, 1, 1, regiao.CHINA);
-		c = new parada(3, 1, 1, regiao.CHINA);
-		d = new parada(4, 1, 1, regiao.PERSIA);
-		dupla = new parada(5, 2, 2, regiao.RUSSIA);
+		inicio = new Karakorum(0);
+		a = new parada(1, 1, 1, Regiao.CHINA);
+		b = new parada(2, 1, 1, Regiao.CHINA);
+		c = new parada(3, 1, 1, Regiao.CHINA);
+		d = new parada(4, 1, 1, Regiao.PERSIA);
+		dupla = new parada(5, 2, 2, Regiao.RUSSIA);
 		a.ligar(b);
 		b.ligar(c);
 		inicio.ligar(dupla);
 
-		mapa = new tabuleiro();
+		mapa = new Tabuleiro();
 		mapa.adicionarParada(inicio);
 		mapa.adicionarParada(a);
 		mapa.adicionarParada(b);
@@ -39,7 +39,7 @@ public class CartaConselheiroSecretoTest {
 		mapa.adicionarParada(d);
 		mapa.adicionarParada(dupla);
 
-		azul = new Jogador(cor.AZUL, Heroi.OGEDEI, inicio, 0);
+		azul = new Jogador(Cor.AZUL, Heroi.OGEDEI, inicio, 0);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -69,15 +69,15 @@ public class CartaConselheiroSecretoTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void medir_mensageiro_ignoraYurtDoToluiEmKarakorum() {
-		Jogador tolui = new Jogador(cor.PRETO, Heroi.TOLUI, inicio, 0);
-		dupla.adicionarYurt(new yurt(cor.PRETO));
+		Jogador tolui = new Jogador(Cor.PRETO, Heroi.TOLUI, inicio, 0);
+		dupla.adicionarYurt(new Yurt(Cor.PRETO));
 		assertEquals("Só a parada dupla conta", 1, new CartaMensageiro().medir(tolui, mapa));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void medir_bajulador_ignoraProvinciaQueNaoEDoKhan() {
-		adicionarProvinciaEntreAEB(new Provincia(10, tipoTributo.MOEDA));
-		adicionarProvinciaEntreAEB(new Provincia(11, tipoTributo.MOEDA, true));
+		adicionarProvinciaEntreAEB(new Provincia(10, TipoTributo.MOEDA));
+		adicionarProvinciaEntreAEB(new Provincia(11, TipoTributo.MOEDA, true));
 		colocarYurts(a, b);
 		assertEquals("Só a província do Khan conta", 1, new CartaBajulador().medir(azul, mapa));
 	}
@@ -106,7 +106,7 @@ public class CartaConselheiroSecretoTest {
 
 	private void colocarYurts(parada... paradas) {
 		for (parada p : paradas) {
-			p.adicionarYurt(new yurt(cor.AZUL));
+			p.adicionarYurt(new Yurt(Cor.AZUL));
 		}
 	}
 

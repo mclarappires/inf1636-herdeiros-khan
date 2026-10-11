@@ -14,7 +14,7 @@ class CartaColunasComMelhorias extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int colunas = 0;
 		for (Coluna c : Coluna.values()) {
 			if (j.getTabuleiroJogador().contarMelhorias(c) >= melhoriasPorColuna) {

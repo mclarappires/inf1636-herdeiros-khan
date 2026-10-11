@@ -11,7 +11,7 @@ class CartaColecionador extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		Set<Enum<?>> simbolos = new HashSet<Enum<?>>();
 		for (Melhoria m : j.getTabuleiroJogador().getTodasMelhorias()) {
 			simbolos.add(m.getSimbolo());

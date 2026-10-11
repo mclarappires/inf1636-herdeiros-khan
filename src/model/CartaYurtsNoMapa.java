@@ -8,7 +8,7 @@ class CartaYurtsNoMapa extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		return ContagemDeYurts.noMapa(j.getCor(), t);
 	}
 

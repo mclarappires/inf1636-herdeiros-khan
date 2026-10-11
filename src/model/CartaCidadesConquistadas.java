@@ -8,10 +8,10 @@ class CartaCidadesConquistadas extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int total = 0;
-		for (cidade c : t.getCidadesConquistadas()) {
-			yurt y = c.getYurtDeConquista();
+		for (Cidade c : t.getCidadesConquistadas()) {
+			Yurt y = c.getYurtDeConquista();
 			if (y != null && y.getDono() == j.getCor()) {
 				total++;
 			}

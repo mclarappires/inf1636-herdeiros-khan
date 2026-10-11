@@ -270,6 +270,19 @@ class Jogador {
 		if (local == null) {
 			throw new IllegalArgumentException("Parada nula");
 		}
+		return entregar(local, local.getConselheiro(), oferta);
+	}
+
+	/** Entrega em Karakorum: 3 tesouros dos tipos pedidos ali valem 2 votos. */
+	PecaBonus entregarTesouros(Karakorum local, Map<TipoTesouro, Integer> oferta) {
+		exigirTurnoAtivo();
+		if (local == null) {
+			throw new IllegalArgumentException("Parada nula");
+		}
+		return entregar(local, local.getConselheiro(), oferta);
+	}
+
+	private PecaBonus entregar(parada local, Conselheiro conselheiro, Map<TipoTesouro, Integer> oferta) {
 		if (oferta == null) {
 			throw new IllegalArgumentException("Oferta nula");
 		}
@@ -277,7 +290,6 @@ class Jogador {
 			throw new IllegalStateException("O peão não está na parada " + local.getId());
 		}
 		Map<TipoTesouro, Integer> reais = separarTesourosReais(oferta);
-		Conselheiro conselheiro = local.getConselheiro();
 		if (!conselheiro.aceita(oferta)) {
 			throw new IllegalArgumentException("O conselheiro não aceita essa oferta");
 		}
@@ -487,7 +499,7 @@ class Jogador {
 	}
 
 	/** Tesouros do tipo mais os tesouros virtuais do turno; usado pelas cartas abertas. */
-	int getDisponivel(tipoTesouro tipo) {
+	int getDisponivel(TipoTesouro tipo) {
 		return contar(tesouros, tipo) + contar(tesourosVirtuais, tipo);
 	}
 

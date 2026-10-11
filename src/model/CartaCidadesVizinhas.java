@@ -25,9 +25,9 @@ class CartaCidadesVizinhas extends CartaConselheiroSecreto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int cidades = 0;
-		for (cidade c : t.getCidades()) {
+		for (Cidade c : t.getCidades()) {
 			if (ContagemDeYurts.nasParadas(j.getCor(), c.getParadasAdjacentes()) >= minimoYurts) {
 				cidades++;
 			}

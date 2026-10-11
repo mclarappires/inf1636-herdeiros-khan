@@ -8,9 +8,9 @@ class CartaTerTesouros extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int total = 0;
-		for (tipoTesouro tipo : tipoTesouro.values()) {
+		for (TipoTesouro tipo : TipoTesouro.values()) {
 			total += j.getDisponivel(tipo);
 		}
 		return total;

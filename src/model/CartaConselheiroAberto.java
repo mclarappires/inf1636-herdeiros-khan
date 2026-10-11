@@ -22,13 +22,13 @@ abstract class CartaConselheiroAberto {
 	}
 
 	/** Quanto o jogador já tem daquilo que a carta pede. */
-	abstract int medir(Jogador j, tabuleiro t);
+	abstract int medir(Jogador j, Tabuleiro t);
 
 	int getLimite() {
 		return limite;
 	}
 
-	boolean cumprida(Jogador j, tabuleiro t) {
+	boolean cumprida(Jogador j, Tabuleiro t) {
 		if (j == null || t == null) {
 			throw new IllegalArgumentException("Jogador e tabuleiro são obrigatórios");
 		}
@@ -40,7 +40,7 @@ abstract class CartaConselheiroAberto {
 	}
 
 	/** Dá o voto da carta ao jogador que cumpriu o objetivo primeiro. */
-	void reivindicar(Jogador j, tabuleiro t) {
+	void reivindicar(Jogador j, Tabuleiro t) {
 		if (reivindicada) {
 			throw new IllegalStateException("Carta já foi reivindicada");
 		}

@@ -8,9 +8,9 @@ class CartaTesourosDiferentes extends CartaConselheiroAberto {
 	}
 
 	@Override
-	int medir(Jogador j, tabuleiro t) {
+	int medir(Jogador j, Tabuleiro t) {
 		int tipos = 0;
-		for (tipoTesouro tipo : tipoTesouro.values()) {
+		for (TipoTesouro tipo : TipoTesouro.values()) {
 			if (j.getDisponivel(tipo) > 0) {
 				tipos++;
 			}
