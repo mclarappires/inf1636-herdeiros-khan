@@ -1,6 +1,7 @@
 package model;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -180,6 +181,18 @@ class tabuleiro {
  
 	List<cidade> getCidadesConquistadas() {
 		return Collections.unmodifiableList(cidadesConquistadas);
+	}
+
+	Collection<parada> getParadas() {
+		return Collections.unmodifiableCollection(paradas.values());
+	}
+
+	Collection<Provincia> getProvincias() {
+		return Collections.unmodifiableCollection(provincias.values());
+	}
+
+	Collection<cidade> getCidades() {
+		return Collections.unmodifiableCollection(cidades.values());
 	}
  
 	int getQuantidadeCidadesNaoReveladas() {

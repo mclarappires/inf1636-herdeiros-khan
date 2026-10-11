@@ -108,4 +108,13 @@ class TabuleiroJogador {
 		return Collections.unmodifiableList(daColuna);
 	}
 
+	/** Melhorias das quatro colunas, inclusive da branca. */
+	List<Melhoria> getTodasMelhorias() {
+		List<Melhoria> todas = new LinkedList<Melhoria>();
+		for (Coluna c : Coluna.values()) {
+			todas.addAll(melhorias.get(c));
+		}
+		return todas;
+	}
+
 }

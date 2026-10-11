@@ -49,6 +49,11 @@ class Melhoria {
 		return tesouro;
 	}
 
+	/** Símbolo impresso na melhoria; melhorias de tesouro têm o símbolo do próprio tesouro. */
+	Enum<?> getSimbolo() {
+		return tipo == TipoMelhoria.TESOURO ? tesouro : tipo;
+	}
+
 	/** Dá ao jogador o recurso da melhoria; chamado quando a coluna dela é ativada. */
 	void aplicar(Jogador j) {
 		if (j == null) {

@@ -1,0 +1,113 @@
+package model;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class CartaConselheiroSecretoTest {
+
+	private static final int DEFAULT_TIMEOUT = 2000;
+
+	// a - b - c em linha; d isolada; dupla ligada a Karakorum
+	private tabuleiro mapa;
+	private karakorum inicio;
+	private parada a;
+	private parada b;
+	private parada c;
+	private parada d;
+	private parada dupla;
+	private Jogador azul;
+
+	@Before
+	public void montarCenario() {
+		inicio = new karakorum(0);
+		a = new parada(1, 1, 1, regiao.CHINA);
+		b = new parada(2, 1, 1, regiao.CHINA);
+		c = new parada(3, 1, 1, regiao.CHINA);
+		d = new parada(4, 1, 1, regiao.PERSIA);
+		dupla = new parada(5, 2, 2, regiao.RUSSIA);
+		a.ligar(b);
+		b.ligar(c);
+		inicio.ligar(dupla);
+
+		mapa = new tabuleiro();
+		mapa.adicionarParada(inicio);
+		mapa.adicionarParada(a);
+		mapa.adicionarParada(b);
+		mapa.adicionarParada(c);
+		mapa.adicionarParada(d);
+		mapa.adicionarParada(dupla);
+
+		azul = new Jogador(cor.AZUL, Heroi.OGEDEI, inicio, 0);
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void votosFinais_soldadoComSeteMelhorias_valeDoisVotos() {
+		colocarPunhos(Coluna.PRIMEIRA, 4);
+		colocarPunhos(Coluna.SEGUNDA, 3);
+		assertEquals("7 melhorias atingem o 2º nível", 2, new CartaSoldado().votosFinais(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void votosFinais_soldadoAbaixoDoPrimeiroNivel_valeZero() {
+		colocarPunhos(Coluna.PRIMEIRA, 3);
+		assertEquals("3 melhorias não chegam a 4", 0, new CartaSoldado().votosFinais(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_sacerdoteComTresMelhoriasIguais_contaUmPar() {
+		colocarPunhos(Coluna.PRIMEIRA, 3);
+		assertEquals("3 melhorias iguais formam 1 par", 1, new CartaSacerdote().medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_viajante_contaMaiorGrupoENaoOTotal() {
+		colocarYurts(a, b, c, d);
+		assertEquals("a-b-c formam o maior grupo; d está isolada", 3, new CartaViajante().medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_mensageiro_ignoraYurtDoToluiEmKarakorum() {
+		Jogador tolui = new Jogador(cor.PRETO, Heroi.TOLUI, inicio, 0);
+		dupla.adicionarYurt(new yurt(cor.PRETO));
+		assertEquals("Só a parada dupla conta", 1, new CartaMensageiro().medir(tolui, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_bajulador_ignoraProvinciaQueNaoEDoKhan() {
+		adicionarProvinciaEntreAEB(new Provincia(10, tipoTributo.MOEDA));
+		adicionarProvinciaEntreAEB(new Provincia(11, tipoTributo.MOEDA, true));
+		colocarYurts(a, b);
+		assertEquals("Só a província do Khan conta", 1, new CartaBajulador().medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
+	public void construtor_limiaresForaDeOrdem_lancaExcecao() {
+		new CartaCidadesVizinhas("Inválida", 1, 3, 3, 4);
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criarBaralho_temAsDezCartas() {
+		assertEquals("O baralho secreto tem 10 cartas", 10, CartaConselheiroSecreto.criarBaralho().size());
+	}
+
+	private void colocarPunhos(Coluna coluna, int quantidade) {
+		for (int i = 0; i < quantidade; i++) {
+			azul.getTabuleiroJogador().colocarMelhoria(new Melhoria(TipoMelhoria.PUNHO, coluna), coluna);
+		}
+	}
+
+	private void adicionarProvinciaEntreAEB(Provincia p) {
+		p.ligarParada(a);
+		p.ligarParada(b);
+		mapa.adicionarProvincia(p);
+	}
+
+	private void colocarYurts(parada... paradas) {
+		for (parada p : paradas) {
+			p.adicionarYurt(new yurt(cor.AZUL));
+		}
+	}
+
+}

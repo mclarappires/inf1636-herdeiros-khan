@@ -58,6 +58,11 @@ class parada {
 		return Collections.unmodifiableCollection(adjacentes.values());
 	}
 	
+	/** Paradas duplas aceitam 2 yurts; Karakorum não aceita nenhum e não é dupla. */
+	boolean isDupla() {
+		return capacidadeYurts == 2;
+	}
+
 	boolean podeConstruirYurt() {
 		return yurts.size() < capacidadeYurts;
 	}

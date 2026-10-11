@@ -12,19 +12,29 @@ class Provincia {
 	private final int id;
 	private final tipoTributo tipo;
 	private int quantidade;
-	
+	private final boolean doKhan; //províncias em que o peão do Khan pode ser colocado
+
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
-	
+
 	Provincia(int id, tipoTributo tipo){
+		this(id, tipo, false);
+	}
+
+	Provincia(int id, tipoTributo tipo, boolean doKhan){
 		if(tipo == null) {
 			throw new IllegalArgumentException("Província precisa de um tipo de tributo");
 		}
 		this.id = id;
 		this.tipo = tipo;
+		this.doKhan = doKhan;
 	}
-	
+
 	int getId() {
 		return id;
+	}
+
+	boolean isDoKhan() {
+		return doKhan;
 	}
 	
 	tipoTributo getTipo(){

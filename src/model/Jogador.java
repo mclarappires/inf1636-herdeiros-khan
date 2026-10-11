@@ -486,6 +486,11 @@ class Jogador {
 		return contar(tesouros, tipo);
 	}
 
+	/** Tesouros do tipo mais os tesouros virtuais do turno; usado pelas cartas abertas. */
+	int getDisponivel(tipoTesouro tipo) {
+		return contar(tesouros, tipo) + contar(tesourosVirtuais, tipo);
+	}
+
 	/** Tesouros não entregues; usado no desempate. */
 	int getQuantidadeTesouros() {
 		int total = 0;
