@@ -1,6 +1,6 @@
 package model;
 
-enum tipoTesouro {
+enum TipoTesouro {
 
 	PELES,
 	FERRO,

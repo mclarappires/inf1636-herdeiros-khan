@@ -17,10 +17,10 @@ public class PeaoTest {
 
 	@Before
 	public void montarCenario() {
-		simples = new parada(1, 1, 1, regiao.CHINA);
-		dupla = new parada(2, 2, 2, regiao.CHINA);
+		simples = new parada(1, 1, 1, Regiao.CHINA);
+		dupla = new parada(2, 2, 2, Regiao.CHINA);
 		simples.ligar(dupla);
-		peao = new Peao(cor.AZUL, simples);
+		peao = new Peao(Cor.AZUL, simples);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -31,14 +31,14 @@ public class PeaoTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void moverPara_liberaAVagaDaParadaAnterior() {
-		Peao outro = new Peao(cor.VERMELHO, dupla);
+		Peao outro = new Peao(Cor.VERMELHO, dupla);
 		peao.moverPara(dupla);
 		assertTrue("A parada simples ficou vazia", outro.podeTerminarEm(simples));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void podeTerminarEm_paradaSimplesOcupadaPorOutroPeao_retornaFalso() {
-		Peao outro = new Peao(cor.VERMELHO, dupla);
+		Peao outro = new Peao(Cor.VERMELHO, dupla);
 		assertFalse("Parada simples só aceita 1 peão", outro.podeTerminarEm(simples));
 	}
 
@@ -49,7 +49,7 @@ public class PeaoTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void podeTerminarEm_paradaDuplaComUmPeao_retornaVerdadeiro() {
-		new Peao(cor.VERMELHO, dupla);
+		new Peao(Cor.VERMELHO, dupla);
 		assertTrue("Parada dupla aceita 2 peões", peao.podeTerminarEm(dupla));
 	}
 

@@ -96,7 +96,7 @@ class TabuleiroJogador {
 	}
 
 	/** Melhorias na coluna da região; definem os votos de influência no fim do jogo. */
-	int contarMelhorias(regiao r) {
+	int contarMelhorias(Regiao r) {
 		return contarMelhorias(Coluna.daRegiao(r));
 	}
 

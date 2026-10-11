@@ -1,13 +1,13 @@
 package model;
 
-enum regiao {
+enum Regiao {
 	RUSSIA("Rússia"),
 	CHINA("China"),
 	PERSIA("Pérsia");
 	
 	private final String nome;
 	
-	private regiao(String nome) {
+	private Regiao(String nome) {
 		this.nome = nome;
 	}
 	

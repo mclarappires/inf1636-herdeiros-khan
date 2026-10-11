@@ -10,8 +10,8 @@ class CarregadorMapa {
 	private CarregadorMapa() {
 	}
 
-	static tabuleiro carregar(Reader fonte, Random random) throws IOException {
-		tabuleiro tabuleiro = new tabuleiro(random);
+	static Tabuleiro carregar(Reader fonte, Random random) throws IOException {
+		Tabuleiro tabuleiro = new Tabuleiro(random);
 		BufferedReader leitor = new BufferedReader(fonte);
 		String linha;
 		int numero = 0;
@@ -35,15 +35,15 @@ class CarregadorMapa {
 		return tabuleiro;
 	}
 
-	private static void interpretar(tabuleiro t, String[] p) {
+	private static void interpretar(Tabuleiro t, String[] p) {
 		String comando = p[0].toUpperCase();
 		switch (comando) {
 		case "PARADA":
 			exigir(p, 2, 5);
 			int proximo = 2;
-			regiao regiaoLida = null;
+			Regiao regiaoLida = null;
 			if (p.length > proximo && !ehNumero(p[proximo])) {
-				regiaoLida = regiao.valueOf(p[proximo].toUpperCase());
+				regiaoLida = Regiao.valueOf(p[proximo].toUpperCase());
 				proximo++;
 			}
 			int peoes = 1;
@@ -58,15 +58,15 @@ class CarregadorMapa {
 			break;
 		case "KARAKORUM":
 			exigir(p, 2, 2);
-			t.adicionarParada(new karakorum(inteiro(p[1])));
+			t.adicionarParada(new Karakorum(inteiro(p[1])));
 			break;
 		case "PROVINCIA":
 			exigir(p, 3, 3);
-			t.adicionarProvincia(new Provincia(inteiro(p[1]), tipoTributo.valueOf(p[2].toUpperCase())));
+			t.adicionarProvincia(new Provincia(inteiro(p[1]), TipoTributo.valueOf(p[2].toUpperCase())));
 			break;
 		case "CIDADE":
 			exigir(p, 3, 3);
-			t.adicionarCidade(new cidade(inteiro(p[1]), regiao.valueOf(p[2].toUpperCase())));
+			t.adicionarCidade(new Cidade(inteiro(p[1]), Regiao.valueOf(p[2].toUpperCase())));
 			break;
 		case "ROTA":
 			exigir(p, 3, 3);

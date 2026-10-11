@@ -2,10 +2,10 @@ package model;
 
 class Peao {
 
-	private final cor dono;
+	private final Cor dono;
 	private parada posicao;
 
-	Peao(cor dono, parada inicial){
+	Peao(Cor dono, parada inicial){
 		if (dono == null) {
 			throw new IllegalArgumentException("Peão precisa de um dono");
 		}
@@ -17,7 +17,7 @@ class Peao {
 		inicial.entrarPeao(this);
 	}
 
-	cor getDono() {
+	Cor getDono() {
 		return dono;
 	}
 

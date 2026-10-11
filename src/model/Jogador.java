@@ -13,19 +13,19 @@ class Jogador {
 	static final int YURTS_INICIAIS = 12;
 	static final int CUSTO_MELHORIA = 2; //em moedas
 
-	private final cor cor;
+	private final Cor cor;
 	private final Heroi heroi;
 	private int votos = 0;
 	private int yurtsDisponiveis = YURTS_INICIAIS;
 
-	private final Map<tipoTesouro, Integer> tesouros = new HashMap<tipoTesouro, Integer>();
-	private final Map<tipoTributo, Integer> tributos = new HashMap<tipoTributo, Integer>();
+	private final Map<TipoTesouro, Integer> tesouros = new HashMap<TipoTesouro, Integer>();
+	private final Map<TipoTributo, Integer> tributos = new HashMap<TipoTributo, Integer>();
 
 	private final Map<Coluna, PecaAtivacao> pecasAtivacao = new HashMap<Coluna, PecaAtivacao>();
 	private final TabuleiroJogador tabuleiroJogador;
 	private final List<Peao> peoes = new LinkedList<Peao>();
 
-	private final Map<pecaBonus, Boolean> bonus = new HashMap<pecaBonus, Boolean>(); //peça -> já foi usada
+	private final Map<PecaBonus, Boolean> bonus = new HashMap<PecaBonus, Boolean>(); //peça -> já foi usada
 	private CartaConselheiroSecreto cartaSecreta = null;
 
 	//ESTADO DO TURNO (vale da ativação da coluna até encerrarTurno)
@@ -37,13 +37,13 @@ class Jogador {
 	private boolean khanPendente = false;
 
 	//recursos dados por ícones e melhorias: não acumulam de um turno para o outro
-	private final Map<tipoTributo, Integer> tributosVirtuais = new HashMap<tipoTributo, Integer>();
-	private final Map<tipoTesouro, Integer> tesourosVirtuais = new HashMap<tipoTesouro, Integer>();
+	private final Map<TipoTributo, Integer> tributosVirtuais = new HashMap<TipoTributo, Integer>();
+	private final Map<TipoTesouro, Integer> tesourosVirtuais = new HashMap<TipoTesouro, Integer>();
 
 	private final Set<parada> paradasVisitadas = new HashSet<parada>();
 	private final Map<Integer, Integer> tesourosTomadosNoTurno = new HashMap<Integer, Integer>(); //por id de cidade
 
-	Jogador(cor cor, Heroi heroi, karakorum inicial, int moedasIniciais){
+	Jogador(Cor cor, Heroi heroi, Karakorum inicial, int moedasIniciais){
 		if (cor == null) {
 			throw new IllegalArgumentException("Jogador precisa de uma cor");
 		}
@@ -66,11 +66,11 @@ class Jogador {
 		for (int i = 0; i < heroi.getQuantidadePeoes(); i++) {
 			peoes.add(new Peao(cor, inicial));
 		}
-		somar(tributos, tipoTributo.MOEDA, moedasIniciais);
+		somar(tributos, TipoTributo.MOEDA, moedasIniciais);
 
 		//Tolui começa com um yurt em Karakorum
 		if (heroi == Heroi.TOLUI) {
-			inicial.colocarYurtInicial(new yurt(cor));
+			inicial.colocarYurtInicial(new Yurt(cor));
 			yurtsDisponiveis--;
 		}
 	}
@@ -101,7 +101,7 @@ class Jogador {
 		IconesBase icones = heroi.getIconesBase(coluna);
 		movimentosRestantes = icones.getCavalos();
 		punhosRestantes = icones.getPunhos();
-		somar(tributosVirtuais, tipoTributo.MOEDA, icones.getMoedas());
+		somar(tributosVirtuais, TipoTributo.MOEDA, icones.getMoedas());
 		khanPendente = icones.temKhan();
 
 		for (Melhoria m : tabuleiroJogador.getMelhorias(coluna)) {
@@ -176,23 +176,23 @@ class Jogador {
 	 * Toma um tesouro de uma cidade adjacente a uma parada visitada. O primeiro tesouro de
 	 * cada cidade no turno custa 1 espada e os seguintes 2. Devolve true se a cidade foi conquistada.
 	 */
-	boolean atacarCidade(tabuleiro tabuleiro, int idCidade, tipoTesouro tipo) {
+	boolean atacarCidade(Tabuleiro tabuleiro, int idCidade, TipoTesouro tipo) {
 		exigirTurnoAtivo();
 		if (tabuleiro == null) {
 			throw new IllegalArgumentException("Tabuleiro nulo");
 		}
-		cidade alvo = tabuleiro.getCidade(idCidade);
+		Cidade alvo = tabuleiro.getCidade(idCidade);
 		if (!visitouParadaJuntoDe(alvo)) {
 			throw new IllegalArgumentException("Cidade " + idCidade
 					+ " não é adjacente a nenhuma parada visitada no turno");
 		}
 
 		int jaTomados = contar(tesourosTomadosNoTurno, idCidade);
-		int custo = cidade.custoEmEspadas(jaTomados + 1) - cidade.custoEmEspadas(jaTomados);
-		tipoTributo pagamento = tipoTributo.ESPADA;
+		int custo = Cidade.custoEmEspadas(jaTomados + 1) - Cidade.custoEmEspadas(jaTomados);
+		TipoTributo pagamento = TipoTributo.ESPADA;
 		//Ogedei pode pagar com uma moeda o primeiro tesouro de uma cidade
-		if (heroi == Heroi.OGEDEI && jaTomados == 0 && getDisponivel(tipoTributo.ESPADA) < custo) {
-			pagamento = tipoTributo.MOEDA;
+		if (heroi == Heroi.OGEDEI && jaTomados == 0 && getDisponivel(TipoTributo.ESPADA) < custo) {
+			pagamento = TipoTributo.MOEDA;
 		}
 		if (getDisponivel(pagamento) < custo) {
 			throw new IllegalStateException("Faltam espadas para atacar a cidade " + idCidade);
@@ -204,7 +204,7 @@ class Jogador {
 		somar(tesourosTomadosNoTurno, idCidade, 1);
 
 		if (conquistou && yurtsDisponiveis > 0) {
-			alvo.colocarYurtDeConquista(new yurt(cor));
+			alvo.colocarYurtDeConquista(new Yurt(cor));
 			yurtsDisponiveis--;
 		}
 		return conquistou;
@@ -226,8 +226,8 @@ class Jogador {
 		if (!local.podeConstruirYurt()) {
 			throw new IllegalStateException("Parada " + local.getId() + " não aceita mais yurts");
 		}
-		pagar(tipoTributo.YURT, 1);
-		local.adicionarYurt(new yurt(cor));
+		pagar(TipoTributo.YURT, 1);
+		local.adicionarYurt(new Yurt(cor));
 		yurtsDisponiveis--;
 	}
 
@@ -248,12 +248,12 @@ class Jogador {
 		if (m == null) {
 			throw new IllegalArgumentException("Melhoria nula");
 		}
-		if (getDisponivel(tipoTributo.MOEDA) < CUSTO_MELHORIA) {
+		if (getDisponivel(TipoTributo.MOEDA) < CUSTO_MELHORIA) {
 			throw new IllegalStateException(
 					"São necessárias " + CUSTO_MELHORIA + " moedas para comprar uma melhoria");
 		}
 		tabuleiroJogador.colocarMelhoria(m, m.getColuna());
-		pagar(tipoTributo.MOEDA, CUSTO_MELHORIA);
+		pagar(TipoTributo.MOEDA, CUSTO_MELHORIA);
 	}
 
 	/** Coloca na coluna branca a melhoria ganha ao completar uma linha do tabuleiro do jogador. */
@@ -265,7 +265,7 @@ class Jogador {
 	 * Entrega tesouros ao conselheiro da parada em que o peão está e recebe os votos.
 	 * Devolve a peça de bônus do conselheiro, ou null se outro jogador já a pegou.
 	 */
-	pecaBonus entregarTesouros(paradaConselheiro local, Map<tipoTesouro, Integer> oferta) {
+	PecaBonus entregarTesouros(paradaConselheiro local, Map<TipoTesouro, Integer> oferta) {
 		exigirTurnoAtivo();
 		if (local == null) {
 			throw new IllegalArgumentException("Parada nula");
@@ -276,23 +276,23 @@ class Jogador {
 		if (peaoAtivo.getPosicao() != local) {
 			throw new IllegalStateException("O peão não está na parada " + local.getId());
 		}
-		Map<tipoTesouro, Integer> reais = separarTesourosReais(oferta);
+		Map<TipoTesouro, Integer> reais = separarTesourosReais(oferta);
 		Conselheiro conselheiro = local.getConselheiro();
 		if (!conselheiro.aceita(oferta)) {
 			throw new IllegalArgumentException("O conselheiro não aceita essa oferta");
 		}
 
-		for (Map.Entry<tipoTesouro, Integer> e : oferta.entrySet()) {
+		for (Map.Entry<TipoTesouro, Integer> e : oferta.entrySet()) {
 			int doJogador = contar(reais, e.getKey());
 			somar(tesouros, e.getKey(), -doJogador);
 			somar(tesourosVirtuais, e.getKey(), doJogador - e.getValue());
 		}
 
 		votos += conselheiro.getVotosPorEntrega();
-		pecaBonus peca = conselheiro.coletarBonus();
+		PecaBonus peca = conselheiro.coletarBonus();
 		if (peca != null) {
 			bonus.put(peca, false);
-			if (peca == pecaBonus.VOTO) { //o voto extra é imediato
+			if (peca == PecaBonus.VOTO) { //o voto extra é imediato
 				usarBonus(peca);
 			}
 		}
@@ -303,12 +303,12 @@ class Jogador {
 	 * Calcula quanto de cada tipo da oferta sai dos tesouros do jogador. Os tesouros virtuais
 	 * do turno cobrem o resto, mas toda entrega precisa de pelo menos 1 tesouro real.
 	 */
-	private Map<tipoTesouro, Integer> separarTesourosReais(Map<tipoTesouro, Integer> oferta) {
-		Map<tipoTesouro, Integer> reais = new HashMap<tipoTesouro, Integer>();
-		tipoTesouro trocavel = null; //tipo coberto só por virtual, mas que o jogador também tem de verdade
+	private Map<TipoTesouro, Integer> separarTesourosReais(Map<TipoTesouro, Integer> oferta) {
+		Map<TipoTesouro, Integer> reais = new HashMap<TipoTesouro, Integer>();
+		TipoTesouro trocavel = null; //tipo coberto só por virtual, mas que o jogador também tem de verdade
 
-		for (Map.Entry<tipoTesouro, Integer> e : oferta.entrySet()) {
-			tipoTesouro tipo = e.getKey();
+		for (Map.Entry<TipoTesouro, Integer> e : oferta.entrySet()) {
+			TipoTesouro tipo = e.getKey();
 			if (tipo == null || e.getValue() == null || e.getValue() <= 0) {
 				throw new IllegalArgumentException("Oferta inválida: " + e);
 			}
@@ -333,7 +333,7 @@ class Jogador {
 	}
 
 	/** Usa uma peça de bônus, que só vale uma vez. */
-	void usarBonus(pecaBonus peca) {
+	void usarBonus(PecaBonus peca) {
 		exigirTurnoAtivo();
 		Boolean usada = bonus.get(peca);
 		if (usada == null) {
@@ -349,13 +349,13 @@ class Jogador {
 			votos++;
 			break;
 		case ESPADAS:
-			somar(tributos, tipoTributo.ESPADA, 2);
+			somar(tributos, TipoTributo.ESPADA, 2);
 			break;
 		case MOEDAS:
-			somar(tributos, tipoTributo.MOEDA, 2);
+			somar(tributos, TipoTributo.MOEDA, 2);
 			break;
 		case YURTS:
-			somar(tributos, tipoTributo.YURT, 2);
+			somar(tributos, TipoTributo.YURT, 2);
 			break;
 		case MOVIMENTOS:
 			movimentosRestantes += 3;
@@ -391,9 +391,9 @@ class Jogador {
 		}
 
 		//Chagatai guarda para os turnos seguintes as espadas que recebeu e não usou
-		int espadasGuardadas = heroi == Heroi.CHAGATAI ? contar(tributosVirtuais, tipoTributo.ESPADA) : 0;
+		int espadasGuardadas = heroi == Heroi.CHAGATAI ? contar(tributosVirtuais, TipoTributo.ESPADA) : 0;
 		tributosVirtuais.clear();
-		somar(tributosVirtuais, tipoTributo.ESPADA, espadasGuardadas);
+		somar(tributosVirtuais, TipoTributo.ESPADA, espadasGuardadas);
 
 		tesourosVirtuais.clear();
 		paradasVisitadas.clear();
@@ -413,25 +413,25 @@ class Jogador {
 		votos += quantidade;
 	}
 
-	void receberTesouro(tipoTesouro tipo) {
+	void receberTesouro(TipoTesouro tipo) {
 		if (tipo == null) {
 			throw new IllegalArgumentException("Tesouro nulo");
 		}
 		somar(tesouros, tipo, 1);
 	}
 
-	void receberTributo(tipoTributo tipo) {
+	void receberTributo(TipoTributo tipo) {
 		if (tipo == null) {
 			throw new IllegalArgumentException("Tributo nulo");
 		}
 		somar(tributos, tipo, 1);
 	}
 
-	void receberTributoVirtual(tipoTributo tipo) {
+	void receberTributoVirtual(TipoTributo tipo) {
 		somar(tributosVirtuais, tipo, 1);
 	}
 
-	void receberTesouroVirtual(tipoTesouro tipo) {
+	void receberTesouroVirtual(TipoTesouro tipo) {
 		somar(tesourosVirtuais, tipo, 1);
 	}
 
@@ -452,7 +452,7 @@ class Jogador {
 
 	//CONSULTAS
 
-	cor getCor() {
+	Cor getCor() {
 		return cor;
 	}
 
@@ -469,20 +469,20 @@ class Jogador {
 	}
 
 	int getMoedas() {
-		return getQuantidade(tipoTributo.MOEDA);
+		return getQuantidade(TipoTributo.MOEDA);
 	}
 
 	/** Peças de tributo que o jogador tem, sem os recursos virtuais do turno. */
-	int getQuantidade(tipoTributo tipo) {
+	int getQuantidade(TipoTributo tipo) {
 		return contar(tributos, tipo);
 	}
 
 	/** Quanto o jogador pode gastar agora: peças de tributo mais recursos virtuais do turno. */
-	int getDisponivel(tipoTributo tipo) {
+	int getDisponivel(TipoTributo tipo) {
 		return contar(tributos, tipo) + contar(tributosVirtuais, tipo);
 	}
 
-	int getQuantidade(tipoTesouro tipo) {
+	int getQuantidade(TipoTesouro tipo) {
 		return contar(tesouros, tipo);
 	}
 
@@ -523,7 +523,7 @@ class Jogador {
 		return Collections.unmodifiableList(peoes);
 	}
 
-	Set<pecaBonus> getBonus() {
+	Set<PecaBonus> getBonus() {
 		return Collections.unmodifiableSet(bonus.keySet());
 	}
 
@@ -548,7 +548,7 @@ class Jogador {
 		return false;
 	}
 
-	private boolean visitouParadaJuntoDe(cidade alvo) {
+	private boolean visitouParadaJuntoDe(Cidade alvo) {
 		for (parada p : paradasVisitadas) {
 			if (alvo.adjacenteA(p)) {
 				return true;
@@ -558,7 +558,7 @@ class Jogador {
 	}
 
 	/** Gasta primeiro os recursos virtuais do turno e depois as peças de tributo. */
-	private void pagar(tipoTributo tipo, int custo) {
+	private void pagar(TipoTributo tipo, int custo) {
 		if (getDisponivel(tipo) < custo) {
 			throw new IllegalStateException("Faltam tributos de " + tipo);
 		}

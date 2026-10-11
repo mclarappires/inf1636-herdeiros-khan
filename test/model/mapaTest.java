@@ -26,7 +26,7 @@ public class mapaTest {
 	private static final int ID_MAXIMO = 60;
 	private static final int ID_KARAKORUM = 1;
 
-	private tabuleiro mapa;
+	private Tabuleiro mapa;
 
 	@Before
 	public void carregarMapa() throws IOException {
@@ -57,7 +57,7 @@ public class mapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_karakorumEhIdentificadoComoKarakorum() {
-		assertTrue("A parada 1 deveria ser o Karakorum", mapa.getParada(ID_KARAKORUM) instanceof karakorum);
+		assertTrue("A parada 1 deveria ser o Karakorum", mapa.getParada(ID_KARAKORUM) instanceof Karakorum);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -69,7 +69,7 @@ public class mapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaRegiaoTemOnzeParadas() {
-		Map<regiao, Integer> contagem = new HashMap<regiao, Integer>();
+		Map<Regiao, Integer> contagem = new HashMap<Regiao, Integer>();
 		for (parada p : paradasDoMapa()) {
 			if (p.getRegiao() != null) {
 				incrementar(contagem, p.getRegiao());
@@ -80,8 +80,8 @@ public class mapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaRegiaoTemTresCidades() {
-		Map<regiao, Integer> contagem = new HashMap<regiao, Integer>();
-		for (cidade c : cidadesDoMapa()) {
+		Map<Regiao, Integer> contagem = new HashMap<Regiao, Integer>();
+		for (Cidade c : cidadesDoMapa()) {
 			incrementar(contagem, c.getRegiao());
 		}
 		assertEquals("Cada regiao deveria ter 3 cidades", todasAsRegioesCom(3), contagem);
@@ -90,7 +90,7 @@ public class mapaTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaCidadeEstaCercadaPorTresParadas() {
 		List<Integer> tamanhos = new ArrayList<Integer>();
-		for (cidade c : cidadesDoMapa()) {
+		for (Cidade c : cidadesDoMapa()) {
 			tamanhos.add(c.getParadasAdjacentes().size());
 		}
 		assertEquals("Toda cidade deveria tocar exatamente 3 paradas",
@@ -100,7 +100,7 @@ public class mapaTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_paradasDeUmaCidadeSaoDaRegiaoDaCidade() {
 		List<Integer> cidadesComParadaDeOutraRegiao = new ArrayList<Integer>();
-		for (cidade c : cidadesDoMapa()) {
+		for (Cidade c : cidadesDoMapa()) {
 			for (parada p : c.getParadasAdjacentes()) {
 				if (p.getRegiao() != c.getRegiao()) {
 					cidadesComParadaDeOutraRegiao.add(c.getId());
@@ -120,7 +120,7 @@ public class mapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaRegiaoTemDuasParadasDuplas() {
-		Map<regiao, Integer> contagem = new HashMap<regiao, Integer>();
+		Map<Regiao, Integer> contagem = new HashMap<Regiao, Integer>();
 		for (parada p : paradasDuplas()) {
 			incrementar(contagem, p.getRegiao());
 		}
@@ -132,7 +132,7 @@ public class mapaTest {
 	public void mapa_paradasEspeciaisIgualamAsPecasDeBonus() {
 		int paradasEspeciais = paradasDuplas().size() + 1;
 		assertEquals("Conselheiros + Karakorum deveriam igualar as pecas de bonus",
-				pecaBonus.values().length, paradasEspeciais);
+				PecaBonus.values().length, paradasEspeciais);
 	}
 
 	// CONEXAO E PROVINCIAS
@@ -144,12 +144,12 @@ public class mapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaTipoDeTributoTemQuatroProvincias() {
-		Map<tipoTributo, Integer> contagem = new HashMap<tipoTributo, Integer>();
+		Map<TipoTributo, Integer> contagem = new HashMap<TipoTributo, Integer>();
 		for (Provincia p : provinciasDoMapa()) {
 			incrementar(contagem, p.getTipo());
 		}
-		Map<tipoTributo, Integer> esperado = new HashMap<tipoTributo, Integer>();
-		for (tipoTributo tipo : tipoTributo.values()) {
+		Map<TipoTributo, Integer> esperado = new HashMap<TipoTributo, Integer>();
+		for (TipoTributo tipo : TipoTributo.values()) {
 			esperado.put(tipo, 4);
 		}
 		assertEquals("Cada tipo de tributo deveria ter 4 provincias", esperado, contagem);
@@ -180,8 +180,8 @@ public class mapaTest {
 		return lista;
 	}
 
-	private List<cidade> cidadesDoMapa() {
-		List<cidade> lista = new ArrayList<cidade>();
+	private List<Cidade> cidadesDoMapa() {
+		List<Cidade> lista = new ArrayList<Cidade>();
 		for (int id = 1; id <= ID_MAXIMO; id++) {
 			try {
 				lista.add(mapa.getCidade(id));
@@ -236,9 +236,9 @@ public class mapaTest {
 		contagem.put(chave, atual == null ? 1 : atual + 1);
 	}
 
-	private Map<regiao, Integer> todasAsRegioesCom(int quantidade) {
-		Map<regiao, Integer> esperado = new HashMap<regiao, Integer>();
-		for (regiao r : regiao.values()) {
+	private Map<Regiao, Integer> todasAsRegioesCom(int quantidade) {
+		Map<Regiao, Integer> esperado = new HashMap<Regiao, Integer>();
+		for (Regiao r : Regiao.values()) {
 			esperado.put(r, quantidade);
 		}
 		return esperado;

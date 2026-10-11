@@ -10,12 +10,12 @@ class Provincia {
 	static final int MAXIMO_TRIBUTOS = 3;
 	
 	private final int id;
-	private final tipoTributo tipo;
+	private final TipoTributo tipo;
 	private int quantidade;
 	
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
 	
-	Provincia(int id, tipoTributo tipo){
+	Provincia(int id, TipoTributo tipo){
 		if(tipo == null) {
 			throw new IllegalArgumentException("Província precisa de um tipo de tributo");
 		}
@@ -27,7 +27,7 @@ class Provincia {
 		return id;
 	}
 	
-	tipoTributo getTipo(){
+	TipoTributo getTipo(){
 		return tipo;
 	}
 	
@@ -47,7 +47,7 @@ class Provincia {
 		return true;
 	}
 	
-	tipoTributo retirarTributo() {
+	TipoTributo retirarTributo() {
 		if(quantidade == 0) {
 			throw new IllegalStateException("Província " + id + " está vazia");
 		}

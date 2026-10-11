@@ -5,20 +5,20 @@ import java.util.Map;
 
 class Conselheiro {
 	
-	private final Map<tipoTesouro, Integer> exigidos; //vazio quando o exigido for qualquer tesouro
+	private final Map<TipoTesouro, Integer> exigidos; //vazio quando o exigido for qualquer tesouro
 	private final int quantQualquerTipo; //zero quando for pedido um tipo de tesouro específico
 	
 	private final int votosPorEntrega;
-	private final pecaBonus bonus;
+	private final PecaBonus bonus;
 	private boolean bonusColetado = false;
 	
 	//construtor de pedidos de tipos especificos de tesouros
-	Conselheiro(Map<tipoTesouro, Integer> exigidos, int votosPorEntrega, pecaBonus bonus){
+	Conselheiro(Map<TipoTesouro, Integer> exigidos, int votosPorEntrega, PecaBonus bonus){
 		if (exigidos == null || exigidos.isEmpty()) {
 			throw new IllegalArgumentException("Pedido de tesouros vazio");
 		}
 		
-		for (Map.Entry<tipoTesouro, Integer> e : exigidos.entrySet()) {
+		for (Map.Entry<TipoTesouro, Integer> e : exigidos.entrySet()) {
 			if(e.getKey() == null || e.getValue() == null || e.getValue() <=0) {
 				throw new IllegalArgumentException("Pedido inválido: " + e);
 			}
@@ -26,26 +26,26 @@ class Conselheiro {
 		
 		validar(votosPorEntrega, bonus);
 		
-		this.exigidos = new HashMap<tipoTesouro, Integer>(exigidos);
+		this.exigidos = new HashMap<TipoTesouro, Integer>(exigidos);
 		this.quantQualquerTipo = 0;
 		this.votosPorEntrega = votosPorEntrega;
 		this.bonus = bonus;
 	}
 	
 	//construtor de um pedido sem tipo de tesouro definido
-	Conselheiro(int quantQualquerTipo, int votosPorEntrega, pecaBonus bonus){
+	Conselheiro(int quantQualquerTipo, int votosPorEntrega, PecaBonus bonus){
 		if (quantQualquerTipo <=0) {
 			throw new IllegalArgumentException("Quantidade deve ser positiva");
 		}
 		
 		validar(votosPorEntrega, bonus);
-		this.exigidos = new HashMap<tipoTesouro, Integer>();
+		this.exigidos = new HashMap<TipoTesouro, Integer>();
 		this.quantQualquerTipo = quantQualquerTipo;
 		this.votosPorEntrega = votosPorEntrega;
 		this.bonus = bonus;
 	}
 	
-	private static void validar(int votosPorEntrega, pecaBonus bonus) {
+	private static void validar(int votosPorEntrega, PecaBonus bonus) {
 		if (votosPorEntrega <= 0) {
 			throw new IllegalArgumentException("Votos por entrega deve ser positivo");
 		}
@@ -54,7 +54,7 @@ class Conselheiro {
 		}
 	}
 	
-	boolean aceita(Map<tipoTesouro, Integer> oferta) {
+	boolean aceita(Map<TipoTesouro, Integer> oferta) {
 		if (oferta == null) {
 			return false;
 		}
@@ -70,7 +70,7 @@ class Conselheiro {
 		}
 		
 		//verificacao para conselheiros que necessitam tipos especificos
-		for (Map.Entry<tipoTesouro, Integer> e : exigidos.entrySet()) {
+		for (Map.Entry<TipoTesouro, Integer> e : exigidos.entrySet()) {
 			Integer ofertada = oferta.get(e.getKey());
 			if (ofertada == null || ofertada < e.getValue()) {
 				return false;
@@ -89,7 +89,7 @@ class Conselheiro {
 	
 	
 	//retorna a pecaBonus pro primeiro jogador que concluir o conselheiro
-	pecaBonus coletarBonus() {
+	PecaBonus coletarBonus() {
 		if (bonusColetado) {
 			return null;
 		}

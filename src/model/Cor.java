@@ -1,6 +1,6 @@
 package model;
 
-enum cor {
+enum Cor {
 
 	AZUL,
 	AMARELO,  

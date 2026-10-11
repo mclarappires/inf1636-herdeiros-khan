@@ -26,7 +26,7 @@ public class PreparacaoConquistaTest {
 	private static final int NUMERO_DE_CIDADES = 9;
 	private static final int NUMERO_DE_PROVINCIAS = 12;
 
-	private tabuleiro mapa;
+	private Tabuleiro mapa;
 
 	@Before
 	public void carregarEPreparar() throws IOException {
@@ -54,7 +54,7 @@ public class PreparacaoConquistaTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void preparar_cadaCidadeReveladaTemQuatroTesouros() {
 		int cidadesSemQuatro = 0;
-		for (cidade c : mapa.getCidadesVisiveis()) {
+		for (Cidade c : mapa.getCidadesVisiveis()) {
 			if (c.getQuantidadeTesouros() != TESOUROS_POR_CIDADE) {
 				cidadesSemQuatro++;
 			}
@@ -76,19 +76,19 @@ public class PreparacaoConquistaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void conquistar_tresPrimeirosTesourosNaoConquistamACidade() {
-		cidade alvo = mapa.getCidadesVisiveis().get(0);
+		Cidade alvo = mapa.getCidadesVisiveis().get(0);
 		assertFalse("Tomar 3 de 4 tesouros nao conquista", tomarAlgunsTesouros(alvo, 3));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void conquistar_quartoTesouroConquistaACidade() {
-		cidade alvo = mapa.getCidadesVisiveis().get(0);
+		Cidade alvo = mapa.getCidadesVisiveis().get(0);
 		assertTrue("O 4o tesouro conquista a cidade", tomarAlgunsTesouros(alvo, 4));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
 	public void conquistar_cidadeAindaNaoReveladaLancaExcecao() {
-		mapa.tomarTesouroDeCidade(idDeCidadeEscondida(), tipoTesouro.values()[0]);
+		mapa.tomarTesouroDeCidade(idDeCidadeEscondida(), TipoTesouro.values()[0]);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -100,7 +100,7 @@ public class PreparacaoConquistaTest {
 	public void conquistarTodas_nenhumaCidadeEConquistadaDuasVezes() {
 		conquistarTodas();
 		assertEquals("As 9 cidades conquistadas deveriam ser distintas",
-				NUMERO_DE_CIDADES, new HashSet<cidade>(mapa.getCidadesConquistadas()).size());
+				NUMERO_DE_CIDADES, new HashSet<Cidade>(mapa.getCidadesConquistadas()).size());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -128,10 +128,10 @@ public class PreparacaoConquistaTest {
 	}
 
 	/** Toma até N tesouros da cidade; devolve true se algum deles a conquistou. */
-	private boolean tomarAlgunsTesouros(cidade alvo, int quantidade) {
+	private boolean tomarAlgunsTesouros(Cidade alvo, int quantidade) {
 		boolean conquistou = false;
 		int tomados = 0;
-		for (tipoTesouro tipo : tipoTesouro.values()) {
+		for (TipoTesouro tipo : TipoTesouro.values()) {
 			while (tomados < quantidade && alvo.getQuantidade(tipo) > 0) {
 				conquistou = mapa.tomarTesouroDeCidade(alvo.getId(), tipo) || conquistou;
 				tomados++;

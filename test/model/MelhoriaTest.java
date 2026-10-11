@@ -13,13 +13,13 @@ public class MelhoriaTest {
 
 	@Before
 	public void criarJogador() {
-		jogador = new Jogador(cor.AZUL, Heroi.OGEDEI, new karakorum(0), 0);
+		jogador = new Jogador(Cor.AZUL, Heroi.OGEDEI, new Karakorum(0), 0);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void aplicar_espada_daUmaEspadaVirtualAoJogador() {
 		new Melhoria(TipoMelhoria.ESPADA, Coluna.PRIMEIRA).aplicar(jogador);
-		assertEquals("Jogador deveria poder gastar 1 espada", 1, jogador.getDisponivel(tipoTributo.ESPADA));
+		assertEquals("Jogador deveria poder gastar 1 espada", 1, jogador.getDisponivel(TipoTributo.ESPADA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -30,7 +30,7 @@ public class MelhoriaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void novaMelhoria_deTesouro_temTipoTesouro() {
-		Melhoria deFerro = new Melhoria(tipoTesouro.FERRO, Coluna.PRIMEIRA);
+		Melhoria deFerro = new Melhoria(TipoTesouro.FERRO, Coluna.PRIMEIRA);
 		assertEquals("Melhoria criada com um tesouro é do tipo TESOURO",
 				TipoMelhoria.TESOURO, deFerro.getTipo());
 	}

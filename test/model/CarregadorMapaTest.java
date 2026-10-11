@@ -89,19 +89,19 @@ public class CarregadorMapaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void carregar_comandoEmMinusculas_eAceitoELeARegiao() throws IOException {
-		tabuleiro t = carregar("parada 1 china\n");
-		assertEquals("Comando e regiao nao diferenciam maiusculas", regiao.CHINA, t.getParada(1).getRegiao());
+		Tabuleiro t = carregar("parada 1 china\n");
+		assertEquals("Comando e regiao nao diferenciam maiusculas", Regiao.CHINA, t.getParada(1).getRegiao());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void carregar_quebraDeLinhaDoWindows_funcionaIgual() throws IOException {
-		tabuleiro t = carregar("PARADA 1\r\nPARADA 2\r\nROTA 1 2\r\n");
+		Tabuleiro t = carregar("PARADA 1\r\nPARADA 2\r\nROTA 1 2\r\n");
 		assertEquals("A rota deveria ser criada apesar do \\r\\n", 1, t.getParada(1).getAdjacentes().size());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void carregar_capacidadeSemRegiao_guardaAsCapacidades() throws IOException {
-		tabuleiro t = carregar("PARADA 1 3 4\n");
+		Tabuleiro t = carregar("PARADA 1 3 4\n");
 		assertEquals("Capacidade de yurts lida sem regiao", 4, t.getParada(1).getCapacidadeYurts());
 	}
 
@@ -112,7 +112,7 @@ public class CarregadorMapaTest {
 
 	// AUXILIARES
 
-	private tabuleiro carregar(String texto) throws IOException {
+	private Tabuleiro carregar(String texto) throws IOException {
 		return CarregadorMapa.carregar(new StringReader(texto), new Random(1L));
 	}
 
