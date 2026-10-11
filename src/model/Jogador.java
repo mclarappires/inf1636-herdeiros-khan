@@ -276,11 +276,18 @@ class Jogador {
 		}
 	}
 
-	/** Uso do Khan na área de melhorias: reabastece os espaços vazios e recebe os tributos dos ícones. */
-	void usarKhanNaAreaDeMelhorias(AreaMelhorias area) {
-		exigirArea(area);
-		registrarUsoDoKhan();
-		for (TipoTributo ganho : area.reabastecer()) {
+	/**
+	 * Move o peão do Khan para uma província do Khan ou para a área de melhorias e recebe os
+	 * tributos que o lugar der. Se o movimento for recusado, o Khan continua pendente.
+	 */
+	void usarKhan(PeaoKhan khan, LocalDoKhan destino) {
+		if (khan == null) {
+			throw new IllegalArgumentException("Peão do Khan nulo");
+		}
+		exigirKhanPendente();
+		List<TipoTributo> ganhos = khan.mover(destino);
+		khanPendente = false;
+		for (TipoTributo ganho : ganhos) {
 			receberTributo(ganho);
 		}
 	}
@@ -442,12 +449,11 @@ class Jogador {
 	}
 
 	/** O Khan é obrigatório quando a coluna ativada tem o ícone dele. */
-	void registrarUsoDoKhan() {
+	private void exigirKhanPendente() {
 		exigirTurnoAtivo();
 		if (!khanPendente) {
 			throw new IllegalStateException("Não há ação do Khan a realizar neste turno");
 		}
-		khanPendente = false;
 	}
 
 	void encerrarTurno() {

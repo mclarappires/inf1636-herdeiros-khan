@@ -11,7 +11,7 @@ import java.util.Random;
  * Melhorias à venda: 5 espaços abertos, numerados da esquerda (0) para a direita (4),
  * e uma pilha com as demais peças.
  */
-class AreaMelhorias {
+class AreaMelhorias implements LocalDoKhan {
 
 	static final int ESPACOS = 5;
 
@@ -135,6 +135,11 @@ class AreaMelhorias {
 			}
 		}
 		return ganhos;
+	}
+
+	@Override
+	public List<TipoTributo> receberKhan() {
+		return reabastecer();
 	}
 
 	//CONSULTAS

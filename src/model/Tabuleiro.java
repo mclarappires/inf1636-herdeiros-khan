@@ -25,6 +25,7 @@ class Tabuleiro {
 	private final List<Cidade> cidadesConquistadas = new LinkedList<Cidade>();
 	private final LinkedList<TipoTesouro> pilhaTesouros = new LinkedList<TipoTesouro>();
 	private final AreaMelhorias areaMelhorias;
+	private final PeaoKhan peaoKhan = new PeaoKhan();
 
 	private boolean preparado = false;
 	
@@ -82,6 +83,10 @@ class Tabuleiro {
 		cidadesNaoReveladas.add(cidade);
 	}
 	
+	void ligarProvincias(int idA, int idB) {
+		getProvincia(idA).ligarProvincia(getProvincia(idB));
+	}
+
 	void ligarParadas(int idA, int idB) {
 		getParada(idA).ligar(getParada(idB));
 	}
@@ -205,6 +210,10 @@ class Tabuleiro {
  
 	AreaMelhorias getAreaMelhorias() {
 		return areaMelhorias;
+	}
+
+	PeaoKhan getPeaoKhan() {
+		return peaoKhan;
 	}
 
 	int getTesourosNaReserva() {

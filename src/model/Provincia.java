@@ -3,11 +3,14 @@ package model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
-class Provincia {
+class Provincia implements LocalDoKhan {
 	
 	static final int MAXIMO_TRIBUTOS = 3;
+	static final int VIZINHAS_DO_KHAN = 2;
 	
 	private final int id;
 	private final TipoTributo tipo;
@@ -15,6 +18,7 @@ class Provincia {
 	private final boolean doKhan; //províncias em que o peão do Khan pode ser colocado
 
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
+	private final Map<Integer, Provincia> vizinhas = new HashMap<Integer, Provincia>(); //recebem tributo junto quando o Khan vem para cá
 
 	Provincia(int id, TipoTributo tipo){
 		this(id, tipo, false);
@@ -79,5 +83,47 @@ class Provincia {
 	Collection<parada> getParadasAdjacentes() {
 		return Collections.unmodifiableCollection(adjacentes.values());
 	}
-	
+
+	/** Cria a vizinhança nos dois sentidos entre esta província e outra. */
+	void ligarProvincia(Provincia outra) {
+		if (outra == null || outra == this) {
+			throw new IllegalArgumentException("Vizinhança inválida na província " + id);
+		}
+		this.exigirVagaParaVizinha(outra);
+		outra.exigirVagaParaVizinha(this);
+		vizinhas.put(outra.id, outra);
+		outra.vizinhas.put(this.id, this);
+	}
+
+	//uma província do Khan entrega tributos junto com exatamente 2 vizinhas fixas
+	private void exigirVagaParaVizinha(Provincia nova) {
+		if (doKhan && !vizinhas.containsKey(nova.id) && vizinhas.size() >= VIZINHAS_DO_KHAN) {
+			throw new IllegalStateException(
+					"Província do Khan " + id + " já tem " + VIZINHAS_DO_KHAN + " vizinhas");
+		}
+	}
+
+	Collection<Provincia> getProvinciasVizinhas() {
+		return Collections.unmodifiableCollection(vizinhas.values());
+	}
+
+	/**
+	 * O Khan põe 1 tributo nesta província e em cada uma das 2 vizinhas (respeitando o máximo
+	 * de cada uma), e as três entregam a quem o moveu 1 tributo do seu tipo.
+	 */
+	@Override
+	public List<TipoTributo> receberKhan() {
+		if (!doKhan) {
+			throw new IllegalStateException("Província " + id + " não é do Khan");
+		}
+		List<TipoTributo> entregues = new LinkedList<TipoTributo>();
+		adicionarTributo();
+		entregues.add(tipo);
+		for (Provincia vizinha : vizinhas.values()) {
+			vizinha.adicionarTributo();
+			entregues.add(vizinha.tipo);
+		}
+		return entregues;
+	}
+
 }

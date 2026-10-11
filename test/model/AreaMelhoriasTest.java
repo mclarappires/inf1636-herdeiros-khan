@@ -118,7 +118,7 @@ public class AreaMelhoriasTest {
 	public void usarKhanNaArea_espacoComMoeda_jogadorRecebeMoeda() {
 		area.retirar(4);
 		jogador.ativarColuna(Coluna.TERCEIRA);
-		jogador.usarKhanNaAreaDeMelhorias(area);
+		jogador.usarKhan(new PeaoKhan(), area);
 		assertEquals("Ganha a moeda do ícone do espaço 0", MOEDAS_INICIAIS + 1, jogador.getMoedas());
 	}
 

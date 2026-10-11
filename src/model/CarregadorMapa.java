@@ -78,8 +78,12 @@ class CarregadorMapa {
 			t.adicionarParada(new Karakorum(inteiro(p[1]), pedido));
 			break;
 		case "PROVINCIA":
-			exigir(p, 3, 3);
-			t.adicionarProvincia(new Provincia(inteiro(p[1]), TipoTributo.valueOf(p[2].toUpperCase())));
+			exigir(p, 3, 4);
+			boolean doKhan = p.length == 4;
+			if (doKhan && !p[3].equalsIgnoreCase("KHAN")) {
+				throw new IllegalArgumentException("4º argumento de PROVINCIA só pode ser KHAN");
+			}
+			t.adicionarProvincia(new Provincia(inteiro(p[1]), TipoTributo.valueOf(p[2].toUpperCase()), doKhan));
 			break;
 		case "CIDADE":
 			exigir(p, 3, 3);
@@ -88,6 +92,10 @@ class CarregadorMapa {
 		case "ROTA":
 			exigir(p, 3, 3);
 			t.ligarParadas(inteiro(p[1]), inteiro(p[2]));
+			break;
+		case "PROVINCIA_VIZINHA":
+			exigir(p, 3, 3);
+			t.ligarProvincias(inteiro(p[1]), inteiro(p[2]));
 			break;
 		case "PROVINCIA_PARADA":
 			exigir(p, 3, 3);
