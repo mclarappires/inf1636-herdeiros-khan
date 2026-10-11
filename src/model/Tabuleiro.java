@@ -137,7 +137,32 @@ class Tabuleiro {
 			p.adicionarTributo();
 		}
 		areaMelhorias.preparar();
+		distribuirBonus(); //por último, para não mudar os sorteios de cidades e tesouros
 		preparado = true;
+	}
+
+	/**
+	 * Sorteia uma peça de bônus para cada conselheiro e para Karakorum, em ordem de id da parada.
+	 * Lugares que já têm peça são pulados; se as peças acabarem, os restantes ficam sem.
+	 */
+	private void distribuirBonus() {
+		LinkedList<PecaBonus> pecas = new LinkedList<PecaBonus>(embaralharBonus());
+		List<Integer> ids = new LinkedList<Integer>(paradas.keySet());
+		Collections.sort(ids);
+		for (Integer id : ids) {
+			if (pecas.isEmpty()) {
+				return;
+			}
+			parada p = paradas.get(id);
+			if (p instanceof paradaConselheiro) {
+				Conselheiro c = ((paradaConselheiro) p).getConselheiro();
+				if (!c.temBonus()) {
+					c.colocarBonus(pecas.removeFirst());
+				}
+			} else if (p instanceof Karakorum && !((Karakorum) p).temBonus()) {
+				((Karakorum) p).colocarBonus(pecas.removeFirst());
+			}
+		}
 	}
 	
 	List<PecaBonus> embaralharBonus() {

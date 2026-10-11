@@ -52,6 +52,10 @@ class Karakorum extends parada{
 		conselheiro = new Conselheiro(pedido, VOTOS_POR_ENTREGA, bonus);
 	}
 
+	boolean temBonus() {
+		return conselheiro != null;
+	}
+
 	Conselheiro getConselheiro() {
 		if (conselheiro == null) {
 			throw new IllegalStateException("Karakorum ainda não recebeu a peça de bônus");

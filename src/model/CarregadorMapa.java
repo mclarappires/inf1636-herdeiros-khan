@@ -77,6 +77,14 @@ class CarregadorMapa {
 			}
 			t.adicionarParada(new Karakorum(inteiro(p[1]), pedido));
 			break;
+		case "CONSELHEIRO":
+			// CONSELHEIRO <id> <regiao> <tesouro|QUALQUER>
+			exigir(p, 4, 4);
+			Conselheiro conselheiro = p[3].equalsIgnoreCase("QUALQUER")
+					? Conselheiro.unico()
+					: Conselheiro.comum(TipoTesouro.valueOf(p[3].toUpperCase()));
+			t.adicionarParada(new paradaConselheiro(inteiro(p[1]), Regiao.valueOf(p[2].toUpperCase()), conselheiro));
+			break;
 		case "PROVINCIA":
 			exigir(p, 3, 4);
 			boolean doKhan = p.length == 4;
