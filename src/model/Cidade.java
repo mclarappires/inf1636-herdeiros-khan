@@ -5,20 +5,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
  
-class cidade {
+class Cidade {
 	
 	static final int TESOUROS_INICIAIS	 = 4;
 	
 	private final int id;
-	private final regiao regiao;
+	private final Regiao regiao;
 	private boolean conquistada = false;
-	private yurt yurtConquista = null;
+	private Yurt yurtConquista = null;
 	
-	private final Map<tipoTesouro, Integer> tesouros = new HashMap<tipoTesouro, Integer>();
+	private final Map<TipoTesouro, Integer> tesouros = new HashMap<TipoTesouro, Integer>();
 	
 	private final Map<Integer, parada> paradasAdjacentes = new HashMap<Integer, parada>();
 	
-	cidade(int id, regiao regiao){
+	Cidade(int id, Regiao regiao){
 		if(regiao == null) {
 			throw new IllegalArgumentException("Cidade precisa de uma região");
 		}
@@ -30,7 +30,7 @@ class cidade {
 		return id;
 	}
 	
-	regiao getRegiao() {
+	Regiao getRegiao() {
 		return regiao;
 	}
  
@@ -39,7 +39,7 @@ class cidade {
 	}
 	
 	/** Coloca um tesouro na cidade (usado quando ela é revelada). */
-	void colocarTesouro(tipoTesouro tipo) {
+	void colocarTesouro(TipoTesouro tipo) {
 		if (tipo == null) {
 			throw new IllegalArgumentException("Tesouro nulo");
 		}
@@ -58,7 +58,7 @@ class cidade {
 		return total;
 	}
  
-	int getQuantidade(tipoTesouro tipo) {
+	int getQuantidade(TipoTesouro tipo) {
 		Integer q = tesouros.get(tipo);
 		return q == null ? 0 : q;
 	}
@@ -68,7 +68,7 @@ class cidade {
 		return getQuantidadeTesouros() > 0;
 	}
 	
-	boolean tomarTesouro(tipoTesouro tipo) {
+	boolean tomarTesouro(TipoTesouro tipo) {
 		if (conquistada) {
 			throw new IllegalStateException("Cidade " + id + " já foi conquistada");
 		}
@@ -97,7 +97,7 @@ class cidade {
 		return 1 + 2 * (quantidadeTesouros - 1);
 	}
 	
-	void colocarYurtDeConquista(yurt yurt) {
+	void colocarYurtDeConquista(Yurt yurt) {
 		if (yurt == null) {
 			throw new IllegalArgumentException("Yurt nulo");
 		}
@@ -110,7 +110,7 @@ class cidade {
 		yurtConquista = yurt;
 	}
  
-	yurt getYurtDeConquista() {
+	Yurt getYurtDeConquista() {
 		return yurtConquista;
 	}
 	

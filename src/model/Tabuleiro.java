@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-class tabuleiro {
+class Tabuleiro {
 	
 	static final int CIDADES_VISIVEIS = 3;
 	
@@ -17,27 +17,27 @@ class tabuleiro {
 	
 	private final Map<Integer, parada> paradas = new HashMap<Integer, parada>();
 	private final Map<Integer, Provincia> provincias = new HashMap<Integer, Provincia>();
-	private final Map<Integer, cidade> cidades = new HashMap<Integer, cidade>();
+	private final Map<Integer, Cidade> cidades = new HashMap<Integer, Cidade>();
 	
 	
-	private final LinkedList<cidade> cidadesNaoReveladas = new LinkedList<cidade>();
-	private final List<cidade> cidadesVisiveis = new LinkedList<cidade>();
-	private final List<cidade> cidadesConquistadas = new LinkedList<cidade>();
-	private final LinkedList<tipoTesouro> pilhaTesouros = new LinkedList<tipoTesouro>();
+	private final LinkedList<Cidade> cidadesNaoReveladas = new LinkedList<Cidade>();
+	private final List<Cidade> cidadesVisiveis = new LinkedList<Cidade>();
+	private final List<Cidade> cidadesConquistadas = new LinkedList<Cidade>();
+	private final LinkedList<TipoTesouro> pilhaTesouros = new LinkedList<TipoTesouro>();
 	
 	private boolean preparado = false;
 	
-	tabuleiro(){
+	Tabuleiro(){
 		this(new Random());
 	}
 	
-	tabuleiro(Random random){
+	Tabuleiro(Random random){
 		if (random == null) {
 			throw new IllegalArgumentException("Random nulo");
 		}
 		this.random = random;
-		for(tipoTesouro tipo : tipoTesouro.values()) {
-			for (int i = 0; i < tipoTesouro.QUANTIDADE_POR_TIPO; i++) {
+		for(TipoTesouro tipo : TipoTesouro.values()) {
+			for (int i = 0; i < TipoTesouro.QUANTIDADE_POR_TIPO; i++) {
 				pilhaTesouros.add(tipo);
 			}
 		}
@@ -67,7 +67,7 @@ class tabuleiro {
 		provincias.put(provincia.getId(), provincia);
 	}
 	
-	void adicionarCidade(cidade cidade) {
+	void adicionarCidade(Cidade cidade) {
 		exigirNaoPreparado();
 		if (cidade == null) {
 			throw new IllegalArgumentException("Cidade nula");
@@ -107,8 +107,8 @@ class tabuleiro {
 		return p;
 	}
  
-	cidade getCidade(int id) {
-		cidade c = cidades.get(id);
+	Cidade getCidade(int id) {
+		Cidade c = cidades.get(id);
 		if (c == null) {
 			throw new IllegalArgumentException("Cidade inexistente: " + id);
 		}
@@ -131,18 +131,18 @@ class tabuleiro {
 		preparado = true;
 	}
 	
-	List<pecaBonus> embaralharBonus() {
-		List<pecaBonus> bonus = new LinkedList<pecaBonus>(Arrays.asList(pecaBonus.values()));
+	List<PecaBonus> embaralharBonus() {
+		List<PecaBonus> bonus = new LinkedList<PecaBonus>(Arrays.asList(PecaBonus.values()));
 		Collections.shuffle(bonus, random);
 		return bonus;
 	}
 	
 	boolean revelarCidade() {
-		cidade cidade = cidadesNaoReveladas.poll();
+		Cidade cidade = cidadesNaoReveladas.poll();
 		if (cidade == null) {
 			return false;
 		}
-		for (int i = 0; i < cidade.TESOUROS_INICIAIS && !pilhaTesouros.isEmpty(); i++) {
+		for (int i = 0; i < Cidade.TESOUROS_INICIAIS && !pilhaTesouros.isEmpty(); i++) {
 			cidade.colocarTesouro(pilhaTesouros.removeFirst());
 		}
 		cidadesVisiveis.add(cidade);
@@ -151,8 +151,8 @@ class tabuleiro {
 	
 	//DURANTE O JOGO 
 	
-	boolean tomarTesouroDeCidade(int idCidade, tipoTesouro tipo) {
-		cidade cidade = getCidade(idCidade);
+	boolean tomarTesouroDeCidade(int idCidade, TipoTesouro tipo) {
+		Cidade cidade = getCidade(idCidade);
 		if (!cidadesVisiveis.contains(cidade)) {
 			throw new IllegalStateException("Cidade " + idCidade + " não está disponível para ataque");
 		}
@@ -175,11 +175,11 @@ class tabuleiro {
 		return preparado;
 	}
  
-	List<cidade> getCidadesVisiveis() {
+	List<Cidade> getCidadesVisiveis() {
 		return Collections.unmodifiableList(cidadesVisiveis);
 	}
  
-	List<cidade> getCidadesConquistadas() {
+	List<Cidade> getCidadesConquistadas() {
 		return Collections.unmodifiableList(cidadesConquistadas);
 	}
 

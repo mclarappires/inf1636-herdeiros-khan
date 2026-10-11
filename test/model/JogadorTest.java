@@ -16,11 +16,11 @@ public class JogadorTest {
 	private static final int DEFAULT_TIMEOUT = 2000;
 	private static final int MOEDAS_INICIAIS = 2;
 	private static final int ID_CIDADE = 20;
-	private static final cor COR_DO_JOGADOR = cor.AZUL;
-	private static final cor COR_DO_ADVERSARIO = cor.VERMELHO;
+	private static final Cor COR_DO_JOGADOR = Cor.AZUL;
+	private static final Cor COR_DO_ADVERSARIO = Cor.VERMELHO;
 
 	// Karakorum - vizinha - distante - paradaDoConselheiro
-	private karakorum inicio;
+	private Karakorum inicio;
 	private parada vizinha;
 	private parada distante;
 	private paradaConselheiro paradaDoConselheiro;
@@ -35,26 +35,26 @@ public class JogadorTest {
 
 	@Before
 	public void montarCenario() {
-		inicio = new karakorum(0);
-		vizinha = new parada(1, 1, 1, regiao.CHINA);
-		distante = new parada(2, 1, 1, regiao.CHINA);
+		inicio = new Karakorum(0);
+		vizinha = new parada(1, 1, 1, Regiao.CHINA);
+		distante = new parada(2, 1, 1, Regiao.CHINA);
 
-		Map<tipoTesouro, Integer> pedido = new HashMap<tipoTesouro, Integer>();
-		pedido.put(tipoTesouro.FERRO, 2);
-		paradaDoConselheiro = new paradaConselheiro(3, regiao.CHINA, new Conselheiro(pedido, 1, pecaBonus.MOEDAS));
+		Map<TipoTesouro, Integer> pedido = new HashMap<TipoTesouro, Integer>();
+		pedido.put(TipoTesouro.FERRO, 2);
+		paradaDoConselheiro = new paradaConselheiro(3, Regiao.CHINA, new Conselheiro(pedido, 1, PecaBonus.MOEDAS));
 
 		inicio.ligar(vizinha);
 		vizinha.ligar(distante);
 		distante.ligar(paradaDoConselheiro);
 
-		paradaDupla = new parada(4, 2, 2, regiao.CHINA);
+		paradaDupla = new parada(4, 2, 2, Regiao.CHINA);
 		inicio.ligar(paradaDupla);
 
-		provinciaDaVizinha = new Provincia(10, tipoTributo.ESPADA);
+		provinciaDaVizinha = new Provincia(10, TipoTributo.ESPADA);
 		provinciaDaVizinha.ligarParada(vizinha);
 		provinciaDaVizinha.adicionarTributo();
 
-		provinciaDaDistante = new Provincia(11, tipoTributo.YURT);
+		provinciaDaDistante = new Provincia(11, TipoTributo.YURT);
 		provinciaDaDistante.ligarParada(distante);
 		provinciaDaDistante.adicionarTributo();
 
@@ -81,7 +81,7 @@ public class JogadorTest {
 	public void ativarColuna_moedaVirtualContaComoMoedaNoTurno() {
 		jogador.ativarColuna(Coluna.SEGUNDA);
 		assertEquals("Moedas do jogador + 1 moeda virtual da coluna",
-				MOEDAS_INICIAIS + 1, jogador.getDisponivel(tipoTributo.MOEDA));
+				MOEDAS_INICIAIS + 1, jogador.getDisponivel(TipoTributo.MOEDA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
@@ -122,7 +122,7 @@ public class JogadorTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mover_atravessaParadaComYurtProprio_gastaUmMovimento() {
-		vizinha.adicionarYurt(new yurt(COR_DO_JOGADOR));
+		vizinha.adicionarYurt(new Yurt(COR_DO_JOGADOR));
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(distante);
 		assertEquals("Pular a parada com yurt próprio não gasta movimento",
@@ -131,7 +131,7 @@ public class JogadorTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
 	public void mover_paradaComYurtDeOutroJogador_naoPodeSerPulada() {
-		vizinha.adicionarYurt(new yurt(COR_DO_ADVERSARIO));
+		vizinha.adicionarYurt(new Yurt(COR_DO_ADVERSARIO));
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(distante);
 	}
@@ -143,7 +143,7 @@ public class JogadorTest {
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(vizinha);
 		jogador.pegarTributo(provinciaDaVizinha);
-		assertEquals("Jogador deveria ter 1 espada", 1, jogador.getQuantidade(tipoTributo.ESPADA));
+		assertEquals("Jogador deveria ter 1 espada", 1, jogador.getQuantidade(TipoTributo.ESPADA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
@@ -155,7 +155,7 @@ public class JogadorTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
 	public void pegarTributo_provinciaDeParadaPuladaPorYurt_lancaExcecao() {
-		vizinha.adicionarYurt(new yurt(COR_DO_JOGADOR));
+		vizinha.adicionarYurt(new Yurt(COR_DO_JOGADOR));
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(distante);
 		jogador.pegarTributo(provinciaDaVizinha);
@@ -173,7 +173,7 @@ public class JogadorTest {
 	// YURTS
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void construirYurt_paradaDuplaComYurtDeOutroJogador_constroi() {
-		paradaDupla.adicionarYurt(new yurt(COR_DO_ADVERSARIO));
+		paradaDupla.adicionarYurt(new Yurt(COR_DO_ADVERSARIO));
 		irAteAParadaDuplaComTributosDeYurt(1);
 		jogador.construirYurt(paradaDupla);
 		assertTrue("A parada dupla deveria ter o yurt do jogador", paradaDupla.temYurtDe(COR_DO_JOGADOR));
@@ -190,7 +190,7 @@ public class JogadorTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
 	public void comprarMelhoria_comUmaMoeda_lancaExcecao() {
-		Jogador pobre = new Jogador(cor.VERDE, Heroi.OGEDEI, inicio, 1);
+		Jogador pobre = new Jogador(Cor.VERDE, Heroi.OGEDEI, inicio, 1);
 		pobre.ativarColuna(Coluna.PRIMEIRA);
 		pobre.comprarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA));
 	}
@@ -214,15 +214,15 @@ public class JogadorTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void entregarTesouros_primeiroAEntregar_recebeBonusDoConselheiro() {
 		levarAoConselheiroComFerro(2);
-		pecaBonus recebida = jogador.entregarTesouros(paradaDoConselheiro, ofertaDeFerro(2));
-		assertEquals("Bônus do conselheiro", pecaBonus.MOEDAS, recebida);
+		PecaBonus recebida = jogador.entregarTesouros(paradaDoConselheiro, ofertaDeFerro(2));
+		assertEquals("Bônus do conselheiro", PecaBonus.MOEDAS, recebida);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void entregarTesouros_retiraOsTesourosDoJogador() {
 		levarAoConselheiroComFerro(3);
 		jogador.entregarTesouros(paradaDoConselheiro, ofertaDeFerro(2));
-		assertEquals("Deveria sobrar 1 ferro", 1, jogador.getQuantidade(tipoTesouro.FERRO));
+		assertEquals("Deveria sobrar 1 ferro", 1, jogador.getQuantidade(TipoTesouro.FERRO));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
@@ -235,24 +235,24 @@ public class JogadorTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void atacarCidade_primeiroTesouro_custaUmaEspada() {
-		tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
 		irAteAVizinhaComEspadas(3);
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
-		assertEquals("3 espadas - 1 do primeiro tesouro", 2, jogador.getQuantidade(tipoTributo.ESPADA));
+		assertEquals("3 espadas - 1 do primeiro tesouro", 2, jogador.getQuantidade(TipoTributo.ESPADA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void atacarCidade_segundoTesouroNoMesmoTurno_custaDuasEspadas() {
-		tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
 		irAteAVizinhaComEspadas(3);
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
-		assertEquals("3 espadas - 1 do primeiro - 2 do segundo", 0, jogador.getQuantidade(tipoTributo.ESPADA));
+		assertEquals("3 espadas - 1 do primeiro - 2 do segundo", 0, jogador.getQuantidade(TipoTributo.ESPADA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
 	public void atacarCidade_semEspadasParaOSegundoTesouro_lancaExcecao() {
-		tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
 		irAteAVizinhaComEspadas(2);
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
@@ -278,20 +278,20 @@ public class JogadorTest {
 	public void encerrarTurno_moedaVirtualNaoAcumula() {
 		jogarTurnoSemAgir(Coluna.SEGUNDA);
 		assertEquals("A moeda virtual some no fim do turno",
-				MOEDAS_INICIAIS, jogador.getDisponivel(tipoTributo.MOEDA));
+				MOEDAS_INICIAIS, jogador.getDisponivel(TipoTributo.MOEDA));
 	}
 
 	// HERÓIS
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void novoJogador_tolui_comecaComYurtEmKarakorum() {
-		new Jogador(cor.PRETO, Heroi.TOLUI, inicio, 1);
+		new Jogador(Cor.PRETO, Heroi.TOLUI, inicio, 1);
 		assertTrue("Karakorum deveria ter o yurt inicial do Tolui", inicio.temYurt());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void novoJogador_altani_temDoisPeoes() {
-		Jogador altani = new Jogador(cor.AMARELO, Heroi.ALTANI, inicio, 1);
+		Jogador altani = new Jogador(Cor.AMARELO, Heroi.ALTANI, inicio, 1);
 		assertEquals("Altani joga com 2 peões", 2, altani.getPeoes().size());
 	}
 
@@ -306,35 +306,35 @@ public class JogadorTest {
 	/** Põe yurts no caminho para o peão chegar ao conselheiro com um único movimento. */
 	private void levarAoConselheiroComFerro(int quantidade) {
 		for (int i = 0; i < quantidade; i++) {
-			jogador.receberTesouro(tipoTesouro.FERRO);
+			jogador.receberTesouro(TipoTesouro.FERRO);
 		}
-		vizinha.adicionarYurt(new yurt(COR_DO_JOGADOR));
-		distante.adicionarYurt(new yurt(COR_DO_JOGADOR));
+		vizinha.adicionarYurt(new Yurt(COR_DO_JOGADOR));
+		distante.adicionarYurt(new Yurt(COR_DO_JOGADOR));
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(paradaDoConselheiro);
 	}
 
 	private void irAteAParadaDuplaComTributosDeYurt(int tributos) {
 		for (int i = 0; i < tributos; i++) {
-			jogador.receberTributo(tipoTributo.YURT);
+			jogador.receberTributo(TipoTributo.YURT);
 		}
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(paradaDupla);
 	}
 
-	private Map<tipoTesouro, Integer> ofertaDeFerro(int quantidade) {
-		Map<tipoTesouro, Integer> oferta = new HashMap<tipoTesouro, Integer>();
-		oferta.put(tipoTesouro.FERRO, quantidade);
+	private Map<TipoTesouro, Integer> ofertaDeFerro(int quantidade) {
+		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
+		oferta.put(TipoTesouro.FERRO, quantidade);
 		return oferta;
 	}
 
 	/** Tabuleiro com 3 cidades (todas visíveis, 4 tesouros cada); a de id ID_CIDADE fica junto da vizinha. */
-	private tabuleiro montarTabuleiroComCidadeJuntoDaVizinha() {
-		tabuleiro mapa = new tabuleiro(new Random(1));
+	private Tabuleiro montarTabuleiroComCidadeJuntoDaVizinha() {
+		Tabuleiro mapa = new Tabuleiro(new Random(1));
 		mapa.adicionarParada(vizinha);
-		mapa.adicionarCidade(new cidade(ID_CIDADE, regiao.CHINA));
-		mapa.adicionarCidade(new cidade(ID_CIDADE + 1, regiao.RUSSIA));
-		mapa.adicionarCidade(new cidade(ID_CIDADE + 2, regiao.PERSIA));
+		mapa.adicionarCidade(new Cidade(ID_CIDADE, Regiao.CHINA));
+		mapa.adicionarCidade(new Cidade(ID_CIDADE + 1, Regiao.RUSSIA));
+		mapa.adicionarCidade(new Cidade(ID_CIDADE + 2, Regiao.PERSIA));
 		mapa.ligarCidadeParada(ID_CIDADE, vizinha.getId());
 		mapa.preparar();
 		return mapa;
@@ -342,16 +342,16 @@ public class JogadorTest {
 
 	private void irAteAVizinhaComEspadas(int espadas) {
 		for (int i = 0; i < espadas; i++) {
-			jogador.receberTributo(tipoTributo.ESPADA);
+			jogador.receberTributo(TipoTributo.ESPADA);
 		}
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(vizinha);
 	}
 
 	/** Um tipo de tesouro que a cidade de teste ainda tem. */
-	private tipoTesouro tesouroPresente(tabuleiro mapa) {
-		cidade alvo = mapa.getCidade(ID_CIDADE);
-		for (tipoTesouro tipo : tipoTesouro.values()) {
+	private TipoTesouro tesouroPresente(Tabuleiro mapa) {
+		Cidade alvo = mapa.getCidade(ID_CIDADE);
+		for (TipoTesouro tipo : TipoTesouro.values()) {
 			if (alvo.getQuantidade(tipo) > 0) {
 				return tipo;
 			}

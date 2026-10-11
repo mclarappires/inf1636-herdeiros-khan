@@ -10,17 +10,17 @@ class Provincia {
 	static final int MAXIMO_TRIBUTOS = 3;
 	
 	private final int id;
-	private final tipoTributo tipo;
+	private final TipoTributo tipo;
 	private int quantidade;
 	private final boolean doKhan; //províncias em que o peão do Khan pode ser colocado
 
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
 
-	Provincia(int id, tipoTributo tipo){
+	Provincia(int id, TipoTributo tipo){
 		this(id, tipo, false);
 	}
 
-	Provincia(int id, tipoTributo tipo, boolean doKhan){
+	Provincia(int id, TipoTributo tipo, boolean doKhan){
 		if(tipo == null) {
 			throw new IllegalArgumentException("Província precisa de um tipo de tributo");
 		}
@@ -37,7 +37,7 @@ class Provincia {
 		return doKhan;
 	}
 	
-	tipoTributo getTipo(){
+	TipoTributo getTipo(){
 		return tipo;
 	}
 	
@@ -57,7 +57,7 @@ class Provincia {
 		return true;
 	}
 	
-	tipoTributo retirarTributo() {
+	TipoTributo retirarTributo() {
 		if(quantidade == 0) {
 			throw new IllegalStateException("Província " + id + " está vazia");
 		}

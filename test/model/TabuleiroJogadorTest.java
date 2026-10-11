@@ -54,7 +54,7 @@ public class TabuleiroJogadorTest {
 		colocar(doOgedei, Coluna.PRIMEIRA);
 		colocar(doOgedei, Coluna.PRIMEIRA);
 		colocar(doOgedei, Coluna.SEGUNDA);
-		assertEquals("A 1ª coluna é a da China", 2, doOgedei.contarMelhorias(regiao.CHINA));
+		assertEquals("A 1ª coluna é a da China", 2, doOgedei.contarMelhorias(Regiao.CHINA));
 	}
 
 	// AUXILIARES

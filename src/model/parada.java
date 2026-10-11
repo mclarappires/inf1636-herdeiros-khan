@@ -14,15 +14,15 @@ class parada {
 	private final int capacidadePeoes;
 	private final int capacidadeYurts;
 	
-	private final regiao regiao;
+	private final Regiao regiao;
 	
 	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
 	
-	private final List<yurt> yurts = new LinkedList<yurt>();
+	private final List<Yurt> yurts = new LinkedList<Yurt>();
 
 	private final List<Peao> peoes = new LinkedList<Peao>(); //peões que estão na parada
 
-	parada(int id, int capacidadePeoes, int capacidadeYurts, regiao regiao){
+	parada(int id, int capacidadePeoes, int capacidadeYurts, Regiao regiao){
 		this.id = id;
 		this.capacidadePeoes = capacidadePeoes;
 		this.capacidadeYurts = capacidadeYurts;
@@ -41,7 +41,7 @@ class parada {
 		return capacidadeYurts;
 	}
 	
-	regiao getRegiao() {
+	Regiao getRegiao() {
 		return regiao;
 	}
 	
@@ -67,7 +67,7 @@ class parada {
 		return yurts.size() < capacidadeYurts;
 	}
  
-	void adicionarYurt(yurt y) {
+	void adicionarYurt(Yurt y) {
 		if (y == null) {
 			throw new IllegalArgumentException("Yurt nulo");
 		}
@@ -78,7 +78,7 @@ class parada {
 	}
 
 	/** Guarda o yurt sem conferir a capacidade; só para exceções como o yurt inicial em Karakorum. */
-	void guardarYurt(yurt y) {
+	void guardarYurt(Yurt y) {
 		yurts.add(y);
 	}
 
@@ -86,8 +86,8 @@ class parada {
 		return !yurts.isEmpty();
 	}
 
-	boolean temYurtDe(cor dono) {
-		for (yurt y : yurts) {
+	boolean temYurtDe(Cor dono) {
+		for (Yurt y : yurts) {
 			if (y.getDono() == dono) {
 				return true;
 			}

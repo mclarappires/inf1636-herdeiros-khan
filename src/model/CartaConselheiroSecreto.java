@@ -37,7 +37,7 @@ abstract class CartaConselheiroSecreto {
 	}
 
 	/** Votos (de 0 a 3) que a carta rende ao jogador na contagem final. */
-	int votosFinais(Jogador j, tabuleiro t) {
+	int votosFinais(Jogador j, Tabuleiro t) {
 		if (j == null || t == null) {
 			throw new IllegalArgumentException("Jogador e tabuleiro são obrigatórios");
 		}

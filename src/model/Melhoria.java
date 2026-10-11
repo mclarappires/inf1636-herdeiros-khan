@@ -4,7 +4,7 @@ class Melhoria {
 
 	private final TipoMelhoria tipo;
 	private final Coluna coluna; //coluna colorida com a mesma cor de fundo da melhoria
-	private final tipoTesouro tesouro; //nulo quando a melhoria não for de tesouro
+	private final TipoTesouro tesouro; //nulo quando a melhoria não for de tesouro
 
 	//construtor das melhorias que não são de tesouro
 	Melhoria(TipoMelhoria tipo, Coluna coluna){
@@ -21,7 +21,7 @@ class Melhoria {
 	}
 
 	//construtor das melhorias de tesouro virtual
-	Melhoria(tipoTesouro tesouro, Coluna coluna){
+	Melhoria(TipoTesouro tesouro, Coluna coluna){
 		if (tesouro == null) {
 			throw new IllegalArgumentException("Tesouro nulo");
 		}
@@ -45,7 +45,7 @@ class Melhoria {
 		return coluna;
 	}
 
-	tipoTesouro getTesouro() {
+	TipoTesouro getTesouro() {
 		return tesouro;
 	}
 
@@ -61,13 +61,13 @@ class Melhoria {
 		}
 		switch (tipo) {
 		case MOEDA:
-			j.receberTributoVirtual(tipoTributo.MOEDA);
+			j.receberTributoVirtual(TipoTributo.MOEDA);
 			break;
 		case ESPADA:
-			j.receberTributoVirtual(tipoTributo.ESPADA);
+			j.receberTributoVirtual(TipoTributo.ESPADA);
 			break;
 		case YURT:
-			j.receberTributoVirtual(tipoTributo.YURT);
+			j.receberTributoVirtual(TipoTributo.YURT);
 			break;
 		case TESOURO:
 			j.receberTesouroVirtual(tesouro);

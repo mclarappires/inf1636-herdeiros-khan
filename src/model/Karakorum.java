@@ -1,13 +1,13 @@
 package model;
 
-class karakorum extends parada{
+class Karakorum extends parada{
 
-	karakorum(int id){
+	Karakorum(int id){
 		super(id, Integer.MAX_VALUE, 0, null);
 	}
 
 	/** Yurt inicial do Tolui: única exceção à regra de que Karakorum não aceita yurts. */
-	void colocarYurtInicial(yurt y) {
+	void colocarYurtInicial(Yurt y) {
 		if (y == null) {
 			throw new IllegalArgumentException("Yurt nulo");
 		}
