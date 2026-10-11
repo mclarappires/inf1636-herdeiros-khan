@@ -141,7 +141,7 @@ class Tabuleiro {
 		if (cidade == null) {
 			return false;
 		}
-		for (int i = 0; i < cidade.TESOUROS_INICIAIS && !pilhaTesouros.isEmpty(); i++) {
+		for (int i = 0; i < Cidade.TESOUROS_INICIAIS && !pilhaTesouros.isEmpty(); i++) {
 			cidade.colocarTesouro(pilhaTesouros.removeFirst());
 		}
 		cidadesVisiveis.add(cidade);
