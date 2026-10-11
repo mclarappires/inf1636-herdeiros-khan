@@ -240,36 +240,28 @@ class Jogador {
 	}
 
 	/**
-	 * Paga 2 moedas e coloca a melhoria na coluna da cor dela. Como a coluna do turno já foi
-	 * ativada, a melhoria só passa a valer nos turnos seguintes.
+	 * Compra por 2 moedas a melhoria de um espaço da área (as peças à esquerda dele deslizam
+	 * para a direita). Como a coluna do turno já foi ativada, ela só vale nos turnos seguintes.
 	 */
-	void comprarMelhoria(Melhoria m) {
-		exigirTurnoAtivo();
-		if (m == null) {
-			throw new IllegalArgumentException("Melhoria nula");
-		}
-		if (getDisponivel(TipoTributo.MOEDA) < CUSTO_MELHORIA) {
-			throw new IllegalStateException(
-					"São necessárias " + CUSTO_MELHORIA + " moedas para comprar uma melhoria");
-		}
-		tabuleiroJogador.colocarMelhoria(m, m.getColuna());
-		pagar(TipoTributo.MOEDA, CUSTO_MELHORIA);
-	}
-
-	/** Compra a melhoria de um espaço da área; as peças à esquerda dele deslizam para a direita. */
 	void comprarMelhoria(AreaMelhorias area, int espaco) {
 		Melhoria escolhida = exigirArea(area).getMelhoria(espaco);
 		if (escolhida == null) {
 			throw new IllegalStateException("Espaço " + espaco + " da área de melhorias está vazio");
 		}
 		exigirCompraPossivel(escolhida);
-		comprarMelhoria(area.retirar(espaco));
+		pagarEColocar(area.retirar(espaco));
 	}
 
 	/** Compra, sem ver antes, a melhoria do topo da pilha. */
 	void comprarMelhoriaDoTopo(AreaMelhorias area) {
 		exigirCompraPossivel(exigirArea(area).verTopo());
-		comprarMelhoria(area.retirarDoTopo());
+		pagarEColocar(area.retirarDoTopo());
+	}
+
+	//a melhoria já saiu da área depois de exigirCompraPossivel
+	private void pagarEColocar(Melhoria m) {
+		tabuleiroJogador.colocarMelhoria(m, m.getColuna());
+		pagar(TipoTributo.MOEDA, CUSTO_MELHORIA);
 	}
 
 	//confere tudo antes de a peça sair da área, para uma compra recusada não sumir com ela
@@ -293,25 +285,23 @@ class Jogador {
 		}
 	}
 
-	/** Coloca na coluna branca a melhoria ganha ao completar uma linha do tabuleiro do jogador. */
-	void colocarMelhoriaGratuita(Melhoria m) {
-		tabuleiroJogador.colocarMelhoria(m, Coluna.BRANCA);
-	}
-
-	/** A melhoria gratuita da linha completa pode ser qualquer uma da área, sem custo. */
+	/**
+	 * A melhoria gratuita ganha ao completar uma linha vai para a coluna branca e pode ser
+	 * qualquer uma da área, sem custo.
+	 */
 	void pegarMelhoriaGratuita(AreaMelhorias area, int espaco) {
 		if (exigirArea(area).getMelhoria(espaco) == null) {
 			throw new IllegalStateException("Espaço " + espaco + " da área de melhorias está vazio");
 		}
 		exigirGratuitaPossivel();
-		colocarMelhoriaGratuita(area.retirar(espaco));
+		tabuleiroJogador.colocarMelhoria(area.retirar(espaco), Coluna.BRANCA);
 	}
 
 	/** ...ou a do topo da pilha. */
 	void pegarMelhoriaGratuitaDoTopo(AreaMelhorias area) {
 		exigirArea(area).verTopo();
 		exigirGratuitaPossivel();
-		colocarMelhoriaGratuita(area.retirarDoTopo());
+		tabuleiroJogador.colocarMelhoria(area.retirarDoTopo(), Coluna.BRANCA);
 	}
 
 	private void exigirGratuitaPossivel() {

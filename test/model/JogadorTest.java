@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -184,7 +185,7 @@ public class JogadorTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void comprarMelhoria_consomeDuasMoedas() {
 		jogador.ativarColuna(Coluna.PRIMEIRA);
-		jogador.comprarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA));
+		jogador.comprarMelhoria(areaCom(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA)), 0);
 		assertEquals("As 2 moedas deveriam ter sido gastas", 0, jogador.getMoedas());
 	}
 
@@ -192,13 +193,13 @@ public class JogadorTest {
 	public void comprarMelhoria_comUmaMoeda_lancaExcecao() {
 		Jogador pobre = new Jogador(Cor.VERDE, Heroi.OGEDEI, inicio, 1);
 		pobre.ativarColuna(Coluna.PRIMEIRA);
-		pobre.comprarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA));
+		pobre.comprarMelhoria(areaCom(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA)), 0);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void comprarMelhoria_naoValeNoTurnoDaCompra() {
 		jogador.ativarColuna(Coluna.PRIMEIRA);
-		jogador.comprarMelhoria(new Melhoria(TipoMelhoria.DOIS_CAVALOS, Coluna.PRIMEIRA));
+		jogador.comprarMelhoria(areaCom(new Melhoria(TipoMelhoria.DOIS_CAVALOS, Coluna.PRIMEIRA)), 0);
 		assertEquals("Só os 2 cavalos da coluna valem neste turno", 2, jogador.getMovimentosRestantes());
 	}
 
@@ -326,6 +327,13 @@ public class JogadorTest {
 		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
 		oferta.put(TipoTesouro.FERRO, quantidade);
 		return oferta;
+	}
+
+	/** Área de melhorias com a peça dada no espaço 0 e nenhum ícone. */
+	private AreaMelhorias areaCom(Melhoria peca) {
+		AreaMelhorias area = new AreaMelhorias(Arrays.asList(peca), new HashMap<Integer, TipoTributo>());
+		area.preparar();
+		return area;
 	}
 
 	/** Tabuleiro com 3 cidades (todas visíveis, 4 tesouros cada); a de id ID_CIDADE fica junto da vizinha. */
