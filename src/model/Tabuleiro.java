@@ -24,7 +24,8 @@ class Tabuleiro {
 	private final List<Cidade> cidadesVisiveis = new LinkedList<Cidade>();
 	private final List<Cidade> cidadesConquistadas = new LinkedList<Cidade>();
 	private final LinkedList<TipoTesouro> pilhaTesouros = new LinkedList<TipoTesouro>();
-	
+	private final AreaMelhorias areaMelhorias;
+
 	private boolean preparado = false;
 	
 	Tabuleiro(){
@@ -43,6 +44,8 @@ class Tabuleiro {
 		}
 		
 		Collections.shuffle(pilhaTesouros, random);
+		//criada depois dos tesouros para não mudar o sorteio deles
+		areaMelhorias = new AreaMelhorias(random);
 	}
 	
 	void adicionarParada(parada parada) {
@@ -128,6 +131,7 @@ class Tabuleiro {
 		for (Provincia p : provincias.values()) {
 			p.adicionarTributo();
 		}
+		areaMelhorias.preparar();
 		preparado = true;
 	}
 	
@@ -199,6 +203,10 @@ class Tabuleiro {
 		return cidadesNaoReveladas.size();
 	}
  
+	AreaMelhorias getAreaMelhorias() {
+		return areaMelhorias;
+	}
+
 	int getTesourosNaReserva() {
 		return pilhaTesouros.size();
 	}

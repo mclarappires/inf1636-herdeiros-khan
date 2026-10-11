@@ -91,6 +91,10 @@ class TabuleiroJogador {
 		return gratuitasPendentes;
 	}
 
+	boolean temEspaco(Coluna coluna) {
+		return contarMelhorias(coluna) < getCapacidade(coluna);
+	}
+
 	int contarMelhorias(Coluna coluna) {
 		return getMelhorias(coluna).size();
 	}

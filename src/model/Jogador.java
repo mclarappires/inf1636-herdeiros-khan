@@ -256,9 +256,78 @@ class Jogador {
 		pagar(TipoTributo.MOEDA, CUSTO_MELHORIA);
 	}
 
+	/** Compra a melhoria de um espaço da área; as peças à esquerda dele deslizam para a direita. */
+	void comprarMelhoria(AreaMelhorias area, int espaco) {
+		Melhoria escolhida = exigirArea(area).getMelhoria(espaco);
+		if (escolhida == null) {
+			throw new IllegalStateException("Espaço " + espaco + " da área de melhorias está vazio");
+		}
+		exigirCompraPossivel(escolhida);
+		comprarMelhoria(area.retirar(espaco));
+	}
+
+	/** Compra, sem ver antes, a melhoria do topo da pilha. */
+	void comprarMelhoriaDoTopo(AreaMelhorias area) {
+		exigirCompraPossivel(exigirArea(area).verTopo());
+		comprarMelhoria(area.retirarDoTopo());
+	}
+
+	//confere tudo antes de a peça sair da área, para uma compra recusada não sumir com ela
+	private void exigirCompraPossivel(Melhoria m) {
+		exigirTurnoAtivo();
+		if (getDisponivel(TipoTributo.MOEDA) < CUSTO_MELHORIA) {
+			throw new IllegalStateException(
+					"São necessárias " + CUSTO_MELHORIA + " moedas para comprar uma melhoria");
+		}
+		if (!tabuleiroJogador.temEspaco(m.getColuna())) {
+			throw new IllegalStateException("Coluna " + m.getColuna() + " está cheia");
+		}
+	}
+
+	/** Uso do Khan na área de melhorias: reabastece os espaços vazios e recebe os tributos dos ícones. */
+	void usarKhanNaAreaDeMelhorias(AreaMelhorias area) {
+		exigirArea(area);
+		registrarUsoDoKhan();
+		for (TipoTributo ganho : area.reabastecer()) {
+			receberTributo(ganho);
+		}
+	}
+
 	/** Coloca na coluna branca a melhoria ganha ao completar uma linha do tabuleiro do jogador. */
 	void colocarMelhoriaGratuita(Melhoria m) {
 		tabuleiroJogador.colocarMelhoria(m, Coluna.BRANCA);
+	}
+
+	/** A melhoria gratuita da linha completa pode ser qualquer uma da área, sem custo. */
+	void pegarMelhoriaGratuita(AreaMelhorias area, int espaco) {
+		if (exigirArea(area).getMelhoria(espaco) == null) {
+			throw new IllegalStateException("Espaço " + espaco + " da área de melhorias está vazio");
+		}
+		exigirGratuitaPossivel();
+		colocarMelhoriaGratuita(area.retirar(espaco));
+	}
+
+	/** ...ou a do topo da pilha. */
+	void pegarMelhoriaGratuitaDoTopo(AreaMelhorias area) {
+		exigirArea(area).verTopo();
+		exigirGratuitaPossivel();
+		colocarMelhoriaGratuita(area.retirarDoTopo());
+	}
+
+	private void exigirGratuitaPossivel() {
+		if (tabuleiroJogador.getMelhoriasGratuitasPendentes() == 0) {
+			throw new IllegalStateException("Não há melhoria gratuita a receber");
+		}
+		if (!tabuleiroJogador.temEspaco(Coluna.BRANCA)) {
+			throw new IllegalStateException("Coluna branca está cheia");
+		}
+	}
+
+	private static AreaMelhorias exigirArea(AreaMelhorias area) {
+		if (area == null) {
+			throw new IllegalArgumentException("Área de melhorias nula");
+		}
+		return area;
 	}
 
 	/**
