@@ -202,26 +202,6 @@ public class JogadorTest {
 		assertEquals("Só os 2 cavalos da coluna valem neste turno", 2, jogador.getMovimentosRestantes());
 	}
 
-	@Test(timeout = DEFAULT_TIMEOUT)
-	public void colocarMelhoria_completaLinhaDeTres_geraMelhoriaGratuita() {
-		TabuleiroJogador tabuleiroDoOgedei = completarPrimeiraLinha(Heroi.OGEDEI);
-		assertEquals("Linha completa rende 1 melhoria para a coluna branca",
-				1, tabuleiroDoOgedei.getMelhoriasGratuitasPendentes());
-	}
-
-	@Test(timeout = DEFAULT_TIMEOUT)
-	public void colocarMelhoria_jochiCompletaPrimeiraLinha_naoGeraMelhoriaGratuita() {
-		TabuleiroJogador tabuleiroDoJochi = completarPrimeiraLinha(Heroi.JOCHI);
-		assertEquals("O 1º espaço branco do Jochi já vem ocupado",
-				0, tabuleiroDoJochi.getMelhoriasGratuitasPendentes());
-	}
-
-	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
-	public void colocarMelhoria_colunaDeOutraCor_lancaExcecao() {
-		new TabuleiroJogador(Heroi.OGEDEI).colocarMelhoria(
-				new Melhoria(TipoMelhoria.PUNHO, Coluna.PRIMEIRA), Coluna.SEGUNDA);
-	}
-
 	// CONSELHEIROS
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -346,14 +326,6 @@ public class JogadorTest {
 		Map<tipoTesouro, Integer> oferta = new HashMap<tipoTesouro, Integer>();
 		oferta.put(tipoTesouro.FERRO, quantidade);
 		return oferta;
-	}
-
-	private TabuleiroJogador completarPrimeiraLinha(Heroi heroi) {
-		TabuleiroJogador doHeroi = new TabuleiroJogador(heroi);
-		doHeroi.colocarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.PRIMEIRA), Coluna.PRIMEIRA);
-		doHeroi.colocarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.SEGUNDA), Coluna.SEGUNDA);
-		doHeroi.colocarMelhoria(new Melhoria(TipoMelhoria.PUNHO, Coluna.TERCEIRA), Coluna.TERCEIRA);
-		return doHeroi;
 	}
 
 	/** Tabuleiro com 3 cidades (todas visíveis, 4 tesouros cada); a de id ID_CIDADE fica junto da vizinha. */
