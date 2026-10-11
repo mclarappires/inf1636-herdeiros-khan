@@ -14,7 +14,7 @@ final class ContagemDeYurts {
 	/** Yurts do jogador em paradas (Karakorum incluída) e em cidades conquistadas. */
 	static int noMapa(Cor dono, Tabuleiro t) {
 		int total = 0;
-		for (parada p : t.getParadas()) {
+		for (Parada p : t.getParadas()) {
 			if (p.temYurtDe(dono)) {
 				total++;
 			}
@@ -28,7 +28,7 @@ final class ContagemDeYurts {
 			throw new IllegalArgumentException("Região nula");
 		}
 		int total = 0;
-		for (parada p : t.getParadas()) {
+		for (Parada p : t.getParadas()) {
 			if (p.getRegiao() == r && p.temYurtDe(dono)) {
 				total++;
 			}
@@ -37,9 +37,9 @@ final class ContagemDeYurts {
 	}
 
 	/** Paradas da coleção com yurt do jogador; serve para contar yurts vizinhos de cidades e províncias. */
-	static int nasParadas(Cor dono, Collection<parada> paradas) {
+	static int nasParadas(Cor dono, Collection<Parada> paradas) {
 		int total = 0;
-		for (parada p : paradas) {
+		for (Parada p : paradas) {
 			if (p.temYurtDe(dono)) {
 				total++;
 			}
@@ -49,19 +49,19 @@ final class ContagemDeYurts {
 
 	/** Tamanho do maior grupo de paradas adjacentes entre si que têm yurt do jogador. */
 	static int maiorGrupo(Cor dono, Tabuleiro t) {
-		Set<parada> vistas = new HashSet<parada>();
+		Set<Parada> vistas = new HashSet<Parada>();
 		int maior = 0;
-		for (parada inicio : t.getParadas()) {
+		for (Parada inicio : t.getParadas()) {
 			if (!inicio.temYurtDe(dono) || !vistas.add(inicio)) {
 				continue;
 			}
 			int tamanho = 0;
-			LinkedList<parada> fila = new LinkedList<parada>();
+			LinkedList<Parada> fila = new LinkedList<Parada>();
 			fila.add(inicio);
 			while (!fila.isEmpty()) {
-				parada atual = fila.removeFirst();
+				Parada atual = fila.removeFirst();
 				tamanho++;
-				for (parada vizinha : atual.getAdjacentes()) {
+				for (Parada vizinha : atual.getAdjacentes()) {
 					if (vizinha.temYurtDe(dono) && vistas.add(vizinha)) {
 						fila.add(vizinha);
 					}

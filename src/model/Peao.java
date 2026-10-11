@@ -3,9 +3,9 @@ package model;
 class Peao {
 
 	private final Cor dono;
-	private parada posicao;
+	private Parada posicao;
 
-	Peao(Cor dono, parada inicial){
+	Peao(Cor dono, Parada inicial){
 		if (dono == null) {
 			throw new IllegalArgumentException("Peão precisa de um dono");
 		}
@@ -21,11 +21,11 @@ class Peao {
 		return dono;
 	}
 
-	parada getPosicao() {
+	Parada getPosicao() {
 		return posicao;
 	}
 
-	void moverPara(parada destino) {
+	void moverPara(Parada destino) {
 		if (destino == null) {
 			throw new IllegalArgumentException("Parada nula");
 		}
@@ -35,7 +35,7 @@ class Peao {
 	}
 
 	/** O peão pode passar por uma parada cheia, mas só encerra o movimento onde houver vaga. */
-	boolean podeTerminarEm(parada p) {
+	boolean podeTerminarEm(Parada p) {
 		return p != null && p.temVagaPara(this);
 	}
 

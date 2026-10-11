@@ -11,14 +11,14 @@ public class PeaoTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
 
-	private parada simples; //aceita 1 peão
-	private parada dupla;   //aceita 2 peões
+	private Parada simples; //aceita 1 peão
+	private Parada dupla;   //aceita 2 peões
 	private Peao peao;      //começa na parada simples
 
 	@Before
 	public void montarCenario() {
-		simples = new parada(1, 1, 1, Regiao.CHINA);
-		dupla = new parada(2, 2, 2, Regiao.CHINA);
+		simples = new Parada(1, 1, 1, Regiao.CHINA);
+		dupla = new Parada(2, 2, 2, Regiao.CHINA);
 		simples.ligar(dupla);
 		peao = new Peao(Cor.AZUL, simples);
 	}

@@ -40,7 +40,7 @@ class Jogador {
 	private final Map<TipoTributo, Integer> tributosVirtuais = new HashMap<TipoTributo, Integer>();
 	private final Map<TipoTesouro, Integer> tesourosVirtuais = new HashMap<TipoTesouro, Integer>();
 
-	private final Set<parada> paradasVisitadas = new HashSet<parada>();
+	private final Set<Parada> paradasVisitadas = new HashSet<Parada>();
 	private final Map<Integer, Integer> tesourosTomadosNoTurno = new HashMap<Integer, Integer>(); //por id de cidade
 
 	Jogador(Cor cor, Heroi heroi, Karakorum inicial, int moedasIniciais){
@@ -116,7 +116,7 @@ class Jogador {
 	}
 
 	/** Gasta um movimento para levar o peão até a parada. */
-	void mover(parada destino) {
+	void mover(Parada destino) {
 		exigirTurnoAtivo();
 		if (destino == null) {
 			throw new IllegalArgumentException("Parada nula");
@@ -134,16 +134,16 @@ class Jogador {
 	}
 
 	/** Um movimento leva a uma parada adjacente; paradas com yurt do próprio jogador são puladas sem custo. */
-	private boolean alcancavel(parada origem, parada destino) {
+	private boolean alcancavel(Parada origem, Parada destino) {
 		if (destino == origem) {
 			return false;
 		}
-		Set<parada> vistas = new HashSet<parada>();
-		LinkedList<parada> fila = new LinkedList<parada>();
+		Set<Parada> vistas = new HashSet<Parada>();
+		LinkedList<Parada> fila = new LinkedList<Parada>();
 		vistas.add(origem);
 		fila.add(origem);
 		while (!fila.isEmpty()) {
-			for (parada vizinha : fila.removeFirst().getAdjacentes()) {
+			for (Parada vizinha : fila.removeFirst().getAdjacentes()) {
 				if (vizinha == destino) {
 					return true;
 				}
@@ -211,7 +211,7 @@ class Jogador {
 	}
 
 	/** Gasta um tributo de yurt para construir em uma parada visitada no turno. */
-	void construirYurt(parada local) {
+	void construirYurt(Parada local) {
 		exigirTurnoAtivo();
 		if (local == null) {
 			throw new IllegalArgumentException("Parada nula");
@@ -231,7 +231,7 @@ class Jogador {
 		yurtsDisponiveis--;
 	}
 
-	private boolean podeConstruirEm(parada local) {
+	private boolean podeConstruirEm(Parada local) {
 		if (paradasVisitadas.contains(local)) {
 			return true;
 		}
@@ -331,7 +331,7 @@ class Jogador {
 	 * Entrega tesouros ao conselheiro da parada em que o peão está e recebe os votos.
 	 * Devolve a peça de bônus do conselheiro, ou null se outro jogador já a pegou.
 	 */
-	PecaBonus entregarTesouros(paradaConselheiro local, Map<TipoTesouro, Integer> oferta) {
+	PecaBonus entregarTesouros(ParadaConselheiro local, Map<TipoTesouro, Integer> oferta) {
 		exigirTurnoAtivo();
 		if (local == null) {
 			throw new IllegalArgumentException("Parada nula");
@@ -348,7 +348,7 @@ class Jogador {
 		return entregar(local, local.getConselheiro(), oferta);
 	}
 
-	private PecaBonus entregar(parada local, Conselheiro conselheiro, Map<TipoTesouro, Integer> oferta) {
+	private PecaBonus entregar(Parada local, Conselheiro conselheiro, Map<TipoTesouro, Integer> oferta) {
 		if (oferta == null) {
 			throw new IllegalArgumentException("Oferta nula");
 		}
@@ -461,7 +461,7 @@ class Jogador {
 		if (khanPendente) {
 			throw new IllegalStateException("O Khan precisa ser usado antes do fim do turno");
 		}
-		parada posicao = peaoAtivo.getPosicao();
+		Parada posicao = peaoAtivo.getPosicao();
 		if (!peaoAtivo.podeTerminarEm(posicao)) {
 			throw new IllegalStateException(
 					"O peão não pode terminar o turno na parada " + posicao.getId());
@@ -622,7 +622,7 @@ class Jogador {
 	}
 
 	private boolean visitouParadaJuntoDe(Provincia provincia) {
-		for (parada p : paradasVisitadas) {
+		for (Parada p : paradasVisitadas) {
 			if (provincia.adjacenteA(p)) {
 				return true;
 			}
@@ -631,7 +631,7 @@ class Jogador {
 	}
 
 	private boolean visitouParadaJuntoDe(Cidade alvo) {
-		for (parada p : paradasVisitadas) {
+		for (Parada p : paradasVisitadas) {
 			if (alvo.adjacenteA(p)) {
 				return true;
 			}

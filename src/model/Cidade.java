@@ -16,7 +16,7 @@ class Cidade {
 	
 	private final Map<TipoTesouro, Integer> tesouros = new HashMap<TipoTesouro, Integer>();
 	
-	private final Map<Integer, parada> paradasAdjacentes = new HashMap<Integer, parada>();
+	private final Map<Integer, Parada> paradasAdjacentes = new HashMap<Integer, Parada>();
 	
 	Cidade(int id, Regiao regiao){
 		if(regiao == null) {
@@ -115,18 +115,18 @@ class Cidade {
 	}
 	
 	/** Registra que esta cidade faz fronteira com a parada. */
-	void ligarParada(parada parada) {
+	void ligarParada(Parada parada) {
 		if (parada == null) {
 			throw new IllegalArgumentException("Parada nula");
 		}
 		paradasAdjacentes.put(parada.getId(), parada);
 	}
  
-	boolean adjacenteA(parada parada) {
+	boolean adjacenteA(Parada parada) {
 		return parada != null && paradasAdjacentes.containsKey(parada.getId());
 	}
  
-	Collection<parada> getParadasAdjacentes() {
+	Collection<Parada> getParadasAdjacentes() {
 		return Collections.unmodifiableCollection(paradasAdjacentes.values());
 	}
 

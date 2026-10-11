@@ -56,7 +56,7 @@ class CarregadorMapa {
 			} else if (p.length != proximo) {
 				throw new IllegalArgumentException("argumentos inválidos para PARADA");
 			}
-			t.adicionarParada(new parada(inteiro(p[1]), peoes, yurts, regiaoLida));
+			t.adicionarParada(new Parada(inteiro(p[1]), peoes, yurts, regiaoLida));
 			break;
 		case "KARAKORUM":
 			exigir(p, 2, 5);
@@ -83,7 +83,7 @@ class CarregadorMapa {
 			Conselheiro conselheiro = p[3].equalsIgnoreCase("QUALQUER")
 					? Conselheiro.unico()
 					: Conselheiro.comum(TipoTesouro.valueOf(p[3].toUpperCase()));
-			t.adicionarParada(new paradaConselheiro(inteiro(p[1]), Regiao.valueOf(p[2].toUpperCase()), conselheiro));
+			t.adicionarParada(new ParadaConselheiro(inteiro(p[1]), Regiao.valueOf(p[2].toUpperCase()), conselheiro));
 			break;
 		case "PROVINCIA":
 			exigir(p, 3, 4);

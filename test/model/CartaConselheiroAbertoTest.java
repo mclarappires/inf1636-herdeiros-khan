@@ -12,16 +12,16 @@ public class CartaConselheiroAbertoTest {
 	private static final int DEFAULT_TIMEOUT = 2000;
 
 	private Tabuleiro mapa;
-	private parada naChina;
-	private parada naPersia;
+	private Parada naChina;
+	private Parada naPersia;
 	private Jogador azul;
 	private Jogador vermelho;
 
 	@Before
 	public void montarCenario() {
 		Karakorum inicio = new Karakorum(0);
-		naChina = new parada(1, 1, 1, Regiao.CHINA);
-		naPersia = new parada(2, 1, 1, Regiao.PERSIA);
+		naChina = new Parada(1, 1, 1, Regiao.CHINA);
+		naPersia = new Parada(2, 1, 1, Regiao.PERSIA);
 		mapa = new Tabuleiro();
 		mapa.adicionarParada(inicio);
 		mapa.adicionarParada(naChina);

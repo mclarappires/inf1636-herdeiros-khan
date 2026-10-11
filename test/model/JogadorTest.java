@@ -22,10 +22,10 @@ public class JogadorTest {
 
 	// Karakorum - vizinha - distante - paradaDoConselheiro
 	private Karakorum inicio;
-	private parada vizinha;
-	private parada distante;
-	private paradaConselheiro paradaDoConselheiro;
-	private parada paradaDupla; //ligada a Karakorum, aceita 2 peões e 2 yurts
+	private Parada vizinha;
+	private Parada distante;
+	private ParadaConselheiro paradaDoConselheiro;
+	private Parada paradaDupla; //ligada a Karakorum, aceita 2 peões e 2 yurts
 
 	private Provincia provinciaDaVizinha;  //tributo de espada
 	private Provincia provinciaDaDistante; //tributo de yurt
@@ -37,18 +37,18 @@ public class JogadorTest {
 	@Before
 	public void montarCenario() {
 		inicio = new Karakorum(0);
-		vizinha = new parada(1, 1, 1, Regiao.CHINA);
-		distante = new parada(2, 1, 1, Regiao.CHINA);
+		vizinha = new Parada(1, 1, 1, Regiao.CHINA);
+		distante = new Parada(2, 1, 1, Regiao.CHINA);
 
 		Map<TipoTesouro, Integer> pedido = new HashMap<TipoTesouro, Integer>();
 		pedido.put(TipoTesouro.FERRO, 2);
-		paradaDoConselheiro = new paradaConselheiro(3, Regiao.CHINA, new Conselheiro(pedido, 1, PecaBonus.MOEDAS));
+		paradaDoConselheiro = new ParadaConselheiro(3, Regiao.CHINA, new Conselheiro(pedido, 1, PecaBonus.MOEDAS));
 
 		inicio.ligar(vizinha);
 		vizinha.ligar(distante);
 		distante.ligar(paradaDoConselheiro);
 
-		paradaDupla = new parada(4, 2, 2, Regiao.CHINA);
+		paradaDupla = new Parada(4, 2, 2, Regiao.CHINA);
 		inicio.ligar(paradaDupla);
 
 		provinciaDaVizinha = new Provincia(10, TipoTributo.ESPADA);

@@ -70,7 +70,7 @@ public class mapaTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaRegiaoTemOnzeParadas() {
 		Map<Regiao, Integer> contagem = new HashMap<Regiao, Integer>();
-		for (parada p : paradasDoMapa()) {
+		for (Parada p : paradasDoMapa()) {
 			if (p.getRegiao() != null) {
 				incrementar(contagem, p.getRegiao());
 			}
@@ -101,7 +101,7 @@ public class mapaTest {
 	public void mapa_paradasDeUmaCidadeSaoDaRegiaoDaCidade() {
 		List<Integer> cidadesComParadaDeOutraRegiao = new ArrayList<Integer>();
 		for (Cidade c : cidadesDoMapa()) {
-			for (parada p : c.getParadasAdjacentes()) {
+			for (Parada p : c.getParadasAdjacentes()) {
 				if (p.getRegiao() != c.getRegiao()) {
 					cidadesComParadaDeOutraRegiao.add(c.getId());
 				}
@@ -121,7 +121,7 @@ public class mapaTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void mapa_cadaRegiaoTemDuasParadasDuplas() {
 		Map<Regiao, Integer> contagem = new HashMap<Regiao, Integer>();
-		for (parada p : paradasDuplas()) {
+		for (Parada p : paradasDuplas()) {
 			incrementar(contagem, p.getRegiao());
 		}
 		assertEquals("Cada regiao deveria ter 2 paradas duplas", todasAsRegioesCom(2), contagem);
@@ -168,8 +168,8 @@ public class mapaTest {
 
 	// AUXILIARES
 
-	private List<parada> paradasDoMapa() {
-		List<parada> lista = new ArrayList<parada>();
+	private List<Parada> paradasDoMapa() {
+		List<Parada> lista = new ArrayList<Parada>();
 		for (int id = 1; id <= ID_MAXIMO; id++) {
 			try {
 				lista.add(mapa.getParada(id));
@@ -205,9 +205,9 @@ public class mapaTest {
 	}
 
 	/** Paradas de conselheiro: as que comportam 2 peões (o Karakorum comporta todos, por isso fica fora). */
-	private List<parada> paradasDuplas() {
-		List<parada> duplas = new ArrayList<parada>();
-		for (parada p : paradasDoMapa()) {
+	private List<Parada> paradasDuplas() {
+		List<Parada> duplas = new ArrayList<Parada>();
+		for (Parada p : paradasDoMapa()) {
 			if (p.getCapacidadePeoes() == 2) {
 				duplas.add(p);
 			}
@@ -217,12 +217,12 @@ public class mapaTest {
 
 	private Set<Integer> alcancaveisDesde(int idInicial) {
 		Set<Integer> visitadas = new HashSet<Integer>();
-		LinkedList<parada> fila = new LinkedList<parada>();
+		LinkedList<Parada> fila = new LinkedList<Parada>();
 		fila.add(mapa.getParada(idInicial));
 		visitadas.add(idInicial);
 		while (!fila.isEmpty()) {
-			parada atual = fila.removeFirst();
-			for (parada vizinha : atual.getAdjacentes()) {
+			Parada atual = fila.removeFirst();
+			for (Parada vizinha : atual.getAdjacentes()) {
 				if (visitadas.add(vizinha.getId())) {
 					fila.add(vizinha);
 				}

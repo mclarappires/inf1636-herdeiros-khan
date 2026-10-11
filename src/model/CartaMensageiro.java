@@ -10,7 +10,7 @@ class CartaMensageiro extends CartaConselheiroSecreto {
 	@Override
 	int medir(Jogador j, Tabuleiro t) {
 		int paradas = 0;
-		for (parada p : t.getParadas()) {
+		for (Parada p : t.getParadas()) {
 			if (p.isDupla() && p.temYurtDe(j.getCor())) {
 				paradas++;
 			}

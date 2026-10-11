@@ -17,7 +17,7 @@ class Provincia implements LocalDoKhan {
 	private int quantidade;
 	private final boolean doKhan; //províncias em que o peão do Khan pode ser colocado
 
-	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
+	private final Map<Integer, Parada> adjacentes = new HashMap<Integer, Parada>();
 	private final Map<Integer, Provincia> vizinhas = new HashMap<Integer, Provincia>(); //recebem tributo junto quando o Khan vem para cá
 
 	Provincia(int id, TipoTributo tipo){
@@ -69,18 +69,18 @@ class Provincia implements LocalDoKhan {
 		return tipo;
 	}
 
-	void ligarParada(parada parada) {
+	void ligarParada(Parada parada) {
 		if (parada == null) {
 			throw new IllegalArgumentException("Parada nula");
 		}
 		adjacentes.put(parada.getId(), parada);
 	}
 	
-	boolean adjacenteA(parada parada) {
+	boolean adjacenteA(Parada parada) {
 		return parada != null && adjacentes.containsKey(parada.getId());
 	}
  
-	Collection<parada> getParadasAdjacentes() {
+	Collection<Parada> getParadasAdjacentes() {
 		return Collections.unmodifiableCollection(adjacentes.values());
 	}
 

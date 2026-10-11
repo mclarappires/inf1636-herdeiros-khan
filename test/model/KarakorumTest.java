@@ -17,14 +17,14 @@ public class KarakorumTest {
 
 	// pedido padrão: PELES, FERRO e BOI
 	private Karakorum karakorum;
-	private parada vizinha;
+	private Parada vizinha;
 	private Jogador jogador; //Ogedei; a 1ª coluna (2 cavalos + 1 punho) não tem Khan
 
 	@Before
 	public void montarCenario() {
 		karakorum = new Karakorum(0);
 		karakorum.colocarBonus(PecaBonus.ESPADAS);
-		vizinha = new parada(1, 1, 1, Regiao.CHINA);
+		vizinha = new Parada(1, 1, 1, Regiao.CHINA);
 		karakorum.ligar(vizinha);
 
 		jogador = new Jogador(Cor.AZUL, Heroi.OGEDEI, karakorum, 0);

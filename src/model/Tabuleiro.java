@@ -15,7 +15,7 @@ class Tabuleiro {
 	
 	private final Random random;
 	
-	private final Map<Integer, parada> paradas = new HashMap<Integer, parada>();
+	private final Map<Integer, Parada> paradas = new HashMap<Integer, Parada>();
 	private final Map<Integer, Provincia> provincias = new HashMap<Integer, Provincia>();
 	private final Map<Integer, Cidade> cidades = new HashMap<Integer, Cidade>();
 	
@@ -49,7 +49,7 @@ class Tabuleiro {
 		areaMelhorias = new AreaMelhorias(random);
 	}
 	
-	void adicionarParada(parada parada) {
+	void adicionarParada(Parada parada) {
 		exigirNaoPreparado();
 		if (parada == null) {
 			throw new IllegalArgumentException("Parada nula");
@@ -99,8 +99,8 @@ class Tabuleiro {
 		getCidade(idCidade).ligarParada(getParada(idParada));
 	}
 	
-	parada getParada(int id) {
-		parada p = paradas.get(id);
+	Parada getParada(int id) {
+		Parada p = paradas.get(id);
 		if (p == null) {
 			throw new IllegalArgumentException("Parada inexistente: " + id);
 		}
@@ -153,9 +153,9 @@ class Tabuleiro {
 			if (pecas.isEmpty()) {
 				return;
 			}
-			parada p = paradas.get(id);
-			if (p instanceof paradaConselheiro) {
-				Conselheiro c = ((paradaConselheiro) p).getConselheiro();
+			Parada p = paradas.get(id);
+			if (p instanceof ParadaConselheiro) {
+				Conselheiro c = ((ParadaConselheiro) p).getConselheiro();
 				if (!c.temBonus()) {
 					c.colocarBonus(pecas.removeFirst());
 				}
@@ -217,7 +217,7 @@ class Tabuleiro {
 		return Collections.unmodifiableList(cidadesConquistadas);
 	}
 
-	Collection<parada> getParadas() {
+	Collection<Parada> getParadas() {
 		return Collections.unmodifiableCollection(paradas.values());
 	}
 

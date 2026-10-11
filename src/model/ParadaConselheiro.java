@@ -1,10 +1,10 @@
 package model;
 
-class paradaConselheiro extends parada{
+class ParadaConselheiro extends Parada{
 	
 	private final Conselheiro conselheiro;
 	
-	paradaConselheiro(int id, Regiao regiao, Conselheiro conselheiro){
+	ParadaConselheiro(int id, Regiao regiao, Conselheiro conselheiro){
 		super(id, 2, 2, regiao);
 		if (conselheiro == null) {
 			throw new IllegalArgumentException("Conselheiro Nulo");

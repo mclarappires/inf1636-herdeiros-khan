@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-class Karakorum extends parada{
+class Karakorum extends Parada{
 
 	static final int TESOUROS_POR_ENTREGA = 3;
 	static final int VOTOS_POR_ENTREGA = 2;

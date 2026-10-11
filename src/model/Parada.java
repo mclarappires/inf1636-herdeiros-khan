@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 
-class parada {
+class Parada {
 	
 	private final int id;
 	private final int capacidadePeoes;
@@ -16,13 +16,13 @@ class parada {
 	
 	private final Regiao regiao;
 	
-	private final Map<Integer, parada> adjacentes = new HashMap<Integer, parada>();
+	private final Map<Integer, Parada> adjacentes = new HashMap<Integer, Parada>();
 	
 	private final List<Yurt> yurts = new LinkedList<Yurt>();
 
 	private final List<Peao> peoes = new LinkedList<Peao>(); //peões que estão na parada
 
-	parada(int id, int capacidadePeoes, int capacidadeYurts, Regiao regiao){
+	Parada(int id, int capacidadePeoes, int capacidadeYurts, Regiao regiao){
 		this.id = id;
 		this.capacidadePeoes = capacidadePeoes;
 		this.capacidadeYurts = capacidadeYurts;
@@ -46,7 +46,7 @@ class parada {
 	}
 	
 	/** Cria a rota nos dois sentidos entre esta parada e outra. */
-	void ligar(parada outra) {
+	void ligar(Parada outra) {
 		if (outra == null || outra == this) {
 			throw new IllegalArgumentException("Ligação inválida na parada " + id);
 		}
@@ -54,7 +54,7 @@ class parada {
 		outra.adjacentes.put(this.id, this);
 	}
 	
-	Collection<parada> getAdjacentes() {
+	Collection<Parada> getAdjacentes() {
 		return Collections.unmodifiableCollection(adjacentes.values());
 	}
 	

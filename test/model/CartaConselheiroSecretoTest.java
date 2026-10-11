@@ -12,21 +12,21 @@ public class CartaConselheiroSecretoTest {
 	// a - b - c em linha; d isolada; dupla ligada a Karakorum
 	private Tabuleiro mapa;
 	private Karakorum inicio;
-	private parada a;
-	private parada b;
-	private parada c;
-	private parada d;
-	private parada dupla;
+	private Parada a;
+	private Parada b;
+	private Parada c;
+	private Parada d;
+	private Parada dupla;
 	private Jogador azul;
 
 	@Before
 	public void montarCenario() {
 		inicio = new Karakorum(0);
-		a = new parada(1, 1, 1, Regiao.CHINA);
-		b = new parada(2, 1, 1, Regiao.CHINA);
-		c = new parada(3, 1, 1, Regiao.CHINA);
-		d = new parada(4, 1, 1, Regiao.PERSIA);
-		dupla = new parada(5, 2, 2, Regiao.RUSSIA);
+		a = new Parada(1, 1, 1, Regiao.CHINA);
+		b = new Parada(2, 1, 1, Regiao.CHINA);
+		c = new Parada(3, 1, 1, Regiao.CHINA);
+		d = new Parada(4, 1, 1, Regiao.PERSIA);
+		dupla = new Parada(5, 2, 2, Regiao.RUSSIA);
 		a.ligar(b);
 		b.ligar(c);
 		inicio.ligar(dupla);
@@ -104,8 +104,8 @@ public class CartaConselheiroSecretoTest {
 		mapa.adicionarProvincia(p);
 	}
 
-	private void colocarYurts(parada... paradas) {
-		for (parada p : paradas) {
+	private void colocarYurts(Parada... paradas) {
+		for (Parada p : paradas) {
 			p.adicionarYurt(new Yurt(Cor.AZUL));
 		}
 	}

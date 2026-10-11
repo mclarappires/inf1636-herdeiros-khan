@@ -28,7 +28,7 @@ public class ConselheiroTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void carregar_conselheiroComTesouro_criaParadaDeConselheiro() throws IOException {
 		Tabuleiro mapa = carregar("CONSELHEIRO 5 CHINA FERRO\n");
-		assertTrue("A parada 5 deveria ser de conselheiro", mapa.getParada(5) instanceof paradaConselheiro);
+		assertTrue("A parada 5 deveria ser de conselheiro", mapa.getParada(5) instanceof ParadaConselheiro);
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -39,7 +39,7 @@ public class ConselheiroTest {
 		oferta.put(TipoTesouro.FERRO, 1);
 		oferta.put(TipoTesouro.TAPETE, 1);
 		assertTrue("O conselheiro único aceita 3 tesouros quaisquer",
-				((paradaConselheiro) mapa.getParada(5)).getConselheiro().aceita(oferta));
+				((ParadaConselheiro) mapa.getParada(5)).getConselheiro().aceita(oferta));
 	}
 
 	// CONSELHEIRO
@@ -71,7 +71,7 @@ public class ConselheiroTest {
 		Tabuleiro mapa = mapaRealPreparado();
 		Set<PecaBonus> distribuidas = new HashSet<PecaBonus>();
 		for (int id : IDS_CONSELHEIROS) {
-			distribuidas.add(((paradaConselheiro) mapa.getParada(id)).getConselheiro().getBonus());
+			distribuidas.add(((ParadaConselheiro) mapa.getParada(id)).getConselheiro().getBonus());
 		}
 		distribuidas.add(((Karakorum) mapa.getParada(ID_KARAKORUM)).getConselheiro().getBonus());
 		assertEquals("As 7 peças de bônus vão uma para cada lugar", PecaBonus.values().length, distribuidas.size());
@@ -88,7 +88,7 @@ public class ConselheiroTest {
 
 		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
 		oferta.put(TipoTesouro.FERRO, 2);
-		ogedei.entregarTesouros((paradaConselheiro) mapa.getParada(ID_CONSELHEIRO_DO_FERRO), oferta);
+		ogedei.entregarTesouros((ParadaConselheiro) mapa.getParada(ID_CONSELHEIRO_DO_FERRO), oferta);
 		assertEquals("A entrega ao conselheiro do ferro vale 1 voto", 1, ogedei.getVotos());
 	}
 
