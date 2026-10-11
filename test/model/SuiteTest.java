@@ -6,6 +6,8 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
 	CarregadorMapaTest.class,
+	CartaConselheiroSecretoTest.class,
+	CartaConselheiroAbertoTest.class,
 	mapaTest.class,
 	JogadorTest.class,
 	MelhoriaTest.class,
