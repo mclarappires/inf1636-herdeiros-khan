@@ -18,7 +18,9 @@ import org.junit.runners.Suite;
 	KarakorumTest.class,
 	AreaMelhoriasTest.class,
 	PeaoKhanTest.class,
-	ConselheiroTest.class
+	ConselheiroTest.class,
+	PartidaTest.class,
+	FachadaModeloTest.class
 })
 public class SuiteTest {
 }
