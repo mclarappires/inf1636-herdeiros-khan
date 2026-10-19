@@ -20,6 +20,8 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+import controller.ControladorJogo;
+
 /**
  * Painel que desenha o tabuleiro com Graphics2D.drawImage (nada de JLabel).
  * Passo 1: so desenha a imagem e imprime no console a posicao clicada
@@ -37,20 +39,33 @@ class PainelTabuleiro extends JPanel {
 
     private Image imagemTabuleiro;
     private PosicoesParadas posicoes;
+    private PosicoesParadas posicoesProvincias;
 
     private final List<PeaoNaTela> peoes = new ArrayList<PeaoNaTela>();
     private final Map<Color, BufferedImage> sprites = new HashMap<Color, BufferedImage>();
 
+    /** Uma peca de tributo ocupa esta fracao da largura da imagem do tabuleiro. */
+    private static final double LARGURA_TRIBUTO = 0.034;
+
+    private final List<PilhaDeTributos> tributos = new ArrayList<PilhaDeTributos>();
+    private final Map<String, BufferedImage> spritesTributo = new HashMap<String, BufferedImage>();
+
     // area onde a imagem foi desenhada (muda quando a janela e redimensionada)
     private int imgX, imgY, imgLargura, imgAltura;
 
-    PainelTabuleiro(String caminhoImagem, String caminhoPosicoes) {
+    PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
         } catch (IOException e) {
             posicoes = null;
             System.err.println("Nao foi possivel ler as posicoes: " + caminhoPosicoes);
+        }
+        try {
+            posicoesProvincias = new PosicoesParadas(caminhoProvincias);
+        } catch (IOException e) {
+            posicoesProvincias = null;
+            System.err.println("Nao foi possivel ler as posicoes das provincias: " + caminhoProvincias);
         }
         addMouseListener(new OuvinteMouse());
         setFocusable(true);
@@ -61,6 +76,13 @@ class PainelTabuleiro extends JPanel {
     void setPeoes(List<PeaoNaTela> novos) {
         peoes.clear();
         peoes.addAll(novos);
+        repaint();
+    }
+
+    /** Troca as pecas de tributo exibidas (uma pilha por provincia). */
+    void setTributos(List<PilhaDeTributos> novas) {
+        tributos.clear();
+        tributos.addAll(novas);
         repaint();
     }
 
@@ -104,6 +126,7 @@ class PainelTabuleiro extends JPanel {
 
         g2.drawImage(imagemTabuleiro, imgX, imgY, imgLargura, imgAltura, null);
 
+        desenharTributos(g2);
         desenharPeoes(g2);
 
         if (mostrarMarcadores && posicoes != null) {
@@ -116,6 +139,38 @@ class PainelTabuleiro extends JPanel {
                 g2.drawOval(px - r, py - r, 2 * r, 2 * r);
             }
         }
+    }
+
+    /** Desenha as pecas de cada provincia sobre o icone impresso; as extras empilham para cima. */
+    private void desenharTributos(Graphics2D g2) {
+        if (posicoesProvincias == null) {
+            return;
+        }
+        int tamanho = (int) (LARGURA_TRIBUTO * imgLargura);
+        for (PilhaDeTributos pilha : tributos) {
+            double[] p = posicoesProvincias.get(pilha.getProvincia());
+            if (p == null) {
+                continue;
+            }
+            int cx = imgX + (int) (p[0] * imgLargura);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            BufferedImage sprite = spriteTributoDe(pilha.getTipo());
+            if (sprite == null) {
+                continue;
+            }
+            for (int i = 0; i < pilha.getQuantidade(); i++) {
+                int y = cy - tamanho / 2 - (int) (i * tamanho * 0.30);
+                g2.drawImage(sprite, cx - tamanho / 2, y, tamanho, tamanho, null);
+            }
+        }
+    }
+
+    /** Imagem da peca do tipo; lida uma vez so (se faltar o arquivo, fica null e a peca nao aparece). */
+    private BufferedImage spriteTributoDe(String tipo) {
+        if (!spritesTributo.containsKey(tipo)) {
+            spritesTributo.put(tipo, SpriteTributo.criar(tipo));
+        }
+        return spritesTributo.get(tipo);
     }
 
     /** Desenha cada peao na sua parada; peoes na mesma parada ficam lado a lado. */
@@ -162,12 +217,9 @@ class PainelTabuleiro extends JPanel {
         return sprite;
     }
 
-    /**
-     * Chamado quando o clique cai numa parada. Por enquanto so imprime;
-     * depois chama o Controller (que pergunta ao Model se o movimento vale).
-     */
+    /** Clique numa parada: quem decide se o movimento vale e o Model, via Controller. */
     private void aoClicarParada(int idParada) {
-        System.out.println("parada clicada: " + idParada);
+        ControladorJogo.getInstancia().cliqueNaParada(idParada);
     }
 
     /** Eventos tratados como no Cap. 12: classe ouvinte, sem lambda. */
@@ -183,7 +235,9 @@ class PainelTabuleiro extends JPanel {
             if (fx < 0 || fx > 1 || fy < 0 || fy > 1) {
                 return; // clique fora da imagem
             }
-            System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
+            if (mostrarMarcadores) { // modo de calibracao (F2): mostra onde clicou
+                System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
+            }
             if (posicoes == null) {
                 return;
             }

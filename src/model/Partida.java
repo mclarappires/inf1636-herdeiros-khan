@@ -13,6 +13,7 @@ class Partida {
 
 	private final Tabuleiro tabuleiro;
 	private final List<Jogador> jogadores = new LinkedList<Jogador>(); //na ordem de jogada
+	private int indiceDaVez = 0;
 
 	Partida(Tabuleiro tabuleiro, List<Heroi> herois, List<Cor> cores) {
 		if (tabuleiro == null) {
@@ -71,6 +72,18 @@ class Partida {
 		throw new IllegalStateException("O mapa não tem Karakorum");
 	}
 
+	//VEZ DE JOGAR
+
+	/**
+	 * Encerra o turno do jogador da vez e passa a vez ao próximo (sentido horário).
+	 * Se o jogador não puder encerrar (por exemplo, peão em parada cheia), a exceção
+	 * sobe e a vez continua com ele.
+	 */
+	void encerrarTurnoDaVez() {
+		getJogadorDaVez().encerrarTurno();
+		indiceDaVez = (indiceDaVez + 1) % jogadores.size();
+	}
+
 	//CONSULTAS
 
 	Tabuleiro getTabuleiro() {
@@ -86,5 +99,13 @@ class Partida {
 			throw new IllegalArgumentException("Jogador inexistente: " + indice);
 		}
 		return jogadores.get(indice);
+	}
+
+	int getIndiceDaVez() {
+		return indiceDaVez;
+	}
+
+	Jogador getJogadorDaVez() {
+		return jogadores.get(indiceDaVez);
 	}
 }

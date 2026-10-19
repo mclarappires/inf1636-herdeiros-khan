@@ -12,11 +12,12 @@ import view.JanelaTabuleiro;
 /** Liga as telas ao model e decide qual janela aparece. */
 public class ControladorJogo {
 
-    private static final String ARQUIVO_MAPA = "resources/mapa.txt";
+    private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 
     private static ControladorJogo instancia = null;
 
     private JanelaInicio janelaInicio = null;
+    private JanelaTabuleiro janelaTabuleiro = null;
 
     private ControladorJogo() {
     }
@@ -52,8 +53,37 @@ public class ControladorJogo {
             janelaInicio.dispose();
             janelaInicio = null;
         }
-        new JanelaTabuleiro().setVisible(true);
+        janelaTabuleiro = new JanelaTabuleiro();
+        janelaTabuleiro.setVisible(true);
         return null;
+    }
+
+    /** O jogador da vez ativa uma coluna (peao 0 age; a escolha do peao do Altani fica para depois). */
+    public void ativarColuna(String coluna) {
+        if (!partidaEmAndamento()) {
+            return;
+        }
+        FachadaModelo.getInstancia().ativarColuna(coluna, 0);
+        janelaTabuleiro.atualizar();
+    }
+
+    /**
+     * Clique numa parada do tabuleiro: se o movimento for valido o peao anda; se nao,
+     * nada acontece. Quando os movimentos acabam, o turno termina sozinho.
+     */
+    public void cliqueNaParada(int idParada) {
+        if (!partidaEmAndamento()) {
+            return;
+        }
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        if (fachada.moverPeaoDaVez(idParada) && fachada.getMovimentosRestantes() == 0) {
+            fachada.encerrarTurno();
+        }
+        janelaTabuleiro.atualizar();
+    }
+
+    private boolean partidaEmAndamento() {
+        return janelaTabuleiro != null && FachadaModelo.getInstancia().temPartida();
     }
 
     public void sair() {

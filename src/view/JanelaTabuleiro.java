@@ -1,5 +1,6 @@
 package view;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,24 +18,33 @@ public class JanelaTabuleiro extends JFrame {
     public static final int LARGURA = 1200;
     public static final int ALTURA = 900;
 
+    private final PainelTabuleiro painel;
+    private final PainelTurno painelTurno;
+
     public JanelaTabuleiro() {
         super("Herdeiros do Khan");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(LARGURA, ALTURA);
         setLocationRelativeTo(null);
-        PainelTabuleiro painel = new PainelTabuleiro("resources/tabuleiro.jpg",
-                "resources/paradas_coordenadas.txt");
-        add(painel);
-        painel.setPeoes(peoesDaPartida());
+
+        painel = new PainelTabuleiro("resources/tabuleiro.jpg",
+                "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt");
+        painelTurno = new PainelTurno();
+        add(painelTurno, BorderLayout.NORTH);
+        add(painel, BorderLayout.CENTER);
+        atualizar();
     }
 
-    /** Id da parada Karakorum no mapa; la comecam todos os peoes. */
-    private static final int KARAKORUM = 1;
+    /** Relê o estado do jogo na fachada e redesenha peoes e faixa do turno. */
+    public void atualizar() {
+        painel.setPeoes(peoesDaPartida());
+        painel.setTributos(tributosDaPartida());
+        painelTurno.atualizar();
+    }
 
     /**
-     * Um peao por jogador, na cor escolhida na selecao. TEMPORARIO: todos em
-     * Karakorum (posicao inicial do manual) ate a fachada informar a parada de cada peao.
-     * Sem partida iniciada (main desta classe), usa os peoes de teste.
+     * Um PeaoNaTela por peao de cada jogador, na parada onde o Model diz que ele esta.
+     * Sem partida iniciada (main desta classe), usa peoes de teste.
      */
     private static List<PeaoNaTela> peoesDaPartida() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
@@ -43,24 +53,38 @@ public class JanelaTabuleiro extends JFrame {
         }
         List<PeaoNaTela> lista = new ArrayList<PeaoNaTela>();
         for (int i = 0; i < fachada.getQuantidadeJogadores(); i++) {
-            lista.add(new PeaoNaTela(KARAKORUM, CoresJogador.de(fachada.getCorDoJogador(i))));
+            Color cor = CoresJogador.de(fachada.getCorDoJogador(i));
+            for (int k = 0; k < fachada.getQuantidadePeoes(i); k++) {
+                lista.add(new PeaoNaTela(fachada.getParadaDoPeao(i, k), cor));
+            }
         }
         return lista;
     }
 
-    /**
-     * TEMPORARIO: peoes fixos so para ver o desenho funcionando.
-     * Depois o Controller monta esta lista a partir do Model.
-     */
+    /** Uma pilha por provincia, com o tipo e a quantidade de pecas que o Model informa. */
+    private static List<PilhaDeTributos> tributosDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<PilhaDeTributos> lista = new ArrayList<PilhaDeTributos>();
+        if (!fachada.temPartida()) {
+            return lista;
+        }
+        for (int id : fachada.getIdsProvincias()) {
+            lista.add(new PilhaDeTributos(id, fachada.getTipoDaProvincia(id),
+                    fachada.getTributosDaProvincia(id)));
+        }
+        return lista;
+    }
+
+    /** TEMPORARIO: peoes fixos so para ver o desenho funcionando sem partida. */
     private static List<PeaoNaTela> peoesDeTeste() {
         List<PeaoNaTela> lista = new ArrayList<PeaoNaTela>();
-        lista.add(new PeaoNaTela(1, new Color(40, 90, 200)));   // azul em Karakorum
-        lista.add(new PeaoNaTela(1, new Color(200, 40, 40)));   // vermelho em Karakorum
-        lista.add(new PeaoNaTela(1, new Color(40, 150, 60)));   // verde em Karakorum
-        lista.add(new PeaoNaTela(1, new Color(235, 195, 40)));  // amarelo em Karakorum
-        lista.add(new PeaoNaTela(13, new Color(30, 30, 30)));   // preto numa parada dupla
-        lista.add(new PeaoNaTela(13, new Color(200, 40, 40)));  // vermelho na mesma dupla
-        lista.add(new PeaoNaTela(17, new Color(40, 90, 200)));  // azul numa parada simples
+        lista.add(new PeaoNaTela(1, new Color(40, 90, 200)));
+        lista.add(new PeaoNaTela(1, new Color(200, 40, 40)));
+        lista.add(new PeaoNaTela(1, new Color(40, 150, 60)));
+        lista.add(new PeaoNaTela(1, new Color(235, 195, 40)));
+        lista.add(new PeaoNaTela(13, new Color(30, 30, 30)));
+        lista.add(new PeaoNaTela(13, new Color(200, 40, 40)));
+        lista.add(new PeaoNaTela(17, new Color(40, 90, 200)));
         return lista;
     }
 

@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -46,6 +47,15 @@ public class FachadaModelo {
 		return nomes;
 	}
 
+	public String[] getColunas() {
+		Coluna[] colunas = Coluna.values();
+		String[] nomes = new String[colunas.length];
+		for (int i = 0; i < colunas.length; i++) {
+			nomes[i] = colunas[i].name();
+		}
+		return nomes;
+	}
+
 	/** Herói e cor do jogador i ficam na posição i das listas, na ordem de jogada. */
 	public void novaPartida(String caminhoMapa, List<String> herois, List<String> cores) throws IOException {
 		if (caminhoMapa == null) {
@@ -83,6 +93,103 @@ public class FachadaModelo {
 
 	public int getMoedasDoJogador(int indice) {
 		return exigirPartida().getJogador(indice).getMoedas();
+	}
+
+	//PEÕES
+
+	public int getQuantidadePeoes(int jogador) {
+		return exigirPartida().getJogador(jogador).getPeoes().size();
+	}
+
+	/** Id da parada onde está o peão (Altani tem dois; os demais, um). */
+	public int getParadaDoPeao(int jogador, int indicePeao) {
+		List<Peao> peoes = exigirPartida().getJogador(jogador).getPeoes();
+		if (indicePeao < 0 || indicePeao >= peoes.size()) {
+			throw new IllegalArgumentException("Peão inexistente: " + indicePeao);
+		}
+		return peoes.get(indicePeao).getPosicao().getId();
+	}
+
+	//PROVÍNCIAS E PEÇAS DE TRIBUTO
+
+	public int[] getIdsProvincias() {
+		Collection<Provincia> provincias = exigirPartida().getTabuleiro().getProvincias();
+		int[] ids = new int[provincias.size()];
+		int i = 0;
+		for (Provincia p : provincias) {
+			ids[i++] = p.getId();
+		}
+		return ids;
+	}
+
+	/** "ESPADA", "YURT" ou "MOEDA": o tipo de peça que a província produz. */
+	public String getTipoDaProvincia(int idProvincia) {
+		return exigirPartida().getTabuleiro().getProvincia(idProvincia).getTipo().name();
+	}
+
+	public int getTributosDaProvincia(int idProvincia) {
+		return exigirPartida().getTabuleiro().getProvincia(idProvincia).getQuantidade();
+	}
+
+	//TURNO
+
+	/** Índice (na ordem de jogada) do jogador que está jogando. */
+	public int getJogadorDaVez() {
+		return exigirPartida().getIndiceDaVez();
+	}
+
+	/** Nome da coluna ativada neste turno, ou null se o jogador ainda não ativou nenhuma. */
+	public String getColunaAtiva() {
+		Coluna ativa = exigirPartida().getJogadorDaVez().getColunaAtiva();
+		return ativa == null ? null : ativa.name();
+	}
+
+	public int getMovimentosRestantes() {
+		return exigirPartida().getJogadorDaVez().getMovimentosRestantes();
+	}
+
+	public boolean isKhanPendente() {
+		return exigirPartida().getJogadorDaVez().isKhanPendente();
+	}
+
+	/** Ativa a coluna para o jogador da vez. Devolve false se não for possível (coluna já usada, turno em andamento...). */
+	public boolean ativarColuna(String coluna, int indicePeao) {
+		try {
+			exigirPartida().getJogadorDaVez().ativarColuna(Coluna.valueOf(coluna), indicePeao);
+			return true;
+		} catch (IllegalStateException e) {
+			return false;
+		} catch (IllegalArgumentException e) { //nome de coluna desconhecido ou peão inexistente
+			return false;
+		}
+	}
+
+	/** Move o peão que age no turno para a parada, se o movimento valer. Falso não altera nada. */
+	public boolean moverPeaoDaVez(int idParada) {
+		Partida p = exigirPartida();
+		try {
+			Parada destino = p.getTabuleiro().getParada(idParada);
+			Jogador jogador = p.getJogadorDaVez();
+			if (!jogador.podeMoverPara(destino)) {
+				return false;
+			}
+			jogador.mover(destino);
+			return true;
+		} catch (IllegalStateException e) {
+			return false;
+		} catch (IllegalArgumentException e) { //parada inexistente
+			return false;
+		}
+	}
+
+	/** Encerra o turno e passa a vez. Falso se o turno ainda não pode terminar. */
+	public boolean encerrarTurno() {
+		try {
+			exigirPartida().encerrarTurnoDaVez();
+			return true;
+		} catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 	private Partida exigirPartida() {

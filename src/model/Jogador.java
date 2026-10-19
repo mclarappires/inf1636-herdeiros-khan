@@ -663,4 +663,19 @@ class Jogador {
 		}
 	}
 
+/**
+ * Diz se mover(destino) seria aceito agora, sem alterar nada. No ultimo movimento o
+ * peao precisa chegar onde pode terminar o turno (parada com vaga).
+ */
+boolean podeMoverPara(Parada destino) {
+	if (colunaAtiva == null || destino == null || movimentosRestantes <= 0) {
+		return false;
+		}
+	if (!alcancavel(peaoAtivo.getPosicao(), destino)) {
+		return false;
+		}
+	return movimentosRestantes > 1 || peaoAtivo.podeTerminarEm(destino);
+	}
 }
+
+
