@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Onde cada parada fica na imagem do tabuleiro, em fracao (0 a 1) da largura
- * e da altura. Pertence a View: o Model nao sabe nada de pixels.
+ * e da altura.
  */
 class PosicoesParadas {
 
