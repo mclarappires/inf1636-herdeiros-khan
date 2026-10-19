@@ -11,7 +11,7 @@ import org.junit.Test;
 public class FachadaModeloTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
-	private static final String ARQUIVO_MAPA = "resources/mapa.txt";
+	private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 
 	private final FachadaModelo fachada = FachadaModelo.getInstancia();
 

@@ -20,7 +20,7 @@ import org.junit.Test;
 public class PreparacaoConquistaTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
-	private static final String ARQUIVO_MAPA = "resources/mapa.txt";
+	private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 	private static final int TOTAL_DE_TESOUROS = 40;
 	private static final int TESOUROS_POR_CIDADE = 4;
 	private static final int NUMERO_DE_CIDADES = 9;

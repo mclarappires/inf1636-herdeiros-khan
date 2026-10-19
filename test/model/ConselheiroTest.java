@@ -18,7 +18,7 @@ import org.junit.Test;
 public class ConselheiroTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
-	private static final String ARQUIVO_MAPA = "resources/mapa.txt";
+	private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 	private static final int ID_KARAKORUM = 1;
 	private static final int ID_CONSELHEIRO_DO_FERRO = 12; //ligado direto a Karakorum
 	private static final int[] IDS_CONSELHEIROS = { 8, 12, 13, 20, 30, 32 };

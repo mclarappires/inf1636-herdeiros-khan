@@ -22,7 +22,7 @@ import org.junit.Test;
 public class mapaTest {
 
 	private static final int DEFAULT_TIMEOUT = 2000;
-	private static final String ARQUIVO_MAPA = "resources/mapa.txt";
+	private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 	private static final int ID_MAXIMO = 60;
 	private static final int ID_KARAKORUM = 1;
 
