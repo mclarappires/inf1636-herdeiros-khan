@@ -40,6 +40,7 @@ class PainelTabuleiro extends JPanel {
     private Image imagemTabuleiro;
     private PosicoesParadas posicoes;
     private PosicoesParadas posicoesProvincias;
+    private PosicoesParadas posicoesCidades;
 
     private final List<PeaoNaTela> peoes = new ArrayList<PeaoNaTela>();
     private final Map<Color, BufferedImage> sprites = new HashMap<Color, BufferedImage>();
@@ -47,13 +48,20 @@ class PainelTabuleiro extends JPanel {
     /** Uma peca de tributo ocupa esta fracao da largura da imagem do tabuleiro. */
     private static final double LARGURA_TRIBUTO = 0.034;
 
+    /** A peca de uma cidade revelada ocupa esta fracao da largura da imagem do tabuleiro. */
+    private static final double LARGURA_CIDADE = 0.095;
+
+    private final List<Integer> cidadesVisiveis = new ArrayList<Integer>();
+    private final Map<Integer, BufferedImage> spritesCidade = new HashMap<Integer, BufferedImage>();
+
     private final List<PilhaDeTributos> tributos = new ArrayList<PilhaDeTributos>();
     private final Map<String, BufferedImage> spritesTributo = new HashMap<String, BufferedImage>();
 
     // area onde a imagem foi desenhada (muda quando a janela e redimensionada)
     private int imgX, imgY, imgLargura, imgAltura;
 
-    PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias) {
+    PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias,
+            String caminhoCidades) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
@@ -67,6 +75,12 @@ class PainelTabuleiro extends JPanel {
             posicoesProvincias = null;
             System.err.println("Nao foi possivel ler as posicoes das provincias: " + caminhoProvincias);
         }
+        try {
+            posicoesCidades = new PosicoesParadas(caminhoCidades);
+        } catch (IOException e) {
+            posicoesCidades = null;
+            System.err.println("Nao foi possivel ler as posicoes das cidades: " + caminhoCidades);
+        }
         addMouseListener(new OuvinteMouse());
         setFocusable(true);
         addKeyListener(new OuvinteTeclado());
@@ -76,6 +90,13 @@ class PainelTabuleiro extends JPanel {
     void setPeoes(List<PeaoNaTela> novos) {
         peoes.clear();
         peoes.addAll(novos);
+        repaint();
+    }
+
+    /** Troca as cidades reveladas exibidas (ids das cidades, como no mapa). */
+    void setCidadesVisiveis(List<Integer> ids) {
+        cidadesVisiveis.clear();
+        cidadesVisiveis.addAll(ids);
         repaint();
     }
 
@@ -126,6 +147,7 @@ class PainelTabuleiro extends JPanel {
 
         g2.drawImage(imagemTabuleiro, imgX, imgY, imgLargura, imgAltura, null);
 
+        desenharCidades(g2);
         desenharTributos(g2);
         desenharPeoes(g2);
 
@@ -138,6 +160,30 @@ class PainelTabuleiro extends JPanel {
                 int r = (int) (e.getValue()[2] * imgLargura);
                 g2.drawOval(px - r, py - r, 2 * r, 2 * r);
             }
+        }
+    }
+
+    /** Desenha a peca de cada cidade revelada sobre a cidade impressa no tabuleiro. */
+    private void desenharCidades(Graphics2D g2) {
+        if (posicoesCidades == null) {
+            return;
+        }
+        int lado = (int) (LARGURA_CIDADE * imgLargura);
+        for (int id : cidadesVisiveis) {
+            double[] p = posicoesCidades.get(id);
+            if (p == null) {
+                continue;
+            }
+            if (!spritesCidade.containsKey(id)) {
+                spritesCidade.put(id, SpriteCidade.criar(id));
+            }
+            BufferedImage sprite = spritesCidade.get(id);
+            if (sprite == null) {
+                continue;
+            }
+            int cx = imgX + (int) (p[0] * imgLargura);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            g2.drawImage(sprite, cx - lado / 2, cy - lado / 2, lado, lado, null);
         }
     }
 

@@ -131,6 +131,18 @@ public class FachadaModelo {
 		return exigirPartida().getTabuleiro().getProvincia(idProvincia).getQuantidade();
 	}
 
+	//CIDADES
+
+	/** Ids das cidades reveladas, isto é, as que podem ser atacadas agora. */
+	public int[] getIdsCidadesVisiveis() {
+		List<Cidade> visiveis = exigirPartida().getTabuleiro().getCidadesVisiveis();
+		int[] ids = new int[visiveis.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = visiveis.get(i).getId();
+		}
+		return ids;
+	}
+
 	//TURNO
 
 	/** Índice (na ordem de jogada) do jogador que está jogando. */

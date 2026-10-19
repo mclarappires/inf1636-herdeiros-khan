@@ -28,7 +28,8 @@ public class JanelaTabuleiro extends JFrame {
         setLocationRelativeTo(null);
 
         painel = new PainelTabuleiro("resources/tabuleiro.jpg",
-                "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt");
+                "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
+                "resources/cidades_coordenadas.txt");
         painelTurno = new PainelTurno();
         add(painelTurno, BorderLayout.NORTH);
         add(painel, BorderLayout.CENTER);
@@ -39,6 +40,7 @@ public class JanelaTabuleiro extends JFrame {
     public void atualizar() {
         painel.setPeoes(peoesDaPartida());
         painel.setTributos(tributosDaPartida());
+        painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
         painelTurno.atualizar();
     }
 
@@ -56,6 +58,18 @@ public class JanelaTabuleiro extends JFrame {
             Color cor = CoresJogador.de(fachada.getCorDoJogador(i));
             for (int k = 0; k < fachada.getQuantidadePeoes(i); k++) {
                 lista.add(new PeaoNaTela(fachada.getParadaDoPeao(i, k), cor));
+            }
+        }
+        return lista;
+    }
+
+    /** Ids das cidades reveladas (as que estao disponiveis para ataque). */
+    private static List<Integer> cidadesVisiveisDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<Integer> lista = new ArrayList<Integer>();
+        if (fachada.temPartida()) {
+            for (int id : fachada.getIdsCidadesVisiveis()) {
+                lista.add(id);
             }
         }
         return lista;

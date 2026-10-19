@@ -1,0 +1,12 @@
+# id x y   centro da cidade impressa no tabuleiro (fracao da imagem); id = id da cidade no mapa
+# imagens em resources/cidades/cidade_<id>.png
+# 1 Kiev, 2 Moscou, 3 Sarai, 4 Samarcanda, 5 Bagda, 6 Cabul, 7 Kaesong, 8 Pequim, 9 Cantao
+1 0.1000 0.1249
+2 0.3767 0.2130
+3 0.6018 0.1430
+4 0.2741 0.4745
+5 0.0839 0.5841
+6 0.4318 0.6968
+7 0.8824 0.2839
+8 0.7196 0.4981
+9 0.8364 0.7602
