@@ -41,9 +41,9 @@ public class ControladorJogo {
      * Cria a partida com as escolhas da tela de selecao e abre o tabuleiro.
      * Devolve null se deu certo, ou a mensagem de erro para a tela mostrar.
      */
-    public String iniciarPartida(List<String> herois, List<String> cores) {
+    public String iniciarPartida(List<String> herois) {
         try {
-            FachadaModelo.getInstancia().novaPartida(ARQUIVO_MAPA, herois, cores);
+            FachadaModelo.getInstancia().novaPartida(ARQUIVO_MAPA, herois);
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         } catch (IOException e) {

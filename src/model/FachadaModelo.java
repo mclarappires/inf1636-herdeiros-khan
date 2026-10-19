@@ -38,13 +38,9 @@ public class FachadaModelo {
 		return nomes;
 	}
 
-	public String[] getCores() {
-		Cor[] cores = Cor.values();
-		String[] nomes = new String[cores.length];
-		for (int i = 0; i < cores.length; i++) {
-			nomes[i] = cores[i].name();
-		}
-		return nomes;
+	/** Cor fixa do herói; a tela de seleção mostra antes de a partida existir. */
+	public String getCorDoHeroi(String heroi) {
+		return converterHeroi(heroi).getCor().name();
 	}
 
 	public String[] getColunas() {
@@ -56,13 +52,12 @@ public class FachadaModelo {
 		return nomes;
 	}
 
-	/** Herói e cor do jogador i ficam na posição i das listas, na ordem de jogada. */
-	public void novaPartida(String caminhoMapa, List<String> herois, List<String> cores) throws IOException {
+	/** O herói do jogador i fica na posição i da lista, na ordem de jogada; a cor vem do herói. */
+	public void novaPartida(String caminhoMapa, List<String> herois) throws IOException {
 		if (caminhoMapa == null) {
 			throw new IllegalArgumentException("Caminho do mapa nulo");
 		}
 		List<Heroi> heroisEscolhidos = converterHerois(herois);
-		List<Cor> coresEscolhidas = converterCores(cores);
 
 		Reader leitor = new InputStreamReader(new FileInputStream(caminhoMapa), "UTF-8");
 		Tabuleiro tabuleiro;
@@ -72,7 +67,7 @@ public class FachadaModelo {
 			leitor.close();
 		}
 		//só troca a partida atual se a nova for válida
-		partida = new Partida(tabuleiro, heroisEscolhidos, coresEscolhidas);
+		partida = new Partida(tabuleiro, heroisEscolhidos);
 	}
 
 	public boolean temPartida() {
@@ -232,27 +227,16 @@ public class FachadaModelo {
 		}
 		List<Heroi> herois = new LinkedList<Heroi>();
 		for (String nome : nomes) {
-			try {
-				herois.add(Heroi.valueOf(nome));
-			} catch (RuntimeException e) { //nome nulo ou desconhecido
-				throw new IllegalArgumentException("Herói desconhecido: " + nome);
-			}
+			herois.add(converterHeroi(nome));
 		}
 		return herois;
 	}
 
-	private static List<Cor> converterCores(List<String> nomes) {
-		if (nomes == null) {
-			throw new IllegalArgumentException("Lista de cores nula");
+	private static Heroi converterHeroi(String nome) {
+		try {
+			return Heroi.valueOf(nome);
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Herói desconhecido: " + nome);
 		}
-		List<Cor> cores = new LinkedList<Cor>();
-		for (String nome : nomes) {
-			try {
-				cores.add(Cor.valueOf(nome));
-			} catch (RuntimeException e) {
-				throw new IllegalArgumentException("Cor desconhecida: " + nome);
-			}
-		}
-		return cores;
 	}
 }

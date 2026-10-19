@@ -15,17 +15,19 @@ class Partida {
 	private final List<Jogador> jogadores = new LinkedList<Jogador>(); //na ordem de jogada
 	private int indiceDaVez = 0;
 
-	Partida(Tabuleiro tabuleiro, List<Heroi> herois, List<Cor> cores) {
+	/** Cada jogador joga com a cor do seu herói. */
+	Partida(Tabuleiro tabuleiro, List<Heroi> herois) {
 		if (tabuleiro == null) {
 			throw new IllegalArgumentException("Tabuleiro nulo");
 		}
-		exigirEscolhasValidas(herois, cores);
+		exigirEscolhasValidas(herois);
 		this.tabuleiro = tabuleiro;
 		tabuleiro.preparar();
 
 		Karakorum inicial = acharKarakorum(tabuleiro);
 		for (int i = 0; i < herois.size(); i++) {
-			jogadores.add(new Jogador(cores.get(i), herois.get(i), inicial, moedasIniciais(i)));
+			Heroi heroi = herois.get(i);
+			jogadores.add(new Jogador(heroi.getCor(), heroi, inicial, moedasIniciais(i)));
 		}
 	}
 
@@ -37,28 +39,22 @@ class Partida {
 		return posicao < 2 ? 1 : 2;
 	}
 
-	private static void exigirEscolhasValidas(List<Heroi> herois, List<Cor> cores) {
-		if (herois == null || cores == null) {
-			throw new IllegalArgumentException("Escolhas de heróis e cores são obrigatórias");
-		}
-		if (herois.size() != cores.size()) {
-			throw new IllegalArgumentException("Cada jogador precisa de um herói e uma cor");
+	//herói sem repetição já garante que as cores também não se repetem
+	private static void exigirEscolhasValidas(List<Heroi> herois) {
+		if (herois == null) {
+			throw new IllegalArgumentException("Escolha dos heróis é obrigatória");
 		}
 		if (herois.size() < MIN_JOGADORES || herois.size() > MAX_JOGADORES) {
 			throw new IllegalArgumentException("A partida precisa de " + MIN_JOGADORES
 					+ " a " + MAX_JOGADORES + " jogadores");
 		}
 		Set<Heroi> heroisVistos = new HashSet<Heroi>();
-		Set<Cor> coresVistas = new HashSet<Cor>();
 		for (int i = 0; i < herois.size(); i++) {
-			if (herois.get(i) == null || cores.get(i) == null) {
-				throw new IllegalArgumentException("Jogador " + (i + 1) + " sem herói ou cor");
+			if (herois.get(i) == null) {
+				throw new IllegalArgumentException("Jogador " + (i + 1) + " sem herói");
 			}
 			if (!heroisVistos.add(herois.get(i))) {
 				throw new IllegalArgumentException("Herói " + herois.get(i) + " escolhido mais de uma vez");
-			}
-			if (!coresVistas.add(cores.get(i))) {
-				throw new IllegalArgumentException("Cor " + cores.get(i) + " escolhida mais de uma vez");
 			}
 		}
 	}

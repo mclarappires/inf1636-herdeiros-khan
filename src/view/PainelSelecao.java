@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 import controller.ControladorJogo;
 import model.FachadaModelo;
 
-/** Escolha do numero de jogadores e do heroi e da cor de cada um, na ordem de jogada. */
+/** Escolha do numero de jogadores e do heroi de cada um, na ordem de jogada; a cor vem do heroi. */
 class PainelSelecao extends JPanel {
 
     private static final long serialVersionUID = 1L;
@@ -34,7 +34,6 @@ class PainelSelecao extends JPanel {
     private static final Font FONTE = new Font(Font.SANS_SERIF, Font.PLAIN, 16);
 
     private static final Map<String, String> HABILIDADES = new HashMap<String, String>();
-    private static final Map<String, Color> CORES = new HashMap<String, Color>();
 
     static {
         HABILIDADES.put("ALTANI", "Joga com dois peões e escolhe qual deles age no turno.");
@@ -42,26 +41,18 @@ class PainelSelecao extends JPanel {
         HABILIDADES.put("JOCHI", "Começa com o primeiro espaço da coluna branca ocupado.");
         HABILIDADES.put("OGEDEI", "Pode pagar com moeda o primeiro tesouro de cada cidade.");
         HABILIDADES.put("TOLUI", "Começa com um yurt em Karakorum e constrói ao lado do peão.");
-
-        CORES.put("AZUL", new Color(40, 90, 200));
-        CORES.put("AMARELO", new Color(235, 195, 40));
-        CORES.put("PRETO", new Color(30, 30, 30));
-        CORES.put("VERMELHO", new Color(200, 40, 40));
-        CORES.put("VERDE", new Color(40, 150, 60));
     }
 
     private final JanelaInicio janela;
+    private final FachadaModelo fachada = FachadaModelo.getInstancia();
     private final String[] herois;
-    private final String[] cores;
 
     private final JComboBox<String> quantidade = new JComboBox<String>();
     private final List<LinhaJogador> linhas = new LinkedList<LinhaJogador>();
 
     PainelSelecao(JanelaInicio janela) {
         this.janela = janela;
-        FachadaModelo fachada = FachadaModelo.getInstancia();
         herois = fachada.getHerois();
-        cores = fachada.getCores();
 
         setLayout(new BorderLayout(0, 16));
         setBorder(BorderFactory.createEmptyBorder(30, 60, 30, 60));
@@ -139,12 +130,10 @@ class PainelSelecao extends JPanel {
 
     private void comecar() {
         List<String> heroisEscolhidos = new LinkedList<String>();
-        List<String> coresEscolhidas = new LinkedList<String>();
         for (int i = 0; i < getQuantidadeJogadores(); i++) {
             heroisEscolhidos.add(linhas.get(i).getHeroi());
-            coresEscolhidas.add(linhas.get(i).getCor());
         }
-        String erro = ControladorJogo.getInstancia().iniciarPartida(heroisEscolhidos, coresEscolhidas);
+        String erro = ControladorJogo.getInstancia().iniciarPartida(heroisEscolhidos);
         if (erro != null) {
             JOptionPane.showMessageDialog(this, erro, "Seleção inválida", JOptionPane.WARNING_MESSAGE);
         }
@@ -161,14 +150,14 @@ class PainelSelecao extends JPanel {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
     }
 
-    /** Uma linha por jogador; os combos guardam os nomes formatados na mesma ordem da fachada. */
+    /** Uma linha por jogador; o combo guarda os nomes formatados na mesma ordem da fachada. */
     private class LinhaJogador extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
         private final JComboBox<String> comboHeroi = new JComboBox<String>();
-        private final JComboBox<String> comboCor = new JComboBox<String>();
         private final AmostraCor amostra = new AmostraCor();
+        private final JLabel nomeCor = criarRotulo("");
         private final JLabel habilidade = new JLabel();
 
         LinhaJogador(int indice) {
@@ -184,24 +173,18 @@ class PainelSelecao extends JPanel {
             for (String h : herois) {
                 comboHeroi.addItem(formatar(h));
             }
-            for (String c : cores) {
-                comboCor.addItem(formatar(c));
-            }
-            // cada linha comeca com um heroi e uma cor diferentes
+            // cada linha comeca com um heroi diferente
             comboHeroi.setSelectedIndex(indice % herois.length);
-            comboCor.setSelectedIndex(indice % cores.length);
             comboHeroi.setFont(FONTE);
-            comboCor.setFont(FONTE);
             comboHeroi.setPreferredSize(new Dimension(140, 30));
-            comboCor.setPreferredSize(new Dimension(130, 30));
             comboHeroi.addActionListener(new OuvinteEscolha());
-            comboCor.addActionListener(new OuvinteEscolha());
+            nomeCor.setPreferredSize(new Dimension(80, 30));
 
             add(criarRotulo("Herói:"));
             add(comboHeroi);
             add(criarRotulo("Cor:"));
-            add(comboCor);
             add(amostra);
+            add(nomeCor);
             habilidade.setFont(FONTE.deriveFont(Font.ITALIC, 14f));
             add(habilidade);
             atualizar();
@@ -212,11 +195,12 @@ class PainelSelecao extends JPanel {
         }
 
         String getCor() {
-            return cores[comboCor.getSelectedIndex()];
+            return fachada.getCorDoHeroi(getHeroi());
         }
 
         private void atualizar() {
             habilidade.setText(HABILIDADES.get(getHeroi()));
+            nomeCor.setText(formatar(getCor()));
             amostra.repaint();
         }
 
@@ -227,7 +211,7 @@ class PainelSelecao extends JPanel {
             }
         }
 
-        /** Quadrado com a cor escolhida, desenhado com Graphics. */
+        /** Quadrado com a cor do heroi, desenhado com Graphics. */
         private class AmostraCor extends JPanel {
 
             private static final long serialVersionUID = 1L;
@@ -239,8 +223,7 @@ class PainelSelecao extends JPanel {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Color cor = CORES.get(getCor());
-                g.setColor(cor == null ? Color.GRAY : cor);
+                g.setColor(CoresJogador.de(getCor()));
                 g.fillRect(2, 2, getWidth() - 4, getHeight() - 4);
                 g.setColor(Color.DARK_GRAY);
                 g.drawRect(2, 2, getWidth() - 5, getHeight() - 5);

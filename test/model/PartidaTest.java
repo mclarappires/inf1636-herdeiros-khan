@@ -35,15 +35,10 @@ public class PartidaTest {
 		return Arrays.asList(h);
 	}
 
-	private static List<Cor> cores(Cor... c) {
-		return Arrays.asList(c);
-	}
-
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_cincoJogadores_moedasDependemDaOrdem() {
 		Partida p = new Partida(tabuleiro,
-				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI),
-				cores(Cor.AZUL, Cor.AMARELO, Cor.PRETO, Cor.VERMELHO, Cor.VERDE));
+				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI));
 		int[] esperadas = {1, 1, 2, 2, 2};
 		assertEquals(5, p.getJogadores().size());
 		for (int i = 0; i < esperadas.length; i++) {
@@ -53,23 +48,31 @@ public class PartidaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_mantemAOrdemDasEscolhas() {
-		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI), cores(Cor.VERDE, Cor.AZUL));
+		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI));
 		assertEquals(Heroi.OGEDEI, p.getJogador(0).getHeroi());
-		assertEquals(Cor.VERDE, p.getJogador(0).getCor());
 		assertEquals(Heroi.JOCHI, p.getJogador(1).getHeroi());
-		assertEquals(Cor.AZUL, p.getJogador(1).getCor());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_corDoJogadorEhADoHeroi() {
+		Partida p = new Partida(tabuleiro,
+				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI));
+		Cor[] esperadas = {Cor.VERDE, Cor.VERMELHO, Cor.PRETO, Cor.AZUL, Cor.AMARELO};
+		for (int i = 0; i < esperadas.length; i++) {
+			assertEquals(esperadas[i], p.getJogador(i).getCor());
+		}
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_preparaOTabuleiro() {
 		assertFalse(tabuleiro.isPreparado());
-		new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.JOCHI), cores(Cor.AZUL, Cor.PRETO));
+		new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.JOCHI));
 		assertTrue(tabuleiro.isPreparado());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_peoesComecamEmKarakorum() {
-		Partida p = new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.JOCHI), cores(Cor.AZUL, Cor.PRETO));
+		Partida p = new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.JOCHI));
 		Parada karakorum = tabuleiro.getParada(ID_KARAKORUM);
 		assertEquals(2, p.getJogador(0).getPeoes().size()); //Altani
 		for (Jogador j : p.getJogadores()) {
@@ -81,42 +84,33 @@ public class PartidaTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_tolui_comecaComYurtEmKarakorum() {
-		Partida p = new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.TOLUI), cores(Cor.AZUL, Cor.VERDE));
-		assertTrue(tabuleiro.getParada(ID_KARAKORUM).temYurtDe(Cor.VERDE));
+		Partida p = new Partida(tabuleiro, herois(Heroi.ALTANI, Heroi.TOLUI));
+		assertTrue(tabuleiro.getParada(ID_KARAKORUM).temYurtDe(Cor.AMARELO));
 		assertEquals(Jogador.YURTS_INICIAIS - 1, p.getJogador(1).getYurtsDisponiveis());
 	}
 
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void criar_umJogador_lancaExcecao() {
-		new Partida(tabuleiro, herois(Heroi.ALTANI), cores(Cor.AZUL));
+		new Partida(tabuleiro, herois(Heroi.ALTANI));
 	}
 
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void criar_seisJogadores_lancaExcecao() {
 		new Partida(tabuleiro,
-				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI, Heroi.ALTANI),
-				cores(Cor.AZUL, Cor.AMARELO, Cor.PRETO, Cor.VERMELHO, Cor.VERDE, Cor.AZUL));
+				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI, Heroi.ALTANI));
 	}
 
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void criar_heroiRepetido_lancaExcecao() {
-		new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.TOLUI), cores(Cor.AZUL, Cor.VERDE));
+		new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.TOLUI));
 	}
 
-	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
-	public void criar_corRepetida_lancaExcecao() {
-		new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.JOCHI), cores(Cor.AZUL, Cor.AZUL));
-	}
 
-	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
-	public void criar_quantidadesDiferentes_lancaExcecao() {
-		new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.JOCHI), cores(Cor.AZUL, Cor.VERDE, Cor.PRETO));
-	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_escolhaInvalida_naoPreparaOTabuleiro() {
 		try {
-			new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.TOLUI), cores(Cor.AZUL, Cor.VERDE));
+			new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.TOLUI));
 		} catch (IllegalArgumentException e) {
 			//esperado
 		}

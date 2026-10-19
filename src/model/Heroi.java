@@ -4,19 +4,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 enum Heroi {
-	ALTANI(IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_PUNHO_MOEDA),
-	CHAGATAI(IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.DOIS_CAVALOS_PUNHO),
-	JOCHI(IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.DOIS_CAVALOS_PUNHO),
-	OGEDEI(IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.CAVALO_DOIS_PUNHOS_KHAN),
-	TOLUI(IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_DOIS_PUNHOS_KHAN);
+	ALTANI(Cor.VERDE, IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_PUNHO_MOEDA),
+	CHAGATAI(Cor.VERMELHO, IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.DOIS_CAVALOS_PUNHO),
+	JOCHI(Cor.PRETO, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.CAVALO_DOIS_PUNHOS_KHAN, IconesBase.DOIS_CAVALOS_PUNHO),
+	OGEDEI(Cor.AZUL, IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.CAVALO_DOIS_PUNHOS_KHAN),
+	TOLUI(Cor.AMARELO, IconesBase.CAVALO_PUNHO_MOEDA, IconesBase.DOIS_CAVALOS_PUNHO, IconesBase.CAVALO_DOIS_PUNHOS_KHAN);
 
+	private final Cor cor; //cor das peças de quem joga com o herói
 	private final Map<Coluna, IconesBase> iconesBase = new HashMap<Coluna, IconesBase>();
 
-	private Heroi(IconesBase primeira, IconesBase segunda, IconesBase terceira) {
+	private Heroi(Cor cor, IconesBase primeira, IconesBase segunda, IconesBase terceira) {
+		this.cor = cor;
 		iconesBase.put(Coluna.PRIMEIRA, primeira);
 		iconesBase.put(Coluna.SEGUNDA, segunda);
 		iconesBase.put(Coluna.TERCEIRA, terceira);
 		iconesBase.put(Coluna.BRANCA, IconesBase.BRANCA); //igual para todos os heróis
+	}
+
+	public Cor getCor() {
+		return cor;
 	}
 
 	public IconesBase getIconesBase(Coluna coluna) {
