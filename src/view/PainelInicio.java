@@ -37,7 +37,7 @@ class PainelInicio extends JPanel {
 
     PainelInicio(JanelaInicio janela) {
         this.janela = janela;
-        carregarImagem("resources/tabuleiro.png");
+        carregarImagem("resources/tabuleiro.jpg");
         setBackground(FUNDO);
         setLayout(new GridBagLayout());
 

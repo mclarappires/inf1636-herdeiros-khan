@@ -18,7 +18,7 @@ public class JanelaInicio extends JFrame {
     public JanelaInicio() {
         super("Herdeiros do Khan");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(Janelatabuleiro.LARGURA, Janelatabuleiro.ALTURA);
+        setSize(JanelaTabuleiro.LARGURA, JanelaTabuleiro.ALTURA);
         setLocationRelativeTo(null);
 
         Container conteudo = getContentPane();

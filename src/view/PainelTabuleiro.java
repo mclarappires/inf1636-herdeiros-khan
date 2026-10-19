@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -22,13 +23,23 @@ class PainelTabuleiro extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
+    /** true desenha um ponto vermelho em cada parada, para conferir a calibracao. */
+    private static final boolean MOSTRAR_MARCADORES = true;
+
     private Image imagemTabuleiro;
+    private PosicoesParadas posicoes;
 
     // area onde a imagem foi desenhada (muda quando a janela e redimensionada)
     private int imgX, imgY, imgLargura, imgAltura;
 
-    PainelTabuleiro(String caminhoImagem) {
+    PainelTabuleiro(String caminhoImagem, String caminhoPosicoes) {
         carregarImagem(caminhoImagem);
+        try {
+            posicoes = new PosicoesParadas(caminhoPosicoes);
+        } catch (IOException e) {
+            posicoes = null;
+            System.err.println("Nao foi possivel ler as posicoes: " + caminhoPosicoes);
+        }
         addMouseListener(new OuvinteMouse());
     }
 
@@ -65,6 +76,25 @@ class PainelTabuleiro extends JPanel {
         imgY = (getHeight() - imgAltura) / 2;
 
         g2.drawImage(imagemTabuleiro, imgX, imgY, imgLargura, imgAltura, null);
+
+        if (MOSTRAR_MARCADORES && posicoes != null) {
+            g2.setColor(Color.RED);
+            for (Map.Entry<Integer, double[]> e : posicoes.todas().entrySet()) {
+                int px = imgX + (int) (e.getValue()[0] * imgLargura);
+                int py = imgY + (int) (e.getValue()[1] * imgAltura);
+                g2.fillOval(px - 4, py - 4, 8, 8);
+                int r = (int) (e.getValue()[2] * imgLargura);
+                g2.drawOval(px - r, py - r, 2 * r, 2 * r);
+            }
+        }
+    }
+
+    /**
+     * Chamado quando o clique cai numa parada. Por enquanto so imprime;
+     * depois chama o Controller (que pergunta ao Model se o movimento vale).
+     */
+    private void aoClicarParada(int idParada) {
+        System.out.println("parada clicada: " + idParada);
     }
 
     /** Eventos tratados como no Cap. 12: classe ouvinte, sem lambda. */
@@ -80,6 +110,13 @@ class PainelTabuleiro extends JPanel {
                 return; // clique fora da imagem
             }
             System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
+            if (posicoes == null) {
+                return;
+            }
+            Integer id = posicoes.paradaNoClique(fx, fy, imgLargura, imgAltura);
+            if (id != null) {
+                aoClicarParada(id);
+            }
         }
     }
 }

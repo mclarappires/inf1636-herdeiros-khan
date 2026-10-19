@@ -7,7 +7,7 @@ import javax.swing.SwingUtilities;
 
 import model.FachadaModelo;
 import view.JanelaInicio;
-import view.Janelatabuleiro;
+import view.JanelaTabuleiro;
 
 /** Liga as telas ao model e decide qual janela aparece. */
 public class ControladorJogo {
@@ -52,7 +52,7 @@ public class ControladorJogo {
             janelaInicio.dispose();
             janelaInicio = null;
         }
-        new Janelatabuleiro().setVisible(true);
+        new JanelaTabuleiro().setVisible(true);
         return null;
     }
 
