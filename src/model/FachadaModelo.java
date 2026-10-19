@@ -143,6 +143,21 @@ public class FachadaModelo {
 		return ids;
 	}
 
+	/** Nomes dos tipos de tesouro, como no enum TipoTesouro. */
+	public String[] getTiposDeTesouro() {
+		TipoTesouro[] tipos = TipoTesouro.values();
+		String[] nomes = new String[tipos.length];
+		for (int i = 0; i < tipos.length; i++) {
+			nomes[i] = tipos[i].name();
+		}
+		return nomes;
+	}
+
+	/** Quantos tesouros do tipo ainda estão sobre a cidade. */
+	public int getTesourosDaCidade(int idCidade, String tipo) {
+		return exigirPartida().getTabuleiro().getCidade(idCidade).getQuantidade(TipoTesouro.valueOf(tipo));
+	}
+
 	//TURNO
 
 	/** Índice (na ordem de jogada) do jogador que está jogando. */

@@ -63,14 +63,21 @@ public class JanelaTabuleiro extends JFrame {
         return lista;
     }
 
-    /** Ids das cidades reveladas (as que estao disponiveis para ataque). */
-    private static List<Integer> cidadesVisiveisDaPartida() {
+    /** Cidades reveladas, cada uma com os tesouros que o Model diz que ainda estao nela. */
+    private static List<CidadeNaTela> cidadesVisiveisDaPartida() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        List<Integer> lista = new ArrayList<Integer>();
-        if (fachada.temPartida()) {
-            for (int id : fachada.getIdsCidadesVisiveis()) {
-                lista.add(id);
+        List<CidadeNaTela> lista = new ArrayList<CidadeNaTela>();
+        if (!fachada.temPartida()) {
+            return lista;
+        }
+        for (int id : fachada.getIdsCidadesVisiveis()) {
+            List<String> tesouros = new ArrayList<String>();
+            for (String tipo : fachada.getTiposDeTesouro()) {
+                for (int i = 0; i < fachada.getTesourosDaCidade(id, tipo); i++) {
+                    tesouros.add(tipo);
+                }
             }
+            lista.add(new CidadeNaTela(id, tesouros));
         }
         return lista;
     }

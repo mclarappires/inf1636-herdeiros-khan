@@ -51,7 +51,10 @@ class PainelTabuleiro extends JPanel {
     /** A peca de uma cidade revelada ocupa esta fracao da largura da imagem do tabuleiro. */
     private static final double LARGURA_CIDADE = 0.095;
 
-    private final List<Integer> cidadesVisiveis = new ArrayList<Integer>();
+    /** Diametro de uma peca de tesouro, em fracao do lado da peca da cidade. */
+    private static final double LARGURA_TESOURO = 0.23;
+
+    private final List<CidadeNaTela> cidadesVisiveis = new ArrayList<CidadeNaTela>();
     private final Map<Integer, BufferedImage> spritesCidade = new HashMap<Integer, BufferedImage>();
 
     private final List<PilhaDeTributos> tributos = new ArrayList<PilhaDeTributos>();
@@ -93,10 +96,10 @@ class PainelTabuleiro extends JPanel {
         repaint();
     }
 
-    /** Troca as cidades reveladas exibidas (ids das cidades, como no mapa). */
-    void setCidadesVisiveis(List<Integer> ids) {
+    /** Troca as cidades reveladas exibidas, cada uma com os tesouros que tem sobre ela. */
+    void setCidadesVisiveis(List<CidadeNaTela> cidades) {
         cidadesVisiveis.clear();
-        cidadesVisiveis.addAll(ids);
+        cidadesVisiveis.addAll(cidades);
         repaint();
     }
 
@@ -163,27 +166,38 @@ class PainelTabuleiro extends JPanel {
         }
     }
 
-    /** Desenha a peca de cada cidade revelada sobre a cidade impressa no tabuleiro. */
+    /** Desenha a peca de cada cidade revelada e, em fileira na parte de baixo dela, os tesouros que restam. */
     private void desenharCidades(Graphics2D g2) {
         if (posicoesCidades == null) {
             return;
         }
         int lado = (int) (LARGURA_CIDADE * imgLargura);
-        for (int id : cidadesVisiveis) {
-            double[] p = posicoesCidades.get(id);
+        int diametro = (int) (lado * LARGURA_TESOURO);
+        for (CidadeNaTela cidade : cidadesVisiveis) {
+            double[] p = posicoesCidades.get(cidade.getId());
             if (p == null) {
                 continue;
             }
-            if (!spritesCidade.containsKey(id)) {
-                spritesCidade.put(id, SpriteCidade.criar(id));
+            if (!spritesCidade.containsKey(cidade.getId())) {
+                spritesCidade.put(cidade.getId(), SpriteCidade.criar(cidade.getId()));
             }
-            BufferedImage sprite = spritesCidade.get(id);
-            if (sprite == null) {
-                continue;
-            }
+            BufferedImage sprite = spritesCidade.get(cidade.getId());
             int cx = imgX + (int) (p[0] * imgLargura);
             int cy = imgY + (int) (p[1] * imgAltura);
-            g2.drawImage(sprite, cx - lado / 2, cy - lado / 2, lado, lado, null);
+            if (sprite != null) {
+                g2.drawImage(sprite, cx - lado / 2, cy - lado / 2, lado, lado, null);
+            }
+
+            List<String> tesouros = cidade.getTesouros();
+            int passo = diametro + 2;
+            int x0 = cx - (tesouros.size() * passo - 2) / 2;
+            int y0 = cy + (int) (lado * 0.5) - diametro - 3;
+            for (int i = 0; i < tesouros.size(); i++) {
+                BufferedImage tesouro = SpriteTesouro.de(tesouros.get(i));
+                if (tesouro != null) {
+                    g2.drawImage(tesouro, x0 + i * passo, y0, diametro, diametro, null);
+                }
+            }
         }
     }
 

@@ -40,7 +40,7 @@ class Karakorum extends Parada{
 		Map<TipoTesouro, Integer> padrao = new HashMap<TipoTesouro, Integer>();
 		padrao.put(TipoTesouro.PELES, 1);
 		padrao.put(TipoTesouro.FERRO, 1);
-		padrao.put(TipoTesouro.BOI, 1);
+		padrao.put(TipoTesouro.GADO, 1);
 		return padrao;
 	}
 

@@ -35,9 +35,9 @@ public class ConselheiroTest {
 	public void carregar_conselheiroQualquer_aceitaTresTesourosDeTiposDiferentes() throws IOException {
 		Tabuleiro mapa = carregar("CONSELHEIRO 5 CHINA QUALQUER\n");
 		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
-		oferta.put(TipoTesouro.BOI, 1);
+		oferta.put(TipoTesouro.GADO, 1);
 		oferta.put(TipoTesouro.FERRO, 1);
-		oferta.put(TipoTesouro.TAPETE, 1);
+		oferta.put(TipoTesouro.SEDA, 1);
 		assertTrue("O conselheiro único aceita 3 tesouros quaisquer",
 				((ParadaConselheiro) mapa.getParada(5)).getConselheiro().aceita(oferta));
 	}

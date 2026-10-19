@@ -1,0 +1,7 @@
+# nome do tipo de tesouro (exatamente como no enum TipoTesouro do Model)  arquivo da imagem
+# ATENCAO: so PELES e FERRO foram confirmados no manual; confira os nomes dos outros tres no seu enum.
+PELES peles.png
+FERRO ferro.png
+SEDA seda.png
+ESPECIARIAS especiarias.png
+GADO gado.png

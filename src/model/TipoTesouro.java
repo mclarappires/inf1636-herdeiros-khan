@@ -4,9 +4,9 @@ enum TipoTesouro {
 
 	PELES,
 	FERRO,
-	BOI,
-	TIGELA,
-	TAPETE;
+	GADO,
+	ESPECIARIAS,
+	SEDA;
 	
 	public static final int QUANTIDADE_POR_TIPO = 8;
 }

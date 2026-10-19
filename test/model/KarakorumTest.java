@@ -30,8 +30,8 @@ public class KarakorumTest {
 		jogador = new Jogador(Cor.AZUL, Heroi.OGEDEI, karakorum, 0);
 		jogador.receberTesouro(TipoTesouro.PELES);
 		jogador.receberTesouro(TipoTesouro.FERRO);
-		jogador.receberTesouro(TipoTesouro.BOI);
-		jogador.receberTesouro(TipoTesouro.TIGELA);
+		jogador.receberTesouro(TipoTesouro.GADO);
+		jogador.receberTesouro(TipoTesouro.ESPECIARIAS);
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 	}
 
@@ -50,8 +50,8 @@ public class KarakorumTest {
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
 	public void entregarTesouros_tipoNaoPedido_lancaExcecao() {
 		Map<TipoTesouro, Integer> oferta = ofertaPedida();
-		oferta.remove(TipoTesouro.BOI);
-		oferta.put(TipoTesouro.TIGELA, 1);
+		oferta.remove(TipoTesouro.GADO);
+		oferta.put(TipoTesouro.ESPECIARIAS, 1);
 		jogador.entregarTesouros(karakorum, oferta);
 	}
 
@@ -69,7 +69,7 @@ public class KarakorumTest {
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
 	public void construtor_pedidoComDoisTesouros_lancaExcecao() {
 		Map<TipoTesouro, Integer> pedido = new HashMap<TipoTesouro, Integer>();
-		pedido.put(TipoTesouro.TAPETE, 2);
+		pedido.put(TipoTesouro.SEDA, 2);
 		new Karakorum(5, pedido);
 	}
 
@@ -78,14 +78,14 @@ public class KarakorumTest {
 		Tabuleiro mapa = CarregadorMapa.carregar(
 				new StringReader("KARAKORUM 1 TIGELA TIGELA TAPETE\n"), new Random(1));
 		Karakorum lido = (Karakorum) mapa.getParada(1);
-		assertEquals("O mapa pede 2 tigelas", Integer.valueOf(2), lido.getPedido().get(TipoTesouro.TIGELA));
+		assertEquals("O mapa pede 2 tigelas", Integer.valueOf(2), lido.getPedido().get(TipoTesouro.ESPECIARIAS));
 	}
 
 	private Map<TipoTesouro, Integer> ofertaPedida() {
 		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
 		oferta.put(TipoTesouro.PELES, 1);
 		oferta.put(TipoTesouro.FERRO, 1);
-		oferta.put(TipoTesouro.BOI, 1);
+		oferta.put(TipoTesouro.GADO, 1);
 		return oferta;
 	}
 
