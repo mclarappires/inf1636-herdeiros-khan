@@ -2,25 +2,19 @@ package view;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import controller.ControladorJogo;
 import model.FachadaModelo;
 
 /**
  * Faixa no topo: pintada com a cor do jogador da vez, mostra quem joga, a coluna
- * ativada e os movimentos restantes, e traz o controle para ativar uma coluna.
+ * ativada e os movimentos restantes. A coluna e ativada no tabuleiro do jogador.
  */
 class PainelTurno extends JPanel {
 
@@ -28,24 +22,11 @@ class PainelTurno extends JPanel {
 
     private static final Font FONTE = new Font(Font.SANS_SERIF, Font.BOLD, 20);
 
-    private final String[] colunas;
-    private final JComboBox<String> comboColuna = new JComboBox<String>();
-    private final JButton botaoAtivar = new JButton("Ativar coluna");
-
     private Color corDaVez = Color.GRAY;
     private String texto = "";
 
     PainelTurno() {
-        colunas = FachadaModelo.getInstancia().getColunas();
         setPreferredSize(new Dimension(0, 60));
-        setLayout(new FlowLayout(FlowLayout.RIGHT, 12, 14));
-
-        for (String c : colunas) {
-            comboColuna.addItem(formatar(c));
-        }
-        botaoAtivar.addActionListener(new OuvinteAtivar());
-        add(comboColuna);
-        add(botaoAtivar);
         atualizar();
     }
 
@@ -55,17 +36,17 @@ class PainelTurno extends JPanel {
         if (!fachada.temPartida()) {
             corDaVez = Color.GRAY;
             texto = "Sem partida (modo de teste)";
-            botaoAtivar.setEnabled(false);
-            comboColuna.setEnabled(false);
         } else {
             int vez = fachada.getJogadorDaVez();
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(vez));
             String ativa = fachada.getColunaAtiva();
-            texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez))
-                    + "   |   Coluna: " + (ativa == null ? "nenhuma" : formatar(ativa))
-                    + "   |   Movimentos: " + fachada.getMovimentosRestantes();
-            botaoAtivar.setEnabled(ativa == null);
-            comboColuna.setEnabled(ativa == null);
+            texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez));
+            if (ativa == null) {
+                texto += "   |   Abra seu tabuleiro para ativar uma coluna";
+            } else {
+                texto += "   |   Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa)
+                        + "   |   Movimentos: " + fachada.getMovimentosRestantes();
+            }
         }
         repaint();
     }
@@ -91,12 +72,5 @@ class PainelTurno extends JPanel {
     /** "VERMELHA" vira "Vermelha". */
     private static String formatar(String nome) {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
-    }
-
-    private class OuvinteAtivar implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            ControladorJogo.getInstancia().ativarColuna(colunas[comboColuna.getSelectedIndex()]);
-        }
     }
 }

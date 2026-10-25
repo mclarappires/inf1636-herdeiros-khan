@@ -58,13 +58,21 @@ public class ControladorJogo {
         return null;
     }
 
-    /** O jogador da vez ativa uma coluna (peao 0 age; a escolha do peao do Altani fica para depois). */
-    public void ativarColuna(String coluna) {
+    /**
+     * O jogador da vez ativa uma coluna no seu tabuleiro; indicePeao escolhe qual peao age
+     * (so a Altani tem dois). Se der certo, volta para o mapa para ele mover o peao.
+     * Devolve false se a coluna nao pode ser ativada agora.
+     */
+    public boolean ativarColuna(String coluna, int indicePeao) {
         if (!partidaEmAndamento()) {
-            return;
+            return false;
         }
-        FachadaModelo.getInstancia().ativarColuna(coluna, 0);
+        if (!FachadaModelo.getInstancia().ativarColuna(coluna, indicePeao)) {
+            return false;
+        }
         janelaTabuleiro.atualizar();
+        janelaTabuleiro.mostrarMapa();
+        return true;
     }
 
     /**

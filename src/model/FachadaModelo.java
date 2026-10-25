@@ -14,6 +14,7 @@ public class FachadaModelo {
 
 	public static final int MIN_JOGADORES = Partida.MIN_JOGADORES;
 	public static final int MAX_JOGADORES = Partida.MAX_JOGADORES;
+	public static final int LINHAS_TABULEIRO_JOGADOR = TabuleiroJogador.LINHAS;
 
 	private static FachadaModelo instancia = null;
 
@@ -103,6 +104,42 @@ public class FachadaModelo {
 			throw new IllegalArgumentException("Peão inexistente: " + indicePeao);
 		}
 		return peoes.get(indicePeao).getPosicao().getId();
+	}
+
+	//TABULEIRO DO JOGADOR
+
+	/** Se a peça de ativação já está na coluna (só volta quando a coluna branca é ativada). */
+	public boolean isColunaUsada(int jogador, String coluna) {
+		return exigirPartida().getJogador(jogador).getPecaAtivacao(converterColuna(coluna)).isUsada();
+	}
+
+	/** Espaços de melhoria da coluna; a branca do Jochi tem um a menos. */
+	public int getCapacidadeDaColuna(int jogador, String coluna) {
+		return exigirPartida().getJogador(jogador).getTabuleiroJogador().getCapacidade(converterColuna(coluna));
+	}
+
+	/** Símbolos das melhorias da coluna, de baixo para cima ("MOEDA", "PUNHO", "SEDA"...). */
+	public String[] getSimbolosDasMelhorias(int jogador, String coluna) {
+		List<Melhoria> daColuna = getMelhorias(jogador, coluna);
+		String[] simbolos = new String[daColuna.size()];
+		for (int i = 0; i < simbolos.length; i++) {
+			simbolos[i] = daColuna.get(i).getSimbolo().name();
+		}
+		return simbolos;
+	}
+
+	/** Cor de cada melhoria (nome da coluna colorida de origem), na mesma ordem dos símbolos. */
+	public String[] getCoresDasMelhorias(int jogador, String coluna) {
+		List<Melhoria> daColuna = getMelhorias(jogador, coluna);
+		String[] cores = new String[daColuna.size()];
+		for (int i = 0; i < cores.length; i++) {
+			cores[i] = daColuna.get(i).getColuna().name();
+		}
+		return cores;
+	}
+
+	private List<Melhoria> getMelhorias(int jogador, String coluna) {
+		return exigirPartida().getJogador(jogador).getTabuleiroJogador().getMelhorias(converterColuna(coluna));
 	}
 
 	//PROVÍNCIAS E PEÇAS DE TRIBUTO
@@ -237,6 +274,14 @@ public class FachadaModelo {
 			return Heroi.valueOf(nome);
 		} catch (RuntimeException e) { //nome nulo ou desconhecido
 			throw new IllegalArgumentException("Herói desconhecido: " + nome);
+		}
+	}
+
+	private static Coluna converterColuna(String nome) {
+		try {
+			return Coluna.valueOf(nome);
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Coluna desconhecida: " + nome);
 		}
 	}
 }

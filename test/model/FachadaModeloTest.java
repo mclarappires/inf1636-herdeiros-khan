@@ -1,6 +1,7 @@
 package model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -56,6 +57,53 @@ public class FachadaModeloTest {
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void novaPartida_heroiDesconhecido_lancaExcecao() throws IOException {
 		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "GENGIS"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void isColunaUsada_ficaVerdadeiroDepoisDeAtivar() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertFalse(fachada.isColunaUsada(0, "SEGUNDA"));
+		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
+		assertTrue(fachada.isColunaUsada(0, "SEGUNDA"));
+		assertFalse(fachada.isColunaUsada(0, "PRIMEIRA"));
+		assertFalse(fachada.isColunaUsada(1, "SEGUNDA"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getMelhorias_comecamVazias() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		for (String coluna : fachada.getColunas()) {
+			assertEquals(0, fachada.getSimbolosDasMelhorias(0, coluna).length);
+			assertEquals(0, fachada.getCoresDasMelhorias(0, coluna).length);
+		}
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getCapacidadeDaColuna_brancaDoJochiTemUmEspacoAMenos() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		int linhas = FachadaModelo.LINHAS_TABULEIRO_JOGADOR;
+		assertEquals(linhas - 1, fachada.getCapacidadeDaColuna(0, "BRANCA"));
+		assertEquals(linhas, fachada.getCapacidadeDaColuna(0, "PRIMEIRA"));
+		assertEquals(linhas, fachada.getCapacidadeDaColuna(1, "BRANCA"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void ativarColuna_altaniPodeEscolherOSegundoPeao() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("ALTANI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("PRIMEIRA", 1));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void ativarColuna_peaoInexistente_devolveFalso() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertFalse(fachada.ativarColuna("PRIMEIRA", 1));
+		assertFalse(fachada.isColunaUsada(0, "PRIMEIRA"));
+	}
+
+	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
+	public void isColunaUsada_colunaDesconhecida_lancaExcecao() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		fachada.isColunaUsada(0, "ROXA");
 	}
 
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)

@@ -1,16 +1,28 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import model.FachadaModelo;
 
-/** Janela principal do tabuleiro (maximo 1400 x 1050). */
+/**
+ * Janela principal do tabuleiro (maximo 1400 x 1050). No centro fica o mapa ou, no lugar
+ * dele, o tabuleiro do jogador da vez, aberto pelo botao da direita.
+ */
 public class JanelaTabuleiro extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -18,8 +30,16 @@ public class JanelaTabuleiro extends JFrame {
     public static final int LARGURA = 1200;
     public static final int ALTURA = 900;
 
+    private static final String CARTAO_MAPA = "mapa";
+    private static final String CARTAO_JOGADOR = "jogador";
+
     private final PainelTabuleiro painel;
     private final PainelTurno painelTurno;
+    private final PainelTabuleiroJogador painelJogador;
+
+    private final CardLayout cartoes = new CardLayout();
+    private final JPanel centro = new JPanel(cartoes);
+    private final JButton botaoTabuleiroJogador = new JButton();
 
     public JanelaTabuleiro() {
         super("Herdeiros do Khan");
@@ -31,17 +51,66 @@ public class JanelaTabuleiro extends JFrame {
                 "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
                 "resources/cidades_coordenadas.txt");
         painelTurno = new PainelTurno();
+        painelJogador = new PainelTabuleiroJogador(this);
+        centro.add(painel, CARTAO_MAPA);
+        centro.add(painelJogador, CARTAO_JOGADOR);
+
         add(painelTurno, BorderLayout.NORTH);
-        add(painel, BorderLayout.CENTER);
+        add(centro, BorderLayout.CENTER);
+        add(criarLateral(), BorderLayout.EAST);
         atualizar();
     }
 
-    /** Relê o estado do jogo na fachada e redesenha peoes e faixa do turno. */
+    private JPanel criarLateral() {
+        JPanel lateral = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
+        lateral.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        lateral.setPreferredSize(new Dimension(190, 0));
+        botaoTabuleiroJogador.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        botaoTabuleiroJogador.setPreferredSize(new Dimension(170, 60));
+        botaoTabuleiroJogador.addActionListener(new OuvinteTabuleiroJogador());
+        lateral.add(botaoTabuleiroJogador);
+        return lateral;
+    }
+
+    /** Relê o estado do jogo na fachada e redesenha peoes, faixa do turno e tabuleiro do jogador. */
     public void atualizar() {
         painel.setPeoes(peoesDaPartida());
         painel.setTributos(tributosDaPartida());
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
         painelTurno.atualizar();
+        painelJogador.atualizar();
+        atualizarBotao();
+    }
+
+    private void atualizarBotao() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        if (!fachada.temPartida()) {
+            botaoTabuleiroJogador.setText("<html><center>Tabuleiro<br>do jogador</center></html>");
+            botaoTabuleiroJogador.setEnabled(false);
+            return;
+        }
+        String heroi = fachada.getHeroiDoJogador(fachada.getJogadorDaVez());
+        botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>"
+                + heroi.charAt(0) + heroi.substring(1).toLowerCase() + "</center></html>");
+        botaoTabuleiroJogador.setEnabled(true);
+    }
+
+    /** Volta a mostrar o mapa no centro da janela. */
+    public void mostrarMapa() {
+        cartoes.show(centro, CARTAO_MAPA);
+    }
+
+    /** Mostra o tabuleiro do jogador da vez no lugar do mapa. */
+    public void mostrarTabuleiroJogador() {
+        painelJogador.atualizar();
+        cartoes.show(centro, CARTAO_JOGADOR);
+    }
+
+    private class OuvinteTabuleiroJogador implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            mostrarTabuleiroJogador();
+        }
     }
 
     /**
