@@ -219,6 +219,37 @@ public class FachadaModelo {
 		return exigirPartida().getJogadorDaVez().isKhanPendente();
 	}
 
+	/** Punhos que o jogador da vez ainda tem: cada um pega 1 peça de tributo. */
+	public int getPunhosRestantes() {
+		return exigirPartida().getJogadorDaVez().getPunhosRestantes();
+	}
+
+	/** Se o jogador da vez pode pegar agora uma peça da província (para destacar no mapa). */
+	public boolean podePegarTributo(int idProvincia) {
+		Partida p = exigirPartida();
+		try {
+			return p.getJogadorDaVez().podePegarTributo(p.getTabuleiro().getProvincia(idProvincia));
+		} catch (IllegalArgumentException e) { //província inexistente
+			return false;
+		}
+	}
+
+	/**
+	 * O jogador da vez gasta 1 punho para pegar 1 peça da província. Devolve null se pegou,
+	 * ou o motivo de não poder (sem punhos, longe das paradas visitadas, província vazia...).
+	 */
+	public String pegarTributo(int idProvincia) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().pegarTributo(p.getTabuleiro().getProvincia(idProvincia));
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) { //província inexistente ou longe das paradas visitadas
+			return e.getMessage();
+		}
+	}
+
 	/** Ativa a coluna para o jogador da vez. Devolve false se não for possível (coluna já usada, turno em andamento...). */
 	public boolean ativarColuna(String coluna, int indicePeao) {
 		try {

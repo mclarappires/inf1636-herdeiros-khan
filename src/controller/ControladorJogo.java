@@ -88,6 +88,19 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique na pilha de tributo de uma provincia: o jogador da vez gasta 1 punho para
+     * pegar 1 peca. Devolve null se pegou, ou o motivo para a tela mostrar.
+     */
+    public String cliqueNaProvincia(int idProvincia) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().pegarTributo(idProvincia);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Encerra o turno do jogador da vez e mostra o mapa para o proximo.
      * Devolve null se a vez passou, ou o motivo para a tela mostrar.
      */

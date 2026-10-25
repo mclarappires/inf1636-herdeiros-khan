@@ -172,6 +172,12 @@ class Jogador {
 		punhosRestantes--;
 	}
 
+	/** Diz se pegarTributo(provincia) seria aceito agora, sem alterar nada. */
+	boolean podePegarTributo(Provincia provincia) {
+		return colunaAtiva != null && provincia != null && punhosRestantes > 0
+				&& provincia.temTributo() && visitouParadaJuntoDe(provincia);
+	}
+
 	/**
 	 * Toma um tesouro de uma cidade adjacente a uma parada visitada. O primeiro tesouro de
 	 * cada cidade no turno custa 1 espada e os seguintes 2. Devolve true se a cidade foi conquistada.

@@ -21,9 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import controller.ControladorJogo;
+import model.FachadaModelo;
 
 /**
  * Painel que desenha o tabuleiro com Graphics2D.drawImage (nada de JLabel).
@@ -221,11 +223,28 @@ class PainelTabuleiro extends JPanel {
             if (sprite == null) {
                 continue;
             }
+            if (pilha.isDisponivel()) {
+                desenharDestaqueDaPilha(g2, cx, cy, tamanho, pilha.getQuantidade());
+            }
             for (int i = 0; i < pilha.getQuantidade(); i++) {
                 int y = cy - tamanho / 2 - (int) (i * tamanho * 0.30);
                 g2.drawImage(sprite, cx - tamanho / 2, y, tamanho, tamanho, null);
             }
         }
+    }
+
+    /** Anel dourado em volta da pilha da qual o jogador da vez pode pegar uma peca agora. */
+    private static void desenharDestaqueDaPilha(Graphics2D g2, int cx, int cy, int tamanho, int quantidade) {
+        int extra = (int) ((quantidade - 1) * tamanho * 0.30); // a pilha cresce para cima
+        int diametro = tamanho + tamanho / 2;
+        int x = cx - diametro / 2;
+        int y = cy - diametro / 2 - extra;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(255, 215, 0, 110));
+        g2.fillRoundRect(x, y, diametro, diametro + extra, diametro, diametro);
+        g2.setColor(new Color(255, 200, 0));
+        g2.setStroke(new BasicStroke(3f));
+        g2.drawRoundRect(x, y, diametro, diametro + extra, diametro, diametro);
     }
 
     /** Imagem da peca do tipo; lida uma vez so (se faltar o arquivo, fica null e a peca nao aparece). */
@@ -325,13 +344,50 @@ class PainelTabuleiro extends JPanel {
             if (mostrarMarcadores) { // modo de calibracao (F2): mostra onde clicou
                 System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
             }
-            if (posicoes == null) {
+            Integer parada = posicoes == null ? null
+                    : posicoes.paradaNoClique(fx, fy, imgLargura, imgAltura);
+            Integer provincia = posicoesProvincias == null ? null
+                    : posicoesProvincias.paradaNoClique(fx, fy, imgLargura, imgAltura);
+            // algumas pilhas encostam numa parada: fica com o centro mais proximo do clique
+            if (provincia != null && (parada == null
+                    || distancia(posicoesProvincias, provincia, fx, fy) <= distancia(posicoes, parada, fx, fy))) {
+                aoClicarProvincia(provincia);
+            } else if (parada != null) {
+                aoClicarParada(parada);
+            }
+        }
+    }
+
+    /** Distancia em pixels do clique ate o centro do ponto calibrado. */
+    private double distancia(PosicoesParadas tabela, int id, double fx, double fy) {
+        double[] p = tabela.get(id);
+        double dx = (p[0] - fx) * imgLargura;
+        double dy = (p[1] - fy) * imgAltura;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Clique na pilha de tributo de uma provincia: se o jogador da vez pode pegar uma peca,
+     * pede confirmacao antes; se nao pode, mostra o motivo que o Model deu.
+     */
+    private void aoClicarProvincia(int idProvincia) {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        if (!fachada.temPartida()) {
+            return;
+        }
+        if (fachada.podePegarTributo(idProvincia)) {
+            String tipo = fachada.getTipoDaProvincia(idProvincia).toLowerCase();
+            int resposta = JOptionPane.showConfirmDialog(this,
+                    "Pegar 1 peça de " + tipo + " desta província?\nUsa 1 punho (você tem "
+                            + fachada.getPunhosRestantes() + ").",
+                    "Pegar tributo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (resposta != JOptionPane.YES_OPTION) {
                 return;
             }
-            Integer id = posicoes.paradaNoClique(fx, fy, imgLargura, imgAltura);
-            if (id != null) {
-                aoClicarParada(id);
-            }
+        }
+        String motivo = ControladorJogo.getInstancia().cliqueNaProvincia(idProvincia);
+        if (motivo != null) {
+            JOptionPane.showMessageDialog(this, motivo, "Pegar tributo", JOptionPane.WARNING_MESSAGE);
         }
     }
 

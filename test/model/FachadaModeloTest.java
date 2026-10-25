@@ -156,6 +156,55 @@ public class FachadaModeloTest {
 		assertNull(fachada.getColunaAtiva());
 	}
 
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void pegarTributo_provinciaJuntoDeKarakorum_gastaUmPunho() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
+		assertEquals(1, fachada.getPunhosRestantes());
+		assertTrue(fachada.podePegarTributo(2)); //província de yurt ao lado de Karakorum
+
+		assertNull(fachada.pegarTributo(2));
+		assertEquals(1, fachada.getTributoDisponivel(0, "YURT"));
+		assertEquals(0, fachada.getPunhosRestantes());
+		assertEquals(0, fachada.getTributosDaProvincia(2));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void pegarTributo_semPunhos_devolveMotivo() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+		assertNull(fachada.pegarTributo(2));
+		assertFalse(fachada.podePegarTributo(3));
+		assertNotNull(fachada.pegarTributo(3));
+		assertEquals(1, fachada.getTributosDaProvincia(3));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void pegarTributo_provinciaLonge_devolveMotivoENadaMuda() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+		assertFalse(fachada.podePegarTributo(5));
+		assertNotNull(fachada.pegarTributo(5));
+		assertEquals(1, fachada.getTributosDaProvincia(5));
+		assertEquals(1, fachada.getPunhosRestantes());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void pegarTributo_semColunaAtivada_devolveMotivo() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertFalse(fachada.podePegarTributo(2));
+		assertNotNull(fachada.pegarTributo(2));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void pegarTributo_pecaFicaGuardadaParaOsProximosTurnos() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+		assertNull(fachada.pegarTributo(2));
+		assertNull(fachada.encerrarTurno());
+		assertEquals(1, fachada.getTributoDisponivel(0, "YURT"));
+	}
+
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)
 	public void novaPartida_mapaInexistente_lancaExcecao() throws IOException {
 		fachada.novaPartida("resources/nao-existe.txt", Arrays.asList("JOCHI", "TOLUI"));

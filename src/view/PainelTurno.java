@@ -65,10 +65,11 @@ class PainelTurno extends JPanel {
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(vez));
             String ativa = fachada.getColunaAtiva();
             texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez)) + "   |   "
-                    + (ativa == null ? "Abra seu tabuleiro para ativar uma coluna"
+                    + (ativa == null ? "Ative uma coluna"
                             : "Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa));
             inventario.mostrar(fachada.getTributoDisponivel(vez, "MOEDA"),
-                    fachada.getTributoDisponivel(vez, "ESPADA"), fachada.getMovimentosRestantes());
+                    fachada.getTributoDisponivel(vez, "ESPADA"), fachada.getTributoDisponivel(vez, "YURT"),
+                    fachada.getMovimentosRestantes(), fachada.getPunhosRestantes());
             inventario.setVisible(true);
             botaoPassar.setEnabled(true);
         }
@@ -102,30 +103,35 @@ class PainelTurno extends JPanel {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
     }
 
-    /** Moedas, espadas e cavalos do jogador da vez, cada um numa pilula clara. */
+    /** Moedas, espadas, yurts, cavalos e punhos do jogador da vez, cada um numa pilula clara. */
     private static class Inventario extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
         private static final int ALTURA = 40;
-        private static final int LARGURA_ITEM = 80;
-        private static final int LARGURA_CAVALOS = 120;
-        private static final int ESPACO = 8;
+        private static final int LARGURA_ITEM = 70;
+        private static final int LARGURA_CAVALOS = 110;
+        private static final int LARGURA_PUNHOS = 105;
+        private static final int ESPACO = 6;
         private static final Font FONTE_NUMERO = new Font(Font.SANS_SERIF, Font.BOLD, 18);
 
         private final BufferedImage moeda = SpriteTributo.criar("MOEDA");
         private final BufferedImage espada = SpriteTributo.criar("ESPADA");
-        private int moedas, espadas, cavalos;
+        private final BufferedImage yurt = SpriteTributo.criar("YURT");
+        private int moedas, espadas, yurts, cavalos, punhos;
 
         Inventario() {
             setOpaque(false);
-            setPreferredSize(new Dimension(2 * LARGURA_ITEM + LARGURA_CAVALOS + 2 * ESPACO, ALTURA));
+            setPreferredSize(new Dimension(3 * LARGURA_ITEM + LARGURA_CAVALOS + LARGURA_PUNHOS + 4 * ESPACO,
+                    ALTURA));
         }
 
-        void mostrar(int moedas, int espadas, int cavalos) {
+        void mostrar(int moedas, int espadas, int yurts, int cavalos, int punhos) {
             this.moedas = moedas;
             this.espadas = espadas;
+            this.yurts = yurts;
             this.cavalos = cavalos;
+            this.punhos = punhos;
             repaint();
         }
 
@@ -143,7 +149,12 @@ class PainelTurno extends JPanel {
             x += LARGURA_ITEM + ESPACO;
             desenharItem(g2, x, LARGURA_ITEM, espada, null, espadas);
             x += LARGURA_ITEM + ESPACO;
-            desenharItem(g2, x, LARGURA_CAVALOS, null, "Cavalos", cavalos); // sem imagem de cavalo
+            desenharItem(g2, x, LARGURA_ITEM, yurt, null, yurts);
+            x += LARGURA_ITEM + ESPACO;
+            // sem imagem de cavalo e de punho: rotulo em texto
+            desenharItem(g2, x, LARGURA_CAVALOS, null, "Cavalos", cavalos);
+            x += LARGURA_CAVALOS + ESPACO;
+            desenharItem(g2, x, LARGURA_PUNHOS, null, "Punhos", punhos);
         }
 
         /** Pilula com o icone (ou um rotulo, se nao houver icone) e a quantidade. */

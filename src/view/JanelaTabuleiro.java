@@ -154,7 +154,10 @@ public class JanelaTabuleiro extends JFrame {
         return lista;
     }
 
-    /** Uma pilha por provincia, com o tipo e a quantidade de pecas que o Model informa. */
+    /**
+     * Uma pilha por provincia, com o tipo e a quantidade de pecas que o Model informa,
+     * marcada quando o jogador da vez pode pegar uma peca dela agora.
+     */
     private static List<PilhaDeTributos> tributosDaPartida() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
         List<PilhaDeTributos> lista = new ArrayList<PilhaDeTributos>();
@@ -163,7 +166,7 @@ public class JanelaTabuleiro extends JFrame {
         }
         for (int id : fachada.getIdsProvincias()) {
             lista.add(new PilhaDeTributos(id, fachada.getTipoDaProvincia(id),
-                    fachada.getTributosDaProvincia(id)));
+                    fachada.getTributosDaProvincia(id), fachada.podePegarTributo(id)));
         }
         return lista;
     }
