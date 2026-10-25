@@ -1,13 +1,12 @@
 package model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,10 +53,9 @@ public class PeaoKhanTest {
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void mover_paraProvinciaDoKhan_asTresEntregamUmTributoDoSeuTipo() {
+	public void mover_paraProvinciaDoKhan_naoEntregaTributos() {
 		List<TipoTributo> entregues = khan.mover(doKhan);
-		assertEquals("Espada da província do Khan, moeda e yurt das vizinhas",
-				Arrays.asList(TipoTributo.ESPADA, TipoTributo.YURT, TipoTributo.MOEDA), ordenados(entregues));
+		assertTrue("Os tributos ficam no mapa", entregues.isEmpty());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
@@ -66,11 +64,12 @@ public class PeaoKhanTest {
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void usarKhan_emProvinciaDoKhan_jogadorRecebeOsTributos() {
+	public void usarKhan_emProvinciaDoKhan_jogadorNaoRecebeNada() {
 		Jogador ogedei = new Jogador(Cor.AZUL, Heroi.OGEDEI, new Karakorum(0), 0);
 		ogedei.ativarColuna(Coluna.TERCEIRA); //1 cavalo + 2 punhos + Khan
 		ogedei.usarKhan(khan, doKhan);
-		assertEquals("Recebe a moeda entregue pela vizinha A", 1, ogedei.getQuantidade(TipoTributo.MOEDA));
+		assertEquals("Não recebe a moeda da vizinha A", 0, ogedei.getQuantidade(TipoTributo.MOEDA));
+		assertFalse("O Khan já foi usado", ogedei.isKhanPendente());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -132,13 +131,6 @@ public class PeaoKhanTest {
 	}
 
 	// AUXILIARES
-
-	/** Tributos na ordem do enum, para comparar sem depender da ordem das vizinhas. */
-	private static List<TipoTributo> ordenados(List<TipoTributo> tributos) {
-		List<TipoTributo> copia = new LinkedList<TipoTributo>(tributos);
-		Collections.sort(copia);
-		return copia;
-	}
 
 	private static void encherAteOMaximo(Provincia p) {
 		for (int i = 0; i < Provincia.MAXIMO_TRIBUTOS; i++) {

@@ -3,7 +3,6 @@ package model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -109,21 +108,18 @@ class Provincia implements LocalDoKhan {
 
 	/**
 	 * O Khan põe 1 tributo nesta província e em cada uma das 2 vizinhas (respeitando o máximo
-	 * de cada uma), e as três entregam a quem o moveu 1 tributo do seu tipo.
+	 * de cada uma). Quem o moveu não recebe nada: os tributos ficam no mapa.
 	 */
 	@Override
 	public List<TipoTributo> receberKhan() {
 		if (!doKhan) {
 			throw new IllegalStateException("Província " + id + " não é do Khan");
 		}
-		List<TipoTributo> entregues = new LinkedList<TipoTributo>();
 		adicionarTributo();
-		entregues.add(tipo);
 		for (Provincia vizinha : vizinhas.values()) {
 			vizinha.adicionarTributo();
-			entregues.add(vizinha.tipo);
 		}
-		return entregues;
+		return Collections.emptyList();
 	}
 
 }

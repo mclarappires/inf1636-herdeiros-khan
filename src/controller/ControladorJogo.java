@@ -101,6 +101,19 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique num lugar do Khan (provincia do Khan ou area de melhorias): o jogador da vez
+     * move o Khan para la. Devolve null se moveu, ou o motivo para a tela mostrar.
+     */
+    public String cliqueNoKhan(int local) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().usarKhan(local);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Encerra o turno do jogador da vez e mostra o mapa para o proximo.
      * Devolve null se a vez passou, ou o motivo para a tela mostrar.
      */

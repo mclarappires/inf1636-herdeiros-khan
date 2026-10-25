@@ -46,6 +46,11 @@ class PainelTabuleiro extends JPanel {
     private PosicoesParadas posicoes;
     private PosicoesParadas posicoesProvincias;
     private PosicoesParadas posicoesCidades;
+    private PosicoesParadas posicoesKhan;
+
+    /** Onde o Khan esta (FachadaModelo.KHAN_FORA se ainda nao entrou) e para onde pode ir agora. */
+    private int localDoKhan = FachadaModelo.KHAN_FORA;
+    private final List<Integer> destinosDoKhan = new ArrayList<Integer>();
 
     private final List<PeaoNaTela> peoes = new ArrayList<PeaoNaTela>();
     private final Map<Color, BufferedImage> sprites = new HashMap<Color, BufferedImage>();
@@ -69,7 +74,7 @@ class PainelTabuleiro extends JPanel {
     private int imgX, imgY, imgLargura, imgAltura;
 
     PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias,
-            String caminhoCidades) {
+            String caminhoCidades, String caminhoKhan) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
@@ -88,6 +93,12 @@ class PainelTabuleiro extends JPanel {
         } catch (IOException e) {
             posicoesCidades = null;
             System.err.println("Nao foi possivel ler as posicoes das cidades: " + caminhoCidades);
+        }
+        try {
+            posicoesKhan = new PosicoesParadas(caminhoKhan);
+        } catch (IOException e) {
+            posicoesKhan = null;
+            System.err.println("Nao foi possivel ler as posicoes do Khan: " + caminhoKhan);
         }
         addMouseListener(new OuvinteMouse());
         setFocusable(true);
@@ -112,6 +123,14 @@ class PainelTabuleiro extends JPanel {
     void setTributos(List<PilhaDeTributos> novas) {
         tributos.clear();
         tributos.addAll(novas);
+        repaint();
+    }
+
+    /** Troca o lugar do Khan e os lugares para onde o jogador da vez pode move-lo agora. */
+    void setKhan(int local, List<Integer> destinos) {
+        localDoKhan = local;
+        destinosDoKhan.clear();
+        destinosDoKhan.addAll(destinos);
         repaint();
     }
 
@@ -158,6 +177,7 @@ class PainelTabuleiro extends JPanel {
         desenharCidades(g2);
         desenharTributos(g2);
         desenharPeoes(g2);
+        desenharKhan(g2);
 
         if (mostrarMarcadores && posicoes != null) {
             g2.setColor(Color.RED);
@@ -255,6 +275,32 @@ class PainelTabuleiro extends JPanel {
         return spritesTributo.get(tipo);
     }
 
+    /** Anel dourado nos lugares para onde o Khan pode ir agora e o peao do Khan onde ele esta. */
+    private void desenharKhan(Graphics2D g2) {
+        if (posicoesKhan == null) {
+            return;
+        }
+        for (int destino : destinosDoKhan) {
+            double[] p = posicoesKhan.get(destino);
+            if (p == null) {
+                continue;
+            }
+            int cx = imgX + (int) (p[0] * imgLargura);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            int diametro = 2 * (int) (p[2] * imgLargura);
+            desenharDestaqueDaPilha(g2, cx, cy, diametro * 2 / 3, 1);
+        }
+        double[] p = posicoesKhan.get(localDoKhan);
+        if (p == null) { // KHAN_FORA: ainda nao entrou no tabuleiro
+            return;
+        }
+        int largura = (int) (LARGURA_PEAO * imgLargura);
+        int altura = largura * SpritePeao.ALTURA / SpritePeao.LARGURA;
+        int cx = imgX + (int) (p[0] * imgLargura);
+        int cy = imgY + (int) (p[1] * imgAltura);
+        g2.drawImage(spriteDe(Color.WHITE), cx - largura / 2, cy - altura + altura / 6, largura, altura, null);
+    }
+
     /** Desenha cada peao na sua parada; peoes na mesma parada ficam lado a lado. */
     private void desenharPeoes(Graphics2D g2) {
         if (posicoes == null) {
@@ -344,6 +390,13 @@ class PainelTabuleiro extends JPanel {
             if (mostrarMarcadores) { // modo de calibracao (F2): mostra onde clicou
                 System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
             }
+            // os lugares do Khan so recebem clique enquanto ele precisa ser usado
+            Integer khan = posicoesKhan == null || destinosDoKhan.isEmpty() ? null
+                    : posicoesKhan.paradaNoClique(fx, fy, imgLargura, imgAltura);
+            if (khan != null) {
+                aoClicarKhan(khan);
+                return;
+            }
             Integer parada = posicoes == null ? null
                     : posicoes.paradaNoClique(fx, fy, imgLargura, imgAltura);
             Integer provincia = posicoesProvincias == null ? null
@@ -388,6 +441,26 @@ class PainelTabuleiro extends JPanel {
         String motivo = ControladorJogo.getInstancia().cliqueNaProvincia(idProvincia);
         if (motivo != null) {
             JOptionPane.showMessageDialog(this, motivo, "Pegar tributo", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /**
+     * Clique num lugar do Khan: se ele pode ir para la, pede confirmacao antes; se nao pode,
+     * mostra o motivo que o Model deu.
+     */
+    private void aoClicarKhan(int local) {
+        if (destinosDoKhan.contains(local)) {
+            String onde = local == FachadaModelo.KHAN_AREA_MELHORIAS ? "a área de melhorias"
+                    : "esta província";
+            int resposta = JOptionPane.showConfirmDialog(this, "Mover o Khan para " + onde + "?",
+                    "Usar o Khan", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (resposta != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+        String motivo = ControladorJogo.getInstancia().cliqueNoKhan(local);
+        if (motivo != null) {
+            JOptionPane.showMessageDialog(this, motivo, "Usar o Khan", JOptionPane.WARNING_MESSAGE);
         }
     }
 

@@ -49,7 +49,7 @@ public class JanelaTabuleiro extends JFrame {
 
         painel = new PainelTabuleiro("resources/tabuleiro.jpg",
                 "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
-                "resources/cidades_coordenadas.txt");
+                "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt");
         painelTurno = new PainelTurno();
         painelJogador = new PainelTabuleiroJogador(this);
         centro.add(painel, CARTAO_MAPA);
@@ -77,9 +77,29 @@ public class JanelaTabuleiro extends JFrame {
         painel.setPeoes(peoesDaPartida());
         painel.setTributos(tributosDaPartida());
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
+        atualizarKhan();
         painelTurno.atualizar();
         painelJogador.atualizar();
         atualizarBotao();
+    }
+
+    /** Lugar do Khan e, se o jogador da vez precisa usa-lo, os lugares para onde ele pode ir. */
+    private void atualizarKhan() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<Integer> destinos = new ArrayList<Integer>();
+        if (!fachada.temPartida()) {
+            painel.setKhan(FachadaModelo.KHAN_FORA, destinos);
+            return;
+        }
+        if (fachada.podeUsarKhanEm(FachadaModelo.KHAN_AREA_MELHORIAS)) {
+            destinos.add(FachadaModelo.KHAN_AREA_MELHORIAS);
+        }
+        for (int id : fachada.getIdsProvinciasDoKhan()) {
+            if (fachada.podeUsarKhanEm(id)) {
+                destinos.add(id);
+            }
+        }
+        painel.setKhan(fachada.getLocalDoKhan(), destinos);
     }
 
     private void atualizarBotao() {

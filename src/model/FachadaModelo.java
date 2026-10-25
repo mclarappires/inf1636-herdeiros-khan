@@ -16,6 +16,11 @@ public class FachadaModelo {
 	public static final int MAX_JOGADORES = Partida.MAX_JOGADORES;
 	public static final int LINHAS_TABULEIRO_JOGADOR = TabuleiroJogador.LINHAS;
 
+	/** Local do Khan antes do primeiro uso. */
+	public static final int KHAN_FORA = -1;
+	/** Local do Khan que indica a área de melhorias; os demais são ids de província. */
+	public static final int KHAN_AREA_MELHORIAS = 0;
+
 	private static FachadaModelo instancia = null;
 
 	private Partida partida = null;
@@ -169,6 +174,67 @@ public class FachadaModelo {
 
 	public int getTributosDaProvincia(int idProvincia) {
 		return exigirPartida().getTabuleiro().getProvincia(idProvincia).getQuantidade();
+	}
+
+	//KHAN
+
+	/** Ids das províncias onde o peão do Khan pode ser colocado. */
+	public int[] getIdsProvinciasDoKhan() {
+		List<Integer> doKhan = new LinkedList<Integer>();
+		for (Provincia p : exigirPartida().getTabuleiro().getProvincias()) {
+			if (p.isDoKhan()) {
+				doKhan.add(p.getId());
+			}
+		}
+		int[] ids = new int[doKhan.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = doKhan.get(i);
+		}
+		return ids;
+	}
+
+	/** KHAN_FORA, KHAN_AREA_MELHORIAS ou o id da província onde o Khan está. */
+	public int getLocalDoKhan() {
+		Tabuleiro t = exigirPartida().getTabuleiro();
+		LocalDoKhan local = t.getPeaoKhan().getLocal();
+		if (local == null) {
+			return KHAN_FORA;
+		}
+		if (local == t.getAreaMelhorias()) {
+			return KHAN_AREA_MELHORIAS;
+		}
+		return ((Provincia) local).getId();
+	}
+
+	/** Se o jogador da vez pode mover o Khan para o local agora (para destacar no mapa). */
+	public boolean podeUsarKhanEm(int local) {
+		Partida p = exigirPartida();
+		if (!p.getJogadorDaVez().isKhanPendente() || local == getLocalDoKhan()) {
+			return false;
+		}
+		try {
+			return local == KHAN_AREA_MELHORIAS || p.getTabuleiro().getProvincia(local).isDoKhan();
+		} catch (IllegalArgumentException e) { //província inexistente
+			return false;
+		}
+	}
+
+	/**
+	 * O jogador da vez move o Khan para o local (KHAN_AREA_MELHORIAS ou id de província do Khan).
+	 * Devolve null se moveu, ou o motivo de não poder (sem Khan na coluna, mesmo lugar...).
+	 */
+	public String usarKhan(int local) {
+		Partida p = exigirPartida();
+		try {
+			Tabuleiro t = p.getTabuleiro();
+			LocalDoKhan destino = local == KHAN_AREA_MELHORIAS ? t.getAreaMelhorias() : t.getProvincia(local);
+			p.getJogadorDaVez().usarKhan(t.getPeaoKhan(), destino);
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) { //província inexistente
+			return e.getMessage();
+		}
 	}
 
 	//CIDADES

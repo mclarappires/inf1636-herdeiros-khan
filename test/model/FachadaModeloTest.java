@@ -205,6 +205,69 @@ public class FachadaModeloTest {
 		assertEquals(1, fachada.getTributoDisponivel(0, "YURT"));
 	}
 
+	// KHAN
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarKhan_emProvinciaDoKhan_poeTributosEOJogadorNaoRecebe() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("SEGUNDA", 0)); //Jochi: coluna com Khan
+		assertEquals(FachadaModelo.KHAN_FORA, fachada.getLocalDoKhan());
+		int naProvincia = fachada.getTributosDaProvincia(1);
+		int nasVizinhas = fachada.getTributosDaProvincia(5) + fachada.getTributosDaProvincia(9);
+		int moedas = fachada.getTributoDisponivel(0, "MOEDA");
+		int yurts = fachada.getTributoDisponivel(0, "YURT");
+
+		assertNull(fachada.usarKhan(1)); //província do Khan vizinha da 5 e da 9
+		assertFalse(fachada.isKhanPendente());
+		assertEquals(1, fachada.getLocalDoKhan());
+		assertEquals(Math.min(naProvincia + 1, 3), fachada.getTributosDaProvincia(1));
+		assertEquals(nasVizinhas + 2, fachada.getTributosDaProvincia(5) + fachada.getTributosDaProvincia(9));
+		assertEquals(moedas, fachada.getTributoDisponivel(0, "MOEDA"));
+		assertEquals(yurts, fachada.getTributoDisponivel(0, "YURT"));
+		assertNull(fachada.encerrarTurno());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarKhan_provinciaQueNaoEDoKhan_devolveMotivoEKhanContinuaPendente() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
+		assertFalse(fachada.podeUsarKhanEm(5));
+		assertNotNull(fachada.usarKhan(5));
+		assertTrue(fachada.isKhanPendente());
+		assertEquals(FachadaModelo.KHAN_FORA, fachada.getLocalDoKhan());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarKhan_mesmoLugarNoTurnoSeguinte_devolveMotivo() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
+		assertNull(fachada.usarKhan(4));
+		assertNull(fachada.encerrarTurno());
+
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Tolui: coluna com Khan
+		assertFalse(fachada.podeUsarKhanEm(4));
+		assertNotNull(fachada.usarKhan(4));
+		assertTrue(fachada.podeUsarKhanEm(FachadaModelo.KHAN_AREA_MELHORIAS));
+		assertNull(fachada.usarKhan(FachadaModelo.KHAN_AREA_MELHORIAS));
+		assertEquals(FachadaModelo.KHAN_AREA_MELHORIAS, fachada.getLocalDoKhan());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarKhan_colunaSemKhan_devolveMotivo() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
+		assertFalse(fachada.podeUsarKhanEm(1));
+		assertNotNull(fachada.usarKhan(1));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getIdsProvinciasDoKhan_listaAsQuatro() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		int[] ids = fachada.getIdsProvinciasDoKhan();
+		Arrays.sort(ids);
+		assertTrue(Arrays.equals(new int[] { 1, 4, 10, 11 }, ids));
+	}
+
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)
 	public void novaPartida_mapaInexistente_lancaExcecao() throws IOException {
 		fachada.novaPartida("resources/nao-existe.txt", Arrays.asList("JOCHI", "TOLUI"));

@@ -66,7 +66,8 @@ class PainelTurno extends JPanel {
             String ativa = fachada.getColunaAtiva();
             texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez)) + "   |   "
                     + (ativa == null ? "Ative uma coluna"
-                            : "Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa));
+                            : "Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa))
+                    + (fachada.isKhanPendente() ? "   |   Use o Khan" : "");
             inventario.mostrar(fachada.getTributoDisponivel(vez, "MOEDA"),
                     fachada.getTributoDisponivel(vez, "ESPADA"), fachada.getTributoDisponivel(vez, "YURT"),
                     fachada.getMovimentosRestantes(), fachada.getPunhosRestantes());
