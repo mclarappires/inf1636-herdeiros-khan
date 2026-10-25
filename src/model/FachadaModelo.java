@@ -91,6 +91,14 @@ public class FachadaModelo {
 		return exigirPartida().getJogador(indice).getMoedas();
 	}
 
+	/**
+	 * Quanto do tributo ("MOEDA", "ESPADA" ou "YURT") o jogador pode gastar agora:
+	 * peças mais os recursos virtuais do turno.
+	 */
+	public int getTributoDisponivel(int jogador, String tipo) {
+		return exigirPartida().getJogador(jogador).getDisponivel(converterTributo(tipo));
+	}
+
 	//PEÕES
 
 	public int getQuantidadePeoes(int jogador) {
@@ -241,13 +249,16 @@ public class FachadaModelo {
 		}
 	}
 
-	/** Encerra o turno e passa a vez. Falso se o turno ainda não pode terminar. */
-	public boolean encerrarTurno() {
+	/**
+	 * Encerra o turno e passa a vez. Devolve null se passou, ou o motivo de o turno
+	 * ainda não poder terminar (coluna não ativada, Khan pendente, parada cheia...).
+	 */
+	public String encerrarTurno() {
 		try {
 			exigirPartida().encerrarTurnoDaVez();
-			return true;
+			return null;
 		} catch (IllegalStateException e) {
-			return false;
+			return e.getMessage();
 		}
 	}
 
@@ -282,6 +293,14 @@ public class FachadaModelo {
 			return Coluna.valueOf(nome);
 		} catch (RuntimeException e) { //nome nulo ou desconhecido
 			throw new IllegalArgumentException("Coluna desconhecida: " + nome);
+		}
+	}
+
+	private static TipoTributo converterTributo(String nome) {
+		try {
+			return TipoTributo.valueOf(nome);
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Tributo desconhecido: " + nome);
 		}
 	}
 }

@@ -1,6 +1,9 @@
 package view;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -264,8 +267,32 @@ class PainelTabuleiro extends JPanel {
                 int x = (int) (cx + (i - (grupo.size() - 1) / 2.0) * passo) - largura / 2;
                 int y = cy - altura + altura / 6; // pe do peao um pouco abaixo do centro
                 g2.drawImage(spriteDe(grupo.get(i).getCor()), x, y, largura, altura, null);
+                if (grupo.get(i).getNumero() > 0) {
+                    desenharNumeroDoPeao(g2, grupo.get(i).getNumero(), x + largura / 2,
+                            y + (int) (altura * 0.55), (int) (largura * 0.6));
+                }
             }
         }
+    }
+
+    /** Circulo branco com o numero do peao (Altani tem dois), no corpo do peao. */
+    private static void desenharNumeroDoPeao(Graphics2D g2, int numero, int cx, int cy, int diametro) {
+        diametro = Math.max(diametro, 12);
+        int x = cx - diametro / 2;
+        int y = cy - diametro / 2;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(Color.WHITE);
+        g2.fillOval(x, y, diametro, diametro);
+        g2.setColor(Color.DARK_GRAY);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.drawOval(x, y, diametro, diametro);
+
+        String texto = String.valueOf(numero);
+        g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, Math.max(diametro * 3 / 4, 9)));
+        FontMetrics medidas = g2.getFontMetrics();
+        g2.setColor(Color.BLACK);
+        g2.drawString(texto, cx - medidas.stringWidth(texto) / 2,
+                cy + (medidas.getAscent() - medidas.getDescent()) / 2);
     }
 
     private BufferedImage spriteDe(Color cor) {

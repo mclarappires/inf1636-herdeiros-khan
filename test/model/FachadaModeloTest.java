@@ -2,6 +2,8 @@ package model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -104,6 +106,54 @@ public class FachadaModeloTest {
 	public void isColunaUsada_colunaDesconhecida_lancaExcecao() throws IOException {
 		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
 		fachada.isColunaUsada(0, "ROXA");
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getTributoDisponivel_comecaComAsMoedasIniciais() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI", "ALTANI"));
+		assertEquals(1, fachada.getTributoDisponivel(0, "MOEDA"));
+		assertEquals(1, fachada.getTributoDisponivel(1, "MOEDA"));
+		assertEquals(2, fachada.getTributoDisponivel(2, "MOEDA"));
+		assertEquals(0, fachada.getTributoDisponivel(0, "ESPADA"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getTributoDisponivel_contaAMoedaDaColuna() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("PRIMEIRA", 0)); //Jochi: cavalo, punho e moeda
+		assertEquals(2, fachada.getTributoDisponivel(0, "MOEDA"));
+		assertEquals(1, fachada.getMovimentosRestantes());
+	}
+
+	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
+	public void getTributoDisponivel_tipoDesconhecido_lancaExcecao() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		fachada.getTributoDisponivel(0, "OURO");
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void encerrarTurno_semColunaAtivada_devolveMotivoEAVezFica() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertNotNull(fachada.encerrarTurno());
+		assertEquals(0, fachada.getJogadorDaVez());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void encerrarTurno_comKhanPendente_devolveMotivoEAVezFica() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("SEGUNDA", 0)); //Jochi: coluna com Khan
+		assertTrue(fachada.isKhanPendente());
+		assertNotNull(fachada.encerrarTurno());
+		assertEquals(0, fachada.getJogadorDaVez());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void encerrarTurno_colunaSemKhan_passaAVez() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
+		assertNull(fachada.encerrarTurno());
+		assertEquals(1, fachada.getJogadorDaVez());
+		assertNull(fachada.getColunaAtiva());
 	}
 
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)

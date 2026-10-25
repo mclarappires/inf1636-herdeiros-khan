@@ -125,8 +125,11 @@ public class JanelaTabuleiro extends JFrame {
         List<PeaoNaTela> lista = new ArrayList<PeaoNaTela>();
         for (int i = 0; i < fachada.getQuantidadeJogadores(); i++) {
             Color cor = CoresJogador.de(fachada.getCorDoJogador(i));
-            for (int k = 0; k < fachada.getQuantidadePeoes(i); k++) {
-                lista.add(new PeaoNaTela(fachada.getParadaDoPeao(i, k), cor));
+            int quantidade = fachada.getQuantidadePeoes(i);
+            for (int k = 0; k < quantidade; k++) {
+                // numerados so quando o jogador tem mais de um peao (Altani)
+                int numero = quantidade > 1 ? k + 1 : 0;
+                lista.add(new PeaoNaTela(fachada.getParadaDoPeao(i, k), cor, numero));
             }
         }
         return lista;

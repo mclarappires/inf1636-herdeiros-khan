@@ -77,17 +77,30 @@ public class ControladorJogo {
 
     /**
      * Clique numa parada do tabuleiro: se o movimento for valido o peao anda; se nao,
-     * nada acontece. Quando os movimentos acabam, o turno termina sozinho.
+     * nada acontece. O turno so termina pelo botao Passar a vez.
      */
     public void cliqueNaParada(int idParada) {
         if (!partidaEmAndamento()) {
             return;
         }
-        FachadaModelo fachada = FachadaModelo.getInstancia();
-        if (fachada.moverPeaoDaVez(idParada) && fachada.getMovimentosRestantes() == 0) {
-            fachada.encerrarTurno();
-        }
+        FachadaModelo.getInstancia().moverPeaoDaVez(idParada);
         janelaTabuleiro.atualizar();
+    }
+
+    /**
+     * Encerra o turno do jogador da vez e mostra o mapa para o proximo.
+     * Devolve null se a vez passou, ou o motivo para a tela mostrar.
+     */
+    public String passarTurno() {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().encerrarTurno();
+        if (motivo == null) {
+            janelaTabuleiro.atualizar();
+            janelaTabuleiro.mostrarMapa();
+        }
+        return motivo;
     }
 
     private boolean partidaEmAndamento() {
