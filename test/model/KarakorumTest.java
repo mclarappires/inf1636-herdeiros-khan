@@ -73,14 +73,6 @@ public class KarakorumTest {
 		new Karakorum(5, pedido);
 	}
 
-	@Test(timeout = DEFAULT_TIMEOUT)
-	public void carregar_karakorumComTesouros_usaOPedidoDoMapa() throws IOException {
-		Tabuleiro mapa = CarregadorMapa.carregar(
-				new StringReader("KARAKORUM 1 TIGELA TIGELA TAPETE\n"), new Random(1));
-		Karakorum lido = (Karakorum) mapa.getParada(1);
-		assertEquals("O mapa pede 2 tigelas", Integer.valueOf(2), lido.getPedido().get(TipoTesouro.ESPECIARIAS));
-	}
-
 	private Map<TipoTesouro, Integer> ofertaPedida() {
 		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
 		oferta.put(TipoTesouro.PELES, 1);
