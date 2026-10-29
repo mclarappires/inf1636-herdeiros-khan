@@ -88,6 +88,19 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique com o botao direito numa parada: o jogador da vez gasta 1 peca de yurt para
+     * construir um yurt nela. Devolve null se construiu, ou o motivo para a tela mostrar.
+     */
+    public String cliqueDireitoNaParada(int idParada) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().construirYurt(idParada);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Clique na pilha de tributo de uma provincia: o jogador da vez gasta 1 punho para
      * pegar 1 peca. Devolve null se pegou, ou o motivo para a tela mostrar.
      */

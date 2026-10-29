@@ -155,6 +155,50 @@ public class FachadaModelo {
 		return exigirPartida().getJogador(jogador).getTabuleiroJogador().getMelhorias(converterColuna(coluna));
 	}
 
+	//YURTS
+
+	/** Ids de todas as paradas do tabuleiro. */
+	public int[] getIdsParadas() {
+		Collection<Parada> paradas = exigirPartida().getTabuleiro().getParadas();
+		int[] ids = new int[paradas.size()];
+		int i = 0;
+		for (Parada p : paradas) {
+			ids[i++] = p.getId();
+		}
+		return ids;
+	}
+
+	/** Cor do dono de cada yurt construido na parada (vazio se nao ha yurt). */
+	public String[] getCoresDosYurts(int idParada) {
+		List<Yurt> yurts = exigirPartida().getTabuleiro().getParada(idParada).getYurts();
+		String[] cores = new String[yurts.size()];
+		for (int i = 0; i < cores.length; i++) {
+			cores[i] = yurts.get(i).getDono().name();
+		}
+		return cores;
+	}
+
+	/**
+	 * O jogador da vez gasta 1 peça de yurt para construir um yurt na parada. Devolve null se
+	 * construiu, ou o motivo de não poder (parada não visitada, cheia, sem peças de yurt...).
+	 */
+	public String construirYurt(int idParada) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().construirYurt(p.getTabuleiro().getParada(idParada));
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) { //parada inexistente ou não visitada
+			return e.getMessage();
+		}
+	}
+
+	/** Peças de yurt que o jogador da vez pode gastar agora (peças mais yurts virtuais do turno). */
+	public int getYurtsParaConstruir() {
+		return exigirPartida().getJogadorDaVez().getDisponivel(TipoTributo.YURT);
+	}
+
 	//PROVÍNCIAS E PEÇAS DE TRIBUTO
 
 	public int[] getIdsProvincias() {

@@ -77,6 +77,7 @@ public class JanelaTabuleiro extends JFrame {
         painel.setPeoes(peoesDaPartida());
         painel.setTributos(tributosDaPartida());
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
+        painel.setYurts(yurtsDaPartida());
         atualizarKhan();
         painelTurno.atualizar();
         painelJogador.atualizar();
@@ -150,6 +151,21 @@ public class JanelaTabuleiro extends JFrame {
                 // numerados so quando o jogador tem mais de um peao (Altani)
                 int numero = quantidade > 1 ? k + 1 : 0;
                 lista.add(new PeaoNaTela(fachada.getParadaDoPeao(i, k), cor, numero));
+            }
+        }
+        return lista;
+    }
+
+    /** Um YurtNaTela por yurt construido, na cor do dono (o Model so informa ids e cores). */
+    private static List<YurtNaTela> yurtsDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<YurtNaTela> lista = new ArrayList<YurtNaTela>();
+        if (!fachada.temPartida()) {
+            return lista;
+        }
+        for (int idParada : fachada.getIdsParadas()) {
+            for (String cor : fachada.getCoresDosYurts(idParada)) {
+                lista.add(new YurtNaTela(idParada, CoresJogador.de(cor)));
             }
         }
         return lista;

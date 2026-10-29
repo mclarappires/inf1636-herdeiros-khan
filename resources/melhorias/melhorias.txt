@@ -1,0 +1,21 @@
+# SIMBOLO COR arquivo   (peca de melhoria; COR = cor de fundo = regiao: VERDE=Persia, AMARELO=Russia, VERMELHO=China)
+SEDA VERDE seda_verde.png
+GADO AMARELO gado_amarelo.png
+YURT AMARELO yurt_amarelo.png
+YURT VERMELHO yurt_vermelho.png
+YURT VERDE yurt_verde.png
+CAVALOS AMARELO cavalos_amarelo.png
+CAVALOS VERMELHO cavalos_vermelho.png
+CAVALOS VERDE cavalos_verde.png
+ESPECIARIAS AMARELO especiarias_amarelo.png
+ESPADA AMARELO espada_amarelo.png
+ESPADA VERMELHO espada_vermelho.png
+ESPADA VERDE espada_verde.png
+PUNHO AMARELO punho_amarelo.png
+PUNHO VERMELHO punho_vermelho.png
+PUNHO VERDE punho_verde.png
+FERRO VERMELHO ferro_vermelho.png
+MOEDA AMARELO moeda_amarelo.png
+MOEDA VERMELHO moeda_vermelho.png
+MOEDA VERDE moeda_verde.png
+PELES VERDE peles_verde.png

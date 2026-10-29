@@ -113,5 +113,9 @@ class Parada {
 		int outros = peoes.contains(peao) ? peoes.size() - 1 : peoes.size();
 		return outros < capacidadePeoes;
 	}
+	
+	List<Yurt> getYurts() {
+	    return Collections.unmodifiableList(yurts);
+	}
 
 }

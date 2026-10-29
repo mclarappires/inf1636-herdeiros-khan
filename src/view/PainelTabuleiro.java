@@ -8,6 +8,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -23,6 +25,8 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import controller.ControladorJogo;
 import model.FachadaModelo;
@@ -53,6 +57,14 @@ class PainelTabuleiro extends JPanel {
     private final List<Integer> destinosDoKhan = new ArrayList<Integer>();
 
     private final List<PeaoNaTela> peoes = new ArrayList<PeaoNaTela>();
+
+    /** Diametro do circulo de um yurt, em fracao da largura da imagem do tabuleiro. */
+    private static final double DIAMETRO_YURT = 0.034;
+    private final List<YurtNaTela> yurts = new ArrayList<YurtNaTela>();
+
+    /** Aviso temporario no topo do mapa (motivo de uma construcao recusada); some sozinho. */
+    private String mensagem = null;
+    private final Timer relogioDaMensagem = new Timer(4000, new OuvinteMensagem());
     private final Map<Color, BufferedImage> sprites = new HashMap<Color, BufferedImage>();
 
     /** Uma peca de tributo ocupa esta fracao da largura da imagem do tabuleiro. */
@@ -100,6 +112,7 @@ class PainelTabuleiro extends JPanel {
             posicoesKhan = null;
             System.err.println("Nao foi possivel ler as posicoes do Khan: " + caminhoKhan);
         }
+        relogioDaMensagem.setRepeats(false);
         addMouseListener(new OuvinteMouse());
         setFocusable(true);
         addKeyListener(new OuvinteTeclado());
@@ -109,6 +122,13 @@ class PainelTabuleiro extends JPanel {
     void setPeoes(List<PeaoNaTela> novos) {
         peoes.clear();
         peoes.addAll(novos);
+        repaint();
+    }
+
+    /** Troca os yurts exibidos (cada um na parada onde foi construido, na cor do dono). */
+    void setYurts(List<YurtNaTela> novos) {
+        yurts.clear();
+        yurts.addAll(novos);
         repaint();
     }
 
@@ -176,8 +196,12 @@ class PainelTabuleiro extends JPanel {
 
         desenharCidades(g2);
         desenharTributos(g2);
+        desenharYurts(g2);
         desenharPeoes(g2);
         desenharKhan(g2);
+
+        desenharDica(g2);
+        desenharMensagem(g2);
 
         if (mostrarMarcadores && posicoes != null) {
             g2.setColor(Color.RED);
@@ -301,6 +325,98 @@ class PainelTabuleiro extends JPanel {
         g2.drawImage(spriteDe(Color.WHITE), cx - largura / 2, cy - altura + altura / 6, largura, altura, null);
     }
 
+    /** Faixa fixa no rodape do mapa que ensina como construir yurts (e quantas pecas restam). */
+    private void desenharDica(Graphics2D g2) {
+        String texto = "Botão direito numa parada visitada: construir yurt (gasta 1 peça de yurt)";
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        if (fachada.temPartida()) {
+            texto += "  |  peças de yurt disponíveis: " + fachada.getYurtsParaConstruir();
+        }
+        desenharFaixa(g2, texto, getHeight() - 8, new Color(0, 0, 0, 170), Color.WHITE);
+    }
+
+    /** Aviso temporario (por exemplo, por que o yurt nao pode ser construido). */
+    private void desenharMensagem(Graphics2D g2) {
+        if (mensagem != null) {
+            desenharFaixa(g2, mensagem, 36, new Color(150, 20, 20, 225), Color.WHITE);
+        }
+    }
+
+    /** Texto centralizado sobre um retangulo arredondado; yBase e a linha de base do texto. */
+    private void desenharFaixa(Graphics2D g2, String texto, int yBase, Color fundo, Color letra) {
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 13));
+        FontMetrics medidas = g2.getFontMetrics();
+        int largura = medidas.stringWidth(texto) + 24;
+        int altura = medidas.getHeight() + 8;
+        int x = (getWidth() - largura) / 2;
+        int y = yBase - medidas.getAscent() - 4;
+        g2.setColor(fundo);
+        g2.fillRoundRect(x, y, largura, altura, 14, 14);
+        g2.setColor(letra);
+        g2.drawString(texto, x + 12, yBase);
+    }
+
+    /** Mostra um aviso por alguns segundos. */
+    private void mostrarMensagem(String texto) {
+        mensagem = texto;
+        relogioDaMensagem.restart();
+        repaint();
+    }
+
+    /** Apaga o aviso quando o tempo acaba (classe ouvinte, sem lambda). */
+    private class OuvinteMensagem implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            mensagem = null;
+            repaint();
+        }
+    }
+
+    /** Botao direito numa parada: tenta construir um yurt do jogador da vez e avisa se nao puder. */
+    private void aoClicarDireito(double fx, double fy) {
+        if (posicoes == null || !FachadaModelo.getInstancia().temPartida()) {
+            return;
+        }
+        Integer parada = posicoes.paradaNoClique(fx, fy, imgLargura, imgAltura);
+        if (parada == null) {
+            return;
+        }
+        String motivo = ControladorJogo.getInstancia().cliqueDireitoNaParada(parada);
+        if (motivo != null) {
+            mostrarMensagem("Não foi possível construir: " + motivo);
+        } else {
+            mensagem = null;
+            repaint();
+        }
+    }
+
+    /** Desenha cada yurt como um circulo na cor do dono sobre a parada; dois na mesma parada ficam lado a lado. */
+    private void desenharYurts(Graphics2D g2) {
+        if (posicoes == null) {
+            return;
+        }
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        Map<Integer, Integer> jaDesenhados = new HashMap<Integer, Integer>();
+        int diametro = (int) (DIAMETRO_YURT * imgLargura);
+        for (YurtNaTela y : yurts) {
+            double[] p = posicoes.get(y.getParada());
+            if (p == null) {
+                continue;
+            }
+            Integer antes = jaDesenhados.get(y.getParada());
+            int ordem = antes == null ? 0 : antes;
+            jaDesenhados.put(y.getParada(), ordem + 1);
+            int cx = imgX + (int) (p[0] * imgLargura) + ordem * (int) (diametro * 0.9);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            g2.setColor(y.getCor());
+            g2.fillOval(cx - diametro / 2, cy - diametro / 2, diametro, diametro);
+            g2.setStroke(new BasicStroke(2f));
+            g2.setColor(Color.WHITE);
+            g2.drawOval(cx - diametro / 2, cy - diametro / 2, diametro, diametro);
+        }
+    }
+
     /** Desenha cada peao na sua parada; peoes na mesma parada ficam lado a lado. */
     private void desenharPeoes(Graphics2D g2) {
         if (posicoes == null) {
@@ -386,6 +502,10 @@ class PainelTabuleiro extends JPanel {
             double fy = (double) (e.getY() - imgY) / imgAltura;
             if (fx < 0 || fx > 1 || fy < 0 || fy > 1) {
                 return; // clique fora da imagem
+            }
+            if (SwingUtilities.isRightMouseButton(e)) {
+                aoClicarDireito(fx, fy);
+                return;
             }
             if (mostrarMarcadores) { // modo de calibracao (F2): mostra onde clicou
                 System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
