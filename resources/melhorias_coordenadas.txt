@@ -1,0 +1,9 @@
+# id x y   (fracao da imagem do tabuleiro; centro de cada peca)
+# 0 a 4: espacos da area de melhorias, da esquerda para a direita
+# 5: pilha de melhorias (provisorio: ao lado do espaco 4, sobre a trilha do Kurultai; ajuste se quiser)
+0 0.1053 0.9585
+1 0.1963 0.9585
+2 0.2863 0.9585
+3 0.3767 0.9585
+4 0.4673 0.9585
+5 0.5580 0.9585

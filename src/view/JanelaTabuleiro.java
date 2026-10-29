@@ -49,7 +49,8 @@ public class JanelaTabuleiro extends JFrame {
 
         painel = new PainelTabuleiro("resources/tabuleiro.jpg",
                 "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
-                "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt");
+                "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt",
+                "resources/melhorias_coordenadas.txt");
         painelTurno = new PainelTurno();
         painelJogador = new PainelTabuleiroJogador(this);
         centro.add(painel, CARTAO_MAPA);
@@ -78,6 +79,7 @@ public class JanelaTabuleiro extends JFrame {
         painel.setTributos(tributosDaPartida());
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
         painel.setYurts(yurtsDaPartida());
+        painel.setAreaDeMelhorias(areaDaPartida());
         atualizarKhan();
         painelTurno.atualizar();
         painelJogador.atualizar();
@@ -154,6 +156,32 @@ public class JanelaTabuleiro extends JFrame {
             }
         }
         return lista;
+    }
+
+    /**
+     * A area de melhorias como o Model informa: peca de cada espaco, quais o jogador da vez
+     * pode comprar (ou pegar de graca, se ganhou uma por linha completa) e o tamanho da pilha.
+     */
+    private static AreaNaTela areaDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        if (!fachada.temPartida()) {
+            return null;
+        }
+        int n = FachadaModelo.ESPACOS_AREA_MELHORIAS;
+        String[] simbolos = new String[n];
+        String[] cores = new String[n];
+        boolean[] disponiveis = new boolean[n];
+        boolean gratuita = fachada.getMelhoriasGratuitasPendentes() > 0;
+        for (int i = 0; i < n; i++) {
+            simbolos[i] = fachada.getSimboloDaMelhoriaNaArea(i);
+            cores[i] = fachada.getCorDaMelhoriaNaArea(i);
+            disponiveis[i] = simbolos[i] != null && (gratuita
+                    ? fachada.podePegarMelhoriaGratuita(i) : fachada.podeComprarMelhoria(i));
+        }
+        int pilha = fachada.getTamanhoDaPilhaDeMelhorias();
+        boolean pilhaDisponivel = pilha > 0 && (gratuita
+                ? fachada.podePegarMelhoriaGratuitaDoTopo() : fachada.podeComprarMelhoriaDoTopo());
+        return new AreaNaTela(simbolos, cores, disponiveis, pilha, pilhaDisponivel, gratuita);
     }
 
     /** Um YurtNaTela por yurt construido, na cor do dono (o Model so informa ids e cores). */

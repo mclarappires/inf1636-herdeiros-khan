@@ -78,6 +78,7 @@ class PainelTabuleiroJogador extends JPanel {
 
     private final Map<String, Image> imagensHerois = new HashMap<String, Image>();
     private final Map<String, BufferedImage> spritesTributo = new HashMap<String, BufferedImage>();
+    private final Map<String, BufferedImage> spritesPeca = new HashMap<String, BufferedImage>();
 
     private int jogadorMostrado = -1;
 
@@ -206,6 +207,15 @@ class PainelTabuleiroJogador extends JPanel {
         return imagensHerois.get(heroi);
     }
 
+    /** Imagem da peca de melhoria (simbolo + cor); null se nao existir o arquivo, e ai desenha o fundo colorido. */
+    private BufferedImage imagemDaPeca(String simbolo, String cor) {
+        String chave = simbolo + "|" + cor;
+        if (!spritesPeca.containsKey(chave)) {
+            spritesPeca.put(chave, SpriteMelhoria.criar(simbolo, cor));
+        }
+        return spritesPeca.get(chave);
+    }
+
     private BufferedImage iconeDaMelhoria(String simbolo) {
         if (simbolo.equals("MOEDA") || simbolo.equals("ESPADA") || simbolo.equals("YURT")) {
             if (!spritesTributo.containsKey(simbolo)) {
@@ -308,6 +318,14 @@ class PainelTabuleiroJogador extends JPanel {
             int l = tamanho(LARGURA_COLUNA * 0.90, imgLargura);
             int a = tamanho(ALTURA_ESPACO * 0.86, imgAltura);
             int arco = a / 5;
+            BufferedImage peca = imagemDaPeca(simbolo, cor);
+            if (peca != null) {
+                g2.drawImage(peca, x, y, l, a, null);
+                g2.setColor(new Color(70, 45, 20));
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawRoundRect(x, y, l, a, arco, arco);
+                return;
+            }
             Color fundo = CORES_MELHORIA.get(cor);
             g2.setColor(fundo == null ? Color.LIGHT_GRAY : fundo);
             g2.fillRoundRect(x, y, l, a, arco, arco);

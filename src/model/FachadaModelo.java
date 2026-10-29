@@ -21,6 +21,11 @@ public class FachadaModelo {
 	/** Local do Khan que indica a área de melhorias; os demais são ids de província. */
 	public static final int KHAN_AREA_MELHORIAS = 0;
 
+	/** Preço, em moedas, de uma melhoria da área. */
+	public static final int CUSTO_MELHORIA = Jogador.CUSTO_MELHORIA;
+	/** Quantos espaços tem a área de melhorias (numerados de 0, à esquerda, a ESPACOS-1). */
+	public static final int ESPACOS_AREA_MELHORIAS = AreaMelhorias.ESPACOS;
+
 	private static FachadaModelo instancia = null;
 
 	private Partida partida = null;
@@ -197,6 +202,126 @@ public class FachadaModelo {
 	/** Peças de yurt que o jogador da vez pode gastar agora (peças mais yurts virtuais do turno). */
 	public int getYurtsParaConstruir() {
 		return exigirPartida().getJogadorDaVez().getDisponivel(TipoTributo.YURT);
+	}
+
+	//MELHORIAS À VENDA
+
+	/** Símbolo ("MOEDA", "PUNHO", "SEDA"...) da melhoria no espaço da área, ou null se vazio. */
+	public String getSimboloDaMelhoriaNaArea(int espaco) {
+		Melhoria m = exigirPartida().getTabuleiro().getAreaMelhorias().getMelhoria(espaco);
+		return m == null ? null : m.getSimbolo().name();
+	}
+
+	/** Nome da coluna colorida de origem da melhoria do espaço, ou null se vazio. */
+	public String getCorDaMelhoriaNaArea(int espaco) {
+		Melhoria m = exigirPartida().getTabuleiro().getAreaMelhorias().getMelhoria(espaco);
+		return m == null ? null : m.getColuna().name();
+	}
+
+	public int getTamanhoDaPilhaDeMelhorias() {
+		return exigirPartida().getTabuleiro().getAreaMelhorias().getTamanhoPilha();
+	}
+
+	/** Melhorias gratuitas que o jogador da vez ainda não escolheu (ganha uma por linha completa). */
+	public int getMelhoriasGratuitasPendentes() {
+		return exigirPartida().getJogadorDaVez().getTabuleiroJogador().getMelhoriasGratuitasPendentes();
+	}
+
+	/** Se o jogador da vez pode comprar agora a melhoria do espaço (para destacar no mapa). */
+	public boolean podeComprarMelhoria(int espaco) {
+		Partida p = exigirPartida();
+		try {
+			Melhoria m = p.getTabuleiro().getAreaMelhorias().getMelhoria(espaco);
+			return m != null && podeComprar(p.getJogadorDaVez(), m);
+		} catch (IllegalArgumentException e) { //espaço inexistente
+			return false;
+		}
+	}
+
+	/** Se o jogador da vez pode comprar agora a melhoria do topo da pilha. */
+	public boolean podeComprarMelhoriaDoTopo() {
+		Partida p = exigirPartida();
+		AreaMelhorias area = p.getTabuleiro().getAreaMelhorias();
+		return area.getTamanhoPilha() > 0 && podeComprar(p.getJogadorDaVez(), area.verTopo());
+	}
+
+	private static boolean podeComprar(Jogador j, Melhoria m) {
+		return j.getColunaAtiva() != null
+				&& j.getDisponivel(TipoTributo.MOEDA) >= Jogador.CUSTO_MELHORIA
+				&& j.getTabuleiroJogador().temEspaco(m.getColuna());
+	}
+
+	/** Se o jogador da vez pode pegar de graça a melhoria do espaço. */
+	public boolean podePegarMelhoriaGratuita(int espaco) {
+		Partida p = exigirPartida();
+		try {
+			return p.getTabuleiro().getAreaMelhorias().getMelhoria(espaco) != null
+					&& podePegarGratuita(p.getJogadorDaVez());
+		} catch (IllegalArgumentException e) { //espaço inexistente
+			return false;
+		}
+	}
+
+	public boolean podePegarMelhoriaGratuitaDoTopo() {
+		Partida p = exigirPartida();
+		return p.getTabuleiro().getAreaMelhorias().getTamanhoPilha() > 0 && podePegarGratuita(p.getJogadorDaVez());
+	}
+
+	private static boolean podePegarGratuita(Jogador j) {
+		TabuleiroJogador t = j.getTabuleiroJogador();
+		return t.getMelhoriasGratuitasPendentes() > 0 && t.temEspaco(Coluna.BRANCA);
+	}
+
+	/** Compra por CUSTO_MELHORIA moedas a melhoria do espaço. Devolve null se comprou, ou o motivo. */
+	public String comprarMelhoria(int espaco) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().comprarMelhoria(p.getTabuleiro().getAreaMelhorias(), espaco);
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) { //espaço inexistente
+			return e.getMessage();
+		}
+	}
+
+	/** Compra, sem ver antes, a melhoria do topo da pilha. Devolve null se comprou, ou o motivo. */
+	public String comprarMelhoriaDoTopo() {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().comprarMelhoriaDoTopo(p.getTabuleiro().getAreaMelhorias());
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	/** Pega de graça a melhoria do espaço (vai para a coluna branca). Devolve null se pegou, ou o motivo. */
+	public String pegarMelhoriaGratuita(int espaco) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().pegarMelhoriaGratuita(p.getTabuleiro().getAreaMelhorias(), espaco);
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	/** Pega de graça a melhoria do topo da pilha. Devolve null se pegou, ou o motivo. */
+	public String pegarMelhoriaGratuitaDoTopo() {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().pegarMelhoriaGratuitaDoTopo(p.getTabuleiro().getAreaMelhorias());
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
 	}
 
 	//PROVÍNCIAS E PEÇAS DE TRIBUTO

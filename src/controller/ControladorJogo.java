@@ -88,6 +88,33 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique numa melhoria da area: se o jogador da vez tem melhoria gratis a escolher, pega
+     * a peca de graca; senao, compra (2 moedas). Devolve null se deu certo, ou o motivo.
+     */
+    public String cliqueNaMelhoria(int espaco) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String motivo = fachada.getMelhoriasGratuitasPendentes() > 0
+                ? fachada.pegarMelhoriaGratuita(espaco) : fachada.comprarMelhoria(espaco);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /** Clique na pilha de melhorias: igual a cliqueNaMelhoria, com a peca do topo (sem ver antes). */
+    public String cliqueNaPilhaDeMelhorias() {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String motivo = fachada.getMelhoriasGratuitasPendentes() > 0
+                ? fachada.pegarMelhoriaGratuitaDoTopo() : fachada.comprarMelhoriaDoTopo();
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Clique com o botao direito numa parada: o jogador da vez gasta 1 peca de yurt para
      * construir um yurt nela. Devolve null se construiu, ou o motivo para a tela mostrar.
      */

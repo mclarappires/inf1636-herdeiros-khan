@@ -62,22 +62,45 @@ class AreaMelhorias implements LocalDoKhan {
 		return padrao;
 	}
 
-	/** As 44 melhorias do jogo; cada tipo é repartido em rodízio entre as 3 cores. */
+	/**
+	 * As 44 melhorias do jogo, conforme o manual: 8 de moeda, 8 de espada, 8 de yurt, 6 de punho,
+	 * 9 de dois cavalos e 5 de tesouro (uma por tipo de tesouro, cada uma com a sua cor).
+	 *
+	 * O manual só dá o total de cada tipo. A repartição entre as 3 cores segue o mais igualitário
+	 * possível (o "a mais" de cada tipo cai em cores diferentes, e cada cor fica com 8 peças de
+	 * moeda/espada/yurt); confira com as peças físicas se tiver a caixa.
+	 */
 	static List<Melhoria> criarPilha() {
 		List<Melhoria> todas = new LinkedList<Melhoria>();
+		int deslocamento = 0; //o rodízio de cada tipo continua de onde o anterior parou
 		for (TipoMelhoria tipo : TipoMelhoria.values()) {
 			if (tipo == TipoMelhoria.TESOURO) {
 				continue;
 			}
 			for (int i = 0; i < tipo.getQuantidadeNoJogo(); i++) {
-				todas.add(new Melhoria(tipo, CORES[i % CORES.length]));
+				todas.add(new Melhoria(tipo, CORES[(i + deslocamento) % CORES.length]));
 			}
+			deslocamento += tipo.getQuantidadeNoJogo();
 		}
-		TipoTesouro[] tesouros = TipoTesouro.values();
-		for (int i = 0; i < tesouros.length; i++) {
-			todas.add(new Melhoria(tesouros[i], CORES[i % CORES.length]));
+		for (TipoTesouro tesouro : TipoTesouro.values()) {
+			todas.add(new Melhoria(tesouro, corDoTesouro(tesouro)));
 		}
 		return todas;
+	}
+
+	/** Cor de fundo da melhoria de cada tesouro, como impresso na peça (PRIMEIRA vermelha, SEGUNDA verde, TERCEIRA amarela). */
+	private static Coluna corDoTesouro(TipoTesouro tesouro) {
+		String nome = tesouro.name();
+		if (nome.equals("SEDA") || nome.equals("PELES")) {
+			return Coluna.SEGUNDA;
+		}
+		if (nome.equals("GADO") || nome.equals("ESPECIARIAS")) {
+			return Coluna.TERCEIRA;
+		}
+		if (nome.equals("FERRO")) {
+			return Coluna.PRIMEIRA;
+		}
+		throw new IllegalArgumentException("Não há melhoria impressa para o tesouro " + tesouro);
 	}
 
 	/** Revela os espaços iniciais; na preparação ninguém ganha os tributos dos ícones. */

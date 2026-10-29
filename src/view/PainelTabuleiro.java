@@ -51,6 +51,18 @@ class PainelTabuleiro extends JPanel {
     private PosicoesParadas posicoesProvincias;
     private PosicoesParadas posicoesCidades;
     private PosicoesParadas posicoesKhan;
+    private PosicoesParadas posicoesMelhorias;
+
+    /** Ids em melhorias_coordenadas.txt: 0 a 4 sao os espacos da area; 5 e a pilha. */
+    private static final int ID_PILHA_DE_MELHORIAS = 5;
+    /** Largura da peca de melhoria (fracao da imagem) e sua proporcao altura/largura. */
+    private static final double LARGURA_MELHORIA = 0.0787;
+    private static final double PROPORCAO_MELHORIA = 0.5266;
+    private static final Color DOURADO = new Color(255, 200, 0);
+    private static final Color VERDE_GRATIS = new Color(70, 200, 90);
+
+    private AreaNaTela areaDeMelhorias = null;
+    private final Map<String, BufferedImage> spritesMelhoria = new HashMap<String, BufferedImage>();
 
     /** Onde o Khan esta (FachadaModelo.KHAN_FORA se ainda nao entrou) e para onde pode ir agora. */
     private int localDoKhan = FachadaModelo.KHAN_FORA;
@@ -86,7 +98,7 @@ class PainelTabuleiro extends JPanel {
     private int imgX, imgY, imgLargura, imgAltura;
 
     PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias,
-            String caminhoCidades, String caminhoKhan) {
+            String caminhoCidades, String caminhoKhan, String caminhoMelhorias) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
@@ -112,6 +124,12 @@ class PainelTabuleiro extends JPanel {
             posicoesKhan = null;
             System.err.println("Nao foi possivel ler as posicoes do Khan: " + caminhoKhan);
         }
+        try {
+            posicoesMelhorias = new PosicoesParadas(caminhoMelhorias);
+        } catch (IOException e) {
+            posicoesMelhorias = null;
+            System.err.println("Nao foi possivel ler as posicoes das melhorias: " + caminhoMelhorias);
+        }
         relogioDaMensagem.setRepeats(false);
         addMouseListener(new OuvinteMouse());
         setFocusable(true);
@@ -122,6 +140,12 @@ class PainelTabuleiro extends JPanel {
     void setPeoes(List<PeaoNaTela> novos) {
         peoes.clear();
         peoes.addAll(novos);
+        repaint();
+    }
+
+    /** Troca a area de melhorias exibida (null sem partida). */
+    void setAreaDeMelhorias(AreaNaTela area) {
+        areaDeMelhorias = area;
         repaint();
     }
 
@@ -196,11 +220,12 @@ class PainelTabuleiro extends JPanel {
 
         desenharCidades(g2);
         desenharTributos(g2);
+        desenharAreaDeMelhorias(g2);
         desenharYurts(g2);
         desenharPeoes(g2);
         desenharKhan(g2);
 
-        desenharDica(g2);
+        desenharDicas(g2);
         desenharMensagem(g2);
 
         if (mostrarMarcadores && posicoes != null) {
@@ -325,14 +350,151 @@ class PainelTabuleiro extends JPanel {
         g2.drawImage(spriteDe(Color.WHITE), cx - largura / 2, cy - altura + altura / 6, largura, altura, null);
     }
 
-    /** Faixa fixa no rodape do mapa que ensina como construir yurts (e quantas pecas restam). */
-    private void desenharDica(Graphics2D g2) {
-        String texto = "Botão direito numa parada visitada: construir yurt (gasta 1 peça de yurt)";
+    /**
+     * Dicas fixas no canto de baixo do mapa (sobre a trilha do Kurultai, que ainda nao e usada):
+     * como construir yurts e como comprar melhorias.
+     */
+    private void desenharDicas(Graphics2D g2) {
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        if (fachada.temPartida()) {
-            texto += "  |  peças de yurt disponíveis: " + fachada.getYurtsParaConstruir();
+        List<String> linhas = new ArrayList<String>();
+        linhas.add("Botão direito numa parada: construir yurt"
+                + (fachada.temPartida() ? " (você tem " + fachada.getYurtsParaConstruir() + ")" : ""));
+        linhas.add(areaDeMelhorias != null && areaDeMelhorias.isGratuita()
+                ? "Melhoria grátis: clique numa peça da área ou na pilha"
+                : "Clique numa peça da área: comprar (" + FachadaModelo.CUSTO_MELHORIA + " moedas)");
+
+        int larguraMaxima = (int) (0.385 * imgLargura);
+        int tamanhoFonte = Math.max(imgLargura / 62, 9);
+        FontMetrics medidas;
+        do {
+            g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanhoFonte));
+            medidas = g2.getFontMetrics();
+            tamanhoFonte--;
+        } while (tamanhoFonte >= 8 && (medidas.stringWidth(linhas.get(0)) > larguraMaxima - 12
+                || medidas.stringWidth(linhas.get(1)) > larguraMaxima - 12));
+
+        int altura = linhas.size() * medidas.getHeight() + 8;
+        int x = imgX + (int) (0.60 * imgLargura);
+        int y = imgY + (int) (0.992 * imgAltura) - altura;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(0, 0, 0, 175));
+        g2.fillRoundRect(x, y, larguraMaxima, altura, 12, 12);
+        g2.setColor(Color.WHITE);
+        for (int i = 0; i < linhas.size(); i++) {
+            g2.drawString(linhas.get(i), x + 8, y + 4 + medidas.getAscent() + i * medidas.getHeight());
         }
-        desenharFaixa(g2, texto, getHeight() - 8, new Color(0, 0, 0, 170), Color.WHITE);
+    }
+
+    /** Desenha as pecas da area de melhorias, o destaque das que podem ser pegas e a pilha. */
+    private void desenharAreaDeMelhorias(Graphics2D g2) {
+        if (posicoesMelhorias == null || areaDeMelhorias == null) {
+            return;
+        }
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int l = (int) (LARGURA_MELHORIA * imgLargura);
+        int a = (int) (l * PROPORCAO_MELHORIA);
+        Color destaque = areaDeMelhorias.isGratuita() ? VERDE_GRATIS : DOURADO;
+
+        for (int i = 0; i < areaDeMelhorias.getEspacos(); i++) {
+            String simbolo = areaDeMelhorias.getSimbolo(i);
+            double[] p = posicoesMelhorias.get(i);
+            if (simbolo == null || p == null) {
+                continue;
+            }
+            int x = imgX + (int) (p[0] * imgLargura) - l / 2;
+            int y = imgY + (int) (p[1] * imgAltura) - a / 2;
+            desenharPecaDeMelhoria(g2, simbolo, areaDeMelhorias.getCor(i), x, y, l, a);
+            if (areaDeMelhorias.isDisponivel(i)) {
+                desenharContorno(g2, x, y, l, a, destaque);
+            }
+        }
+
+        double[] p = posicoesMelhorias.get(ID_PILHA_DE_MELHORIAS);
+        if (p != null && areaDeMelhorias.getTamanhoDaPilha() > 0) {
+            int x = imgX + (int) (p[0] * imgLargura) - l / 2;
+            int y = imgY + (int) (p[1] * imgAltura) - a / 2;
+            int arco = a / 5;
+            for (int k = 2; k >= 0; k--) { // pecas viradas para baixo, empilhadas
+                g2.setColor(new Color(75, 55, 120));
+                g2.fillRoundRect(x + k * 2, y - k * 2, l, a, arco, arco);
+                g2.setColor(new Color(235, 220, 170));
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(x + k * 2, y - k * 2, l, a, arco, arco);
+            }
+            g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, Math.max(a / 3, 10)));
+            FontMetrics m = g2.getFontMetrics();
+            String n = String.valueOf(areaDeMelhorias.getTamanhoDaPilha());
+            g2.setColor(Color.WHITE);
+            g2.drawString(n, x + (l - m.stringWidth(n)) / 2, y + (a + m.getAscent() - m.getDescent()) / 2);
+            if (areaDeMelhorias.isPilhaDisponivel()) {
+                desenharContorno(g2, x, y, l, a, destaque);
+            }
+        }
+    }
+
+    /** Imagem da peca; se o arquivo faltar, um retangulo na cor da coluna com o nome do simbolo. */
+    private void desenharPecaDeMelhoria(Graphics2D g2, String simbolo, String cor, int x, int y, int l, int a) {
+        String chave = simbolo + "|" + cor;
+        if (!spritesMelhoria.containsKey(chave)) {
+            spritesMelhoria.put(chave, SpriteMelhoria.criar(simbolo, cor));
+        }
+        BufferedImage sprite = spritesMelhoria.get(chave);
+        int arco = a / 5;
+        if (sprite != null) {
+            g2.drawImage(sprite, x, y, l, a, null);
+            g2.setColor(new Color(70, 45, 20));
+            g2.setStroke(new BasicStroke(1.5f));
+            g2.drawRoundRect(x, y, l, a, arco, arco);
+            return;
+        }
+        g2.setColor("PRIMEIRA".equals(cor) ? new Color(226, 107, 90)
+                : "SEGUNDA".equals(cor) ? new Color(122, 178, 92) : new Color(234, 200, 72));
+        g2.fillRoundRect(x, y, l, a, arco, arco);
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, Math.max(a / 4, 9)));
+        FontMetrics m = g2.getFontMetrics();
+        String texto = simbolo.toLowerCase();
+        g2.drawString(texto, x + (l - m.stringWidth(texto)) / 2, y + (a + m.getAscent() - m.getDescent()) / 2);
+    }
+
+    private static void desenharContorno(Graphics2D g2, int x, int y, int l, int a, Color cor) {
+        g2.setColor(new Color(cor.getRed(), cor.getGreen(), cor.getBlue(), 90));
+        g2.fillRoundRect(x - 3, y - 3, l + 6, a + 6, 14, 14);
+        g2.setColor(cor);
+        g2.setStroke(new BasicStroke(4f));
+        g2.drawRoundRect(x - 3, y - 3, l + 6, a + 6, 14, 14);
+    }
+
+    /** Espaco da area (0 a 4) ou pilha (5) sob o clique; null se nao ha peca ali. */
+    private Integer melhoriaNoClique(double fx, double fy) {
+        if (posicoesMelhorias == null || areaDeMelhorias == null) {
+            return null;
+        }
+        double meiaLargura = LARGURA_MELHORIA / 2;
+        double meiaAltura = meiaLargura * PROPORCAO_MELHORIA * imgLargura / imgAltura;
+        for (Map.Entry<Integer, double[]> e : posicoesMelhorias.todas().entrySet()) {
+            int id = e.getKey();
+            boolean temPeca = id == ID_PILHA_DE_MELHORIAS ? areaDeMelhorias.getTamanhoDaPilha() > 0
+                    : id < areaDeMelhorias.getEspacos() && areaDeMelhorias.getSimbolo(id) != null;
+            double[] p = e.getValue();
+            if (temPeca && Math.abs(fx - p[0]) <= meiaLargura && Math.abs(fy - p[1]) <= meiaAltura) {
+                return id;
+            }
+        }
+        return null;
+    }
+
+    /** Clique numa peca da area ou na pilha: compra (ou pega de graca) e avisa se nao puder. */
+    private void aoClicarMelhoria(int id) {
+        ControladorJogo controlador = ControladorJogo.getInstancia();
+        String motivo = id == ID_PILHA_DE_MELHORIAS
+                ? controlador.cliqueNaPilhaDeMelhorias() : controlador.cliqueNaMelhoria(id);
+        if (motivo != null) {
+            mostrarMensagem(motivo);
+        } else {
+            mensagem = null;
+            repaint();
+        }
     }
 
     /** Aviso temporario (por exemplo, por que o yurt nao pode ser construido). */
@@ -509,6 +671,11 @@ class PainelTabuleiro extends JPanel {
             }
             if (mostrarMarcadores) { // modo de calibracao (F2): mostra onde clicou
                 System.out.printf("clique: x=%.4f y=%.4f%n", fx, fy);
+            }
+            Integer melhoria = melhoriaNoClique(fx, fy);
+            if (melhoria != null) {
+                aoClicarMelhoria(melhoria);
+                return;
             }
             // os lugares do Khan so recebem clique enquanto ele precisa ser usado
             Integer khan = posicoesKhan == null || destinosDoKhan.isEmpty() ? null
