@@ -7,8 +7,10 @@ import static org.junit.Assert.assertTrue;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -106,6 +108,112 @@ public class PartidaTest {
 	}
 
 
+
+	// CARTAS DE CONSELHEIRO
+
+	/** Sorteios são aleatórios: procura uma semente que revele a carta, sobre um mapa novo a cada vez. */
+	private Partida partidaComCartaAberta(String id) throws IOException {
+		for (long semente = 0; semente < 1000; semente++) {
+			carregarMapa();
+			Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI), new Random(semente));
+			for (CartaConselheiroAberto carta : p.getCartasAbertasEmJogo()) {
+				if (carta.getId().equals(id)) {
+					return p;
+				}
+			}
+		}
+		throw new IllegalStateException("Nenhuma semente revelou a carta " + id);
+	}
+
+	private static void receberEspadas(Jogador j, int quantidade) {
+		for (int i = 0; i < quantidade; i++) {
+			j.receberTributo(TipoTributo.ESPADA);
+		}
+	}
+
+	private static boolean temCartaAberta(Partida p, String id) {
+		for (CartaConselheiroAberto carta : p.getCartasAbertasEmJogo()) {
+			if (carta.getId().equals(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_cincoJogadores_cartasSecretasNaoSeRepetem() {
+		Partida p = new Partida(tabuleiro,
+				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI));
+		Set<String> ids = new HashSet<String>();
+		for (Jogador j : p.getJogadores()) {
+			for (CartaConselheiroSecreto carta : p.getOpcoesDeCartaSecreta(j)) {
+				assertTrue("Carta repetida: " + carta.getNome(), ids.add(carta.getId()));
+			}
+		}
+		assertEquals("5 jogadores recebem as 10 cartas do baralho", 10, ids.size());
+		assertEquals("Só 4 cartas abertas entram em jogo", Partida.CARTAS_ABERTAS, p.getCartasAbertasEmJogo().size());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void escolherCartaSecreta_guardaACartaEDescartaAOutra() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+		Jogador jochi = p.getJogador(0);
+		CartaConselheiroSecreto escolhida = p.getOpcoesDeCartaSecreta(jochi).get(1);
+
+		p.escolherCartaSecreta(jochi, escolhida.getId());
+
+		assertEquals(escolhida, jochi.getCartaSecreta());
+		assertTrue("A outra carta foi descartada", p.getOpcoesDeCartaSecreta(jochi).isEmpty());
+		assertTrue("Tolui ainda não escolheu", p.isEscolhaDeCartasPendente());
+	}
+
+	@Test(expected = IllegalStateException.class, timeout = DEFAULT_TIMEOUT)
+	public void escolherCartaSecreta_segundaVez_lancaExcecao() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+		Jogador jochi = p.getJogador(0);
+		String id = p.getOpcoesDeCartaSecreta(jochi).get(0).getId();
+		p.escolherCartaSecreta(jochi, id);
+		p.escolherCartaSecreta(jochi, id);
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void conferirCartasAbertas_primeiroACumprir_ganhaUmVotoECartaSai() throws IOException {
+		Partida p = partidaComCartaAberta("espadas_4");
+		receberEspadas(p.getJogador(0), 4);
+
+		p.conferirCartasAbertas();
+
+		assertEquals(1, p.getJogador(0).getVotos());
+		assertFalse(temCartaAberta(p, "espadas_4"));
+		assertEquals("Nenhuma carta nova é revelada", Partida.CARTAS_ABERTAS - 1, p.getCartasAbertasEmJogo().size());
+		assertEquals("As espadas não são gastas", 4, p.getJogador(0).getQuantidade(TipoTributo.ESPADA));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void conferirCartasAbertas_segundoACumprir_naoGanhaVoto() throws IOException {
+		Partida p = partidaComCartaAberta("espadas_4");
+		receberEspadas(p.getJogador(0), 4);
+		p.conferirCartasAbertas();
+		p.getJogador(0).ativarColuna(Coluna.TERCEIRA); //Jochi: dois cavalos e punho
+		p.encerrarTurnoDaVez();
+		receberEspadas(p.getJogador(1), 4);
+
+		p.conferirCartasAbertas();
+
+		assertEquals(1, p.getIndiceDaVez());
+		assertEquals(0, p.getJogador(1).getVotos());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void conferirCartasAbertas_outroJogadorCumpriu_soContaNoTurnoDele() throws IOException {
+		Partida p = partidaComCartaAberta("espadas_4");
+		receberEspadas(p.getJogador(1), 4);
+
+		p.conferirCartasAbertas(); //vez do Jochi
+
+		assertEquals(0, p.getJogador(1).getVotos());
+		assertTrue(temCartaAberta(p, "espadas_4"));
+	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_escolhaInvalida_naoPreparaOTabuleiro() {

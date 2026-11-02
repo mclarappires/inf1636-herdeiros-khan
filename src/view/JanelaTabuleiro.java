@@ -32,14 +32,18 @@ public class JanelaTabuleiro extends JFrame {
 
     private static final String CARTAO_MAPA = "mapa";
     private static final String CARTAO_JOGADOR = "jogador";
+    private static final String CARTAO_ESCOLHA = "escolha";
 
     private final PainelTabuleiro painel;
     private final PainelTurno painelTurno;
     private final PainelTabuleiroJogador painelJogador;
+    private final PainelEscolhaCarta painelEscolha;
+    private final PainelCartasAbertas painelAbertas = new PainelCartasAbertas();
 
     private final CardLayout cartoes = new CardLayout();
     private final JPanel centro = new JPanel(cartoes);
     private final JButton botaoTabuleiroJogador = new JButton();
+    private final JButton botaoCartas = new JButton();
 
     public JanelaTabuleiro() {
         super("Herdeiros do Khan");
@@ -53,8 +57,10 @@ public class JanelaTabuleiro extends JFrame {
                 "resources/melhorias_coordenadas.txt");
         painelTurno = new PainelTurno();
         painelJogador = new PainelTabuleiroJogador(this);
+        painelEscolha = new PainelEscolhaCarta();
         centro.add(painel, CARTAO_MAPA);
         centro.add(painelJogador, CARTAO_JOGADOR);
+        centro.add(painelEscolha, CARTAO_ESCOLHA);
 
         add(painelTurno, BorderLayout.NORTH);
         add(centro, BorderLayout.CENTER);
@@ -63,13 +69,22 @@ public class JanelaTabuleiro extends JFrame {
     }
 
     private JPanel criarLateral() {
-        JPanel lateral = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 16));
-        lateral.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        lateral.setPreferredSize(new Dimension(190, 0));
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 6));
+        botoes.setPreferredSize(new Dimension(170, 124));
         botaoTabuleiroJogador.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-        botaoTabuleiroJogador.setPreferredSize(new Dimension(170, 60));
+        botaoTabuleiroJogador.setPreferredSize(new Dimension(170, 52));
         botaoTabuleiroJogador.addActionListener(new OuvinteTabuleiroJogador());
-        lateral.add(botaoTabuleiroJogador);
+        botoes.add(botaoTabuleiroJogador);
+        botaoCartas.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        botaoCartas.setPreferredSize(new Dimension(170, 52));
+        botaoCartas.addActionListener(new OuvinteCartas());
+        botoes.add(botaoCartas);
+
+        JPanel lateral = new JPanel(new BorderLayout(0, 4));
+        lateral.setBorder(BorderFactory.createEmptyBorder(0, 10, 8, 10));
+        lateral.setPreferredSize(new Dimension(190, 0));
+        lateral.add(botoes, BorderLayout.NORTH);
+        lateral.add(painelAbertas, BorderLayout.CENTER);
         return lateral;
     }
 
@@ -83,6 +98,8 @@ public class JanelaTabuleiro extends JFrame {
         atualizarKhan();
         painelTurno.atualizar();
         painelJogador.atualizar();
+        painelEscolha.atualizar();
+        painelAbertas.atualizar();
         atualizarBotao();
     }
 
@@ -110,12 +127,24 @@ public class JanelaTabuleiro extends JFrame {
         if (!fachada.temPartida()) {
             botaoTabuleiroJogador.setText("<html><center>Tabuleiro<br>do jogador</center></html>");
             botaoTabuleiroJogador.setEnabled(false);
+            botaoCartas.setText("<html><center>Cartas<br>do jogador</center></html>");
+            botaoCartas.setEnabled(false);
             return;
         }
         String heroi = fachada.getHeroiDoJogador(fachada.getJogadorDaVez());
-        botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>"
-                + heroi.charAt(0) + heroi.substring(1).toLowerCase() + "</center></html>");
-        botaoTabuleiroJogador.setEnabled(true);
+        String nome = heroi.charAt(0) + heroi.substring(1).toLowerCase();
+        botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>" + nome + "</center></html>");
+        botaoCartas.setText("<html><center>Cartas de<br>" + nome + "</center></html>");
+        // ninguem joga nem ve cartas enquanto alguem ainda escolhe a carta secreta
+        boolean liberado = !fachada.isEscolhaDeCartasPendente();
+        botaoTabuleiroJogador.setEnabled(liberado);
+        botaoCartas.setEnabled(liberado);
+    }
+
+    /** Mostra, no lugar do mapa, a escolha da carta secreta do proximo jogador. */
+    public void mostrarEscolhaDeCarta() {
+        painelEscolha.atualizar();
+        cartoes.show(centro, CARTAO_ESCOLHA);
     }
 
     /** Volta a mostrar o mapa no centro da janela. */
@@ -133,6 +162,13 @@ public class JanelaTabuleiro extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             mostrarTabuleiroJogador();
+        }
+    }
+
+    private class OuvinteCartas implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            new JanelaCartas(JanelaTabuleiro.this).setVisible(true);
         }
     }
 

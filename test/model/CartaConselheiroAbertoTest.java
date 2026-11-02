@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,6 +70,38 @@ public class CartaConselheiroAbertoTest {
 		naChina.adicionarYurt(new Yurt(Cor.AZUL));
 		naPersia.adicionarYurt(new Yurt(Cor.AZUL));
 		assertFalse("Falta yurt na Rússia", new CartaYurtsPorRegiao(1).cumprida(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void yurtsPorRegiao_doisYurtsNaMesmaParadaDupla_contamOsDois() {
+		Parada duplaChina = new Parada(3, 2, 2, Regiao.CHINA);
+		mapa.adicionarParada(duplaChina);
+		duplaChina.adicionarYurt(new Yurt(Cor.AZUL));
+		duplaChina.adicionarYurt(new Yurt(Cor.AZUL));
+		assertEquals("A parada dupla tem 2 yurts do jogador", 2, ContagemDeYurts.naRegiao(Cor.AZUL, mapa, Regiao.CHINA));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void yurtsNoMapa_doisYurtsNaMesmaParadaDupla_contamOsDois() {
+		Parada dupla = new Parada(3, 2, 2, Regiao.CHINA);
+		mapa.adicionarParada(dupla);
+		dupla.adicionarYurt(new Yurt(Cor.AZUL));
+		dupla.adicionarYurt(new Yurt(Cor.AZUL));
+		assertEquals(2, new CartaYurtsNoMapa(6).medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void yurtsNoMapa_yurtDoToluiEmKarakorum_conta() {
+		Jogador tolui = new Jogador(Cor.AMARELO, Heroi.TOLUI, (Karakorum) mapa.getParada(0), 0);
+		assertEquals("O manual manda contar para as cartas de 6 e 10 yurts", 1, new CartaYurtsNoMapa(6).medir(tolui, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criarBaralho_todasAsCartasTemImagem() {
+		for (CartaConselheiroAberto carta : CartaConselheiroAberto.criarBaralho()) {
+			String caminho = "resources/cartas/abertas/" + carta.getId() + ".png";
+			assertTrue("Falta a imagem " + caminho, new File(caminho).isFile());
+		}
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)

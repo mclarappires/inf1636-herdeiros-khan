@@ -15,9 +15,7 @@ final class ContagemDeYurts {
 	static int noMapa(Cor dono, Tabuleiro t) {
 		int total = 0;
 		for (Parada p : t.getParadas()) {
-			if (p.temYurtDe(dono)) {
-				total++;
-			}
+			total += p.contarYurtsDe(dono);
 		}
 		return total + emCidades(dono, t, null);
 	}
@@ -29,30 +27,36 @@ final class ContagemDeYurts {
 		}
 		int total = 0;
 		for (Parada p : t.getParadas()) {
-			if (p.getRegiao() == r && p.temYurtDe(dono)) {
-				total++;
+			if (p.getRegiao() == r) {
+				total += p.contarYurtsDe(dono);
 			}
 		}
 		return total + emCidades(dono, t, r);
 	}
 
-	/** Paradas da coleção com yurt do jogador; serve para contar yurts vizinhos de cidades e províncias. */
+	/**
+	 * Yurts do jogador nas paradas da coleção; serve para contar yurts vizinhos de cidades e
+	 * províncias. O yurt do Tolui em Karakorum não conta.
+	 */
 	static int nasParadas(Cor dono, Collection<Parada> paradas) {
 		int total = 0;
 		for (Parada p : paradas) {
-			if (p.temYurtDe(dono)) {
-				total++;
+			if (!isKarakorum(p)) {
+				total += p.contarYurtsDe(dono);
 			}
 		}
 		return total;
 	}
 
-	/** Tamanho do maior grupo de paradas adjacentes entre si que têm yurt do jogador. */
+	/**
+	 * Quantidade de yurts do maior grupo de paradas adjacentes entre si que têm yurt do
+	 * jogador. O yurt do Tolui em Karakorum não faz parte da rede.
+	 */
 	static int maiorGrupo(Cor dono, Tabuleiro t) {
 		Set<Parada> vistas = new HashSet<Parada>();
 		int maior = 0;
 		for (Parada inicio : t.getParadas()) {
-			if (!inicio.temYurtDe(dono) || !vistas.add(inicio)) {
+			if (!entraNoGrupo(inicio, dono) || !vistas.add(inicio)) {
 				continue;
 			}
 			int tamanho = 0;
@@ -60,9 +64,9 @@ final class ContagemDeYurts {
 			fila.add(inicio);
 			while (!fila.isEmpty()) {
 				Parada atual = fila.removeFirst();
-				tamanho++;
+				tamanho += atual.contarYurtsDe(dono);
 				for (Parada vizinha : atual.getAdjacentes()) {
-					if (vizinha.temYurtDe(dono) && vistas.add(vizinha)) {
+					if (entraNoGrupo(vizinha, dono) && vistas.add(vizinha)) {
 						fila.add(vizinha);
 					}
 				}
@@ -70,6 +74,14 @@ final class ContagemDeYurts {
 			maior = Math.max(maior, tamanho);
 		}
 		return maior;
+	}
+
+	private static boolean entraNoGrupo(Parada p, Cor dono) {
+		return !isKarakorum(p) && p.temYurtDe(dono);
+	}
+
+	private static boolean isKarakorum(Parada p) {
+		return p instanceof Karakorum;
 	}
 
 	//cidades conquistadas com yurt do jogador; região nula conta todas

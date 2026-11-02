@@ -29,7 +29,7 @@ class PainelTurno extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Font FONTE = new Font(Font.SANS_SERIF, Font.BOLD, 20);
+    private static final Font FONTE = new Font(Font.SANS_SERIF, Font.BOLD, 18);
 
     private final Inventario inventario = new Inventario();
     private final JButton botaoPassar = new JButton("Passar a vez");
@@ -60,17 +60,24 @@ class PainelTurno extends JPanel {
             texto = "Sem partida (modo de teste)";
             inventario.setVisible(false);
             botaoPassar.setEnabled(false);
+        } else if (fachada.isEscolhaDeCartasPendente()) {
+            int jogador = fachada.getProximoJogadorSemCartaSecreta();
+            corDaVez = CoresJogador.de(fachada.getCorDoJogador(jogador));
+            texto = formatar(fachada.getHeroiDoJogador(jogador)) + " escolhe a carta secreta";
+            inventario.setVisible(false);
+            botaoPassar.setEnabled(false);
         } else {
             int vez = fachada.getJogadorDaVez();
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(vez));
             String ativa = fachada.getColunaAtiva();
-            texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez)) + "   |   "
+            texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez)) + "  |  "
                     + (ativa == null ? "Ative uma coluna"
                             : "Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa))
-                    + (fachada.isKhanPendente() ? "   |   Use o Khan" : "");
+                    + (fachada.isKhanPendente() ? "  |  Use o Khan" : "");
             inventario.mostrar(fachada.getTributoDisponivel(vez, "MOEDA"),
                     fachada.getTributoDisponivel(vez, "ESPADA"), fachada.getTributoDisponivel(vez, "YURT"),
-                    fachada.getMovimentosRestantes(), fachada.getPunhosRestantes());
+                    fachada.getMovimentosRestantes(), fachada.getPunhosRestantes(),
+                    fachada.getVotosDoJogador(vez));
             inventario.setVisible(true);
             botaoPassar.setEnabled(true);
         }
@@ -104,7 +111,7 @@ class PainelTurno extends JPanel {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
     }
 
-    /** Moedas, espadas, yurts, cavalos e punhos do jogador da vez, cada um numa pilula clara. */
+    /** Moedas, espadas, yurts, cavalos, punhos e votos do jogador da vez, cada um numa pilula clara. */
     private static class Inventario extends JPanel {
 
         private static final long serialVersionUID = 1L;
@@ -113,26 +120,28 @@ class PainelTurno extends JPanel {
         private static final int LARGURA_ITEM = 70;
         private static final int LARGURA_CAVALOS = 110;
         private static final int LARGURA_PUNHOS = 105;
+        private static final int LARGURA_VOTOS = 95;
         private static final int ESPACO = 6;
         private static final Font FONTE_NUMERO = new Font(Font.SANS_SERIF, Font.BOLD, 18);
 
         private final BufferedImage moeda = SpriteTributo.criar("MOEDA");
         private final BufferedImage espada = SpriteTributo.criar("ESPADA");
         private final BufferedImage yurt = SpriteTributo.criar("YURT");
-        private int moedas, espadas, yurts, cavalos, punhos;
+        private int moedas, espadas, yurts, cavalos, punhos, votos;
 
         Inventario() {
             setOpaque(false);
-            setPreferredSize(new Dimension(3 * LARGURA_ITEM + LARGURA_CAVALOS + LARGURA_PUNHOS + 4 * ESPACO,
-                    ALTURA));
+            setPreferredSize(new Dimension(
+                    3 * LARGURA_ITEM + LARGURA_CAVALOS + LARGURA_PUNHOS + LARGURA_VOTOS + 5 * ESPACO, ALTURA));
         }
 
-        void mostrar(int moedas, int espadas, int yurts, int cavalos, int punhos) {
+        void mostrar(int moedas, int espadas, int yurts, int cavalos, int punhos, int votos) {
             this.moedas = moedas;
             this.espadas = espadas;
             this.yurts = yurts;
             this.cavalos = cavalos;
             this.punhos = punhos;
+            this.votos = votos;
             repaint();
         }
 
@@ -156,6 +165,8 @@ class PainelTurno extends JPanel {
             desenharItem(g2, x, LARGURA_CAVALOS, null, "Cavalos", cavalos);
             x += LARGURA_CAVALOS + ESPACO;
             desenharItem(g2, x, LARGURA_PUNHOS, null, "Punhos", punhos);
+            x += LARGURA_PUNHOS + ESPACO;
+            desenharItem(g2, x, LARGURA_VOTOS, null, "Votos", votos);
         }
 
         /** Pilula com o icone (ou um rotulo, se nao houver icone) e a quantidade. */

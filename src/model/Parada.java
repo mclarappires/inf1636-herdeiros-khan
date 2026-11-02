@@ -95,6 +95,17 @@ class Parada {
 		return false;
 	}
 
+	/** Yurts do jogador nesta parada; numa parada dupla podem ser 2. */
+	int contarYurtsDe(Cor dono) {
+		int total = 0;
+		for (Yurt y : yurts) {
+			if (y.getDono() == dono) {
+				total++;
+			}
+		}
+		return total;
+	}
+
 	void entrarPeao(Peao peao) {
 		if (peao == null) {
 			throw new IllegalArgumentException("Peão nulo");

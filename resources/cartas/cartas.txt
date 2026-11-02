@@ -1,0 +1,27 @@
+# TIPO id arquivo "Nome para exibir"
+# SECRETA = carta de conselheiro secreto (cada jogador recebe 2 e fica com 1); ABERTA = condicao que vale 1 voto ao primeiro que cumprir (4 por partida)
+SECRETA viajante secretas/viajante.png Viajante
+SECRETA soldado secretas/soldado.png Soldado
+SECRETA colecionador secretas/colecionador.png Colecionador
+SECRETA governador secretas/governador.png Governador
+SECRETA bajulador secretas/bajulador.png Bajulador
+SECRETA prefeito secretas/prefeito.png Prefeito
+SECRETA cidadao secretas/cidadao.png Cidadão
+SECRETA mensageiro secretas/mensageiro.png Mensageiro
+SECRETA sacerdote secretas/sacerdote.png Sacerdote
+SECRETA cavaleiro secretas/cavaleiro.png Cavaleiro
+ABERTA espadas_4 abertas/espadas_4.png Primeiro a ter 4 espadas (sem precisar gastá-las)
+ABERTA yurts_6 abertas/yurts_6.png Primeiro a ter 6 yurts no mapa
+ABERTA tesouros_4 abertas/tesouros_4.png Primeiro a ter 4 tesouros (sem precisar gastá-los)
+ABERTA yurts_regiao_2 abertas/yurts_regiao_2.png Primeiro a ter 2 yurts em cada região
+ABERTA bonus_2 abertas/bonus_2.png Primeiro a conseguir 2 peças de bônus
+ABERTA bonus_3 abertas/bonus_3.png Primeiro a conseguir 3 peças de bônus
+ABERTA cidades_2 abertas/cidades_2.png Primeiro a conquistar 2 cidades
+ABERTA cidades_3 abertas/cidades_3.png Primeiro a conquistar 3 cidades
+ABERTA yurts_10 abertas/yurts_10.png Primeiro a ter 10 yurts no mapa
+ABERTA melhorias_coluna_4 abertas/melhorias_coluna_4.png Primeiro a ter 4 melhorias em uma só coluna
+ABERTA yurts_regiao_1 abertas/yurts_regiao_1.png Primeiro a ter 1 yurts em cada região
+ABERTA tesouros_diferentes_5 abertas/tesouros_diferentes_5.png Primeiro a ter 5 tesouros diferentes
+ABERTA linha_melhorias abertas/linha_melhorias.png Primeiro a completar uma linha de melhorias
+ABERTA colunas_2_melhorias_2 abertas/colunas_2_melhorias_2 .png Primeiro a completar 2 colunas com duas melhorias cada
+

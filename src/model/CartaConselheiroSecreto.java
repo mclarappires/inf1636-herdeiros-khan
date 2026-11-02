@@ -1,5 +1,6 @@
 package model;
 
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -30,6 +31,16 @@ abstract class CartaConselheiroSecreto {
 
 	String getNome() {
 		return nome;
+	}
+
+	/**
+	 * Id usado pela view para achar a imagem (resources/cartas/secretas): o nome em minúsculas
+	 * e sem acento, como "cidadao" para "Cidadão".
+	 */
+	String getId() {
+		String semAcento = Normalizer.normalize(nome, Normalizer.Form.NFD)
+				.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+		return semAcento.toLowerCase();
 	}
 
 	List<Integer> getLimiares() {

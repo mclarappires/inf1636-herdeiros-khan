@@ -54,8 +54,26 @@ public class ControladorJogo {
             janelaInicio = null;
         }
         janelaTabuleiro = new JanelaTabuleiro();
+        janelaTabuleiro.mostrarEscolhaDeCarta(); // antes da primeira rodada
         janelaTabuleiro.setVisible(true);
         return null;
+    }
+
+    /**
+     * O proximo jogador que ainda nao escolheu guarda a carta secreta de id dado. Quando todos
+     * tiverem escolhido, mostra o mapa e a partida comeca. Devolve null se deu certo, ou o motivo.
+     */
+    public String escolherCartaSecreta(String idCarta) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String motivo = fachada.escolherCartaSecreta(fachada.getProximoJogadorSemCartaSecreta(), idCarta);
+        janelaTabuleiro.atualizar();
+        if (motivo == null && !fachada.isEscolhaDeCartasPendente()) {
+            janelaTabuleiro.mostrarMapa();
+        }
+        return motivo;
     }
 
     /**

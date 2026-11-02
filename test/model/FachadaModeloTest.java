@@ -18,6 +18,14 @@ public class FachadaModeloTest {
 
 	private final FachadaModelo fachada = FachadaModelo.getInstancia();
 
+	/** Cria a partida e faz cada jogador guardar a primeira carta secreta, liberando as jogadas. */
+	private void comecarPartida(String... herois) throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList(herois));
+		for (int i = 0; i < herois.length; i++) {
+			assertNull(fachada.escolherCartaSecreta(i, fachada.getOpcoesDeCartaSecreta(i)[0]));
+		}
+	}
+
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void getHerois_listaOsCincoHerois() {
 		assertEquals(Heroi.values().length, fachada.getHerois().length);
@@ -63,7 +71,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void isColunaUsada_ficaVerdadeiroDepoisDeAtivar() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertFalse(fachada.isColunaUsada(0, "SEGUNDA"));
 		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
 		assertTrue(fachada.isColunaUsada(0, "SEGUNDA"));
@@ -73,7 +81,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void getMelhorias_comecamVazias() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		for (String coluna : fachada.getColunas()) {
 			assertEquals(0, fachada.getSimbolosDasMelhorias(0, coluna).length);
 			assertEquals(0, fachada.getCoresDasMelhorias(0, coluna).length);
@@ -82,7 +90,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void getCapacidadeDaColuna_brancaDoJochiTemUmEspacoAMenos() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		int linhas = FachadaModelo.LINHAS_TABULEIRO_JOGADOR;
 		assertEquals(linhas - 1, fachada.getCapacidadeDaColuna(0, "BRANCA"));
 		assertEquals(linhas, fachada.getCapacidadeDaColuna(0, "PRIMEIRA"));
@@ -91,20 +99,20 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void ativarColuna_altaniPodeEscolherOSegundoPeao() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("ALTANI", "TOLUI"));
+		comecarPartida("ALTANI", "TOLUI");
 		assertTrue(fachada.ativarColuna("PRIMEIRA", 1));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void ativarColuna_peaoInexistente_devolveFalso() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertFalse(fachada.ativarColuna("PRIMEIRA", 1));
 		assertFalse(fachada.isColunaUsada(0, "PRIMEIRA"));
 	}
 
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void isColunaUsada_colunaDesconhecida_lancaExcecao() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		fachada.isColunaUsada(0, "ROXA");
 	}
 
@@ -119,7 +127,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void getTributoDisponivel_contaAMoedaDaColuna() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("PRIMEIRA", 0)); //Jochi: cavalo, punho e moeda
 		assertEquals(2, fachada.getTributoDisponivel(0, "MOEDA"));
 		assertEquals(1, fachada.getMovimentosRestantes());
@@ -127,20 +135,20 @@ public class FachadaModeloTest {
 
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void getTributoDisponivel_tipoDesconhecido_lancaExcecao() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		fachada.getTributoDisponivel(0, "OURO");
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void encerrarTurno_semColunaAtivada_devolveMotivoEAVezFica() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertNotNull(fachada.encerrarTurno());
 		assertEquals(0, fachada.getJogadorDaVez());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void encerrarTurno_comKhanPendente_devolveMotivoEAVezFica() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("SEGUNDA", 0)); //Jochi: coluna com Khan
 		assertTrue(fachada.isKhanPendente());
 		assertNotNull(fachada.encerrarTurno());
@@ -149,7 +157,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void encerrarTurno_colunaSemKhan_passaAVez() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
 		assertNull(fachada.encerrarTurno());
 		assertEquals(1, fachada.getJogadorDaVez());
@@ -158,7 +166,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void pegarTributo_provinciaJuntoDeKarakorum_gastaUmPunho() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
 		assertEquals(1, fachada.getPunhosRestantes());
 		assertTrue(fachada.podePegarTributo(2)); //província de yurt ao lado de Karakorum
@@ -171,7 +179,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void pegarTributo_semPunhos_devolveMotivo() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
 		assertNull(fachada.pegarTributo(2));
 		assertFalse(fachada.podePegarTributo(3));
@@ -181,7 +189,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void pegarTributo_provinciaLonge_devolveMotivoENadaMuda() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
 		assertFalse(fachada.podePegarTributo(5));
 		assertNotNull(fachada.pegarTributo(5));
@@ -191,14 +199,14 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void pegarTributo_semColunaAtivada_devolveMotivo() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertFalse(fachada.podePegarTributo(2));
 		assertNotNull(fachada.pegarTributo(2));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void pegarTributo_pecaFicaGuardadaParaOsProximosTurnos() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
 		assertNull(fachada.pegarTributo(2));
 		assertNull(fachada.encerrarTurno());
@@ -209,7 +217,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void usarKhan_emProvinciaDoKhan_poeTributosEOJogadorNaoRecebe() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("SEGUNDA", 0)); //Jochi: coluna com Khan
 		assertEquals(FachadaModelo.KHAN_FORA, fachada.getLocalDoKhan());
 		int naProvincia = fachada.getTributosDaProvincia(1);
@@ -229,7 +237,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void usarKhan_provinciaQueNaoEDoKhan_devolveMotivoEKhanContinuaPendente() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
 		assertFalse(fachada.podeUsarKhanEm(5));
 		assertNotNull(fachada.usarKhan(5));
@@ -239,7 +247,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void usarKhan_mesmoLugarNoTurnoSeguinte_devolveMotivo() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("SEGUNDA", 0));
 		assertNull(fachada.usarKhan(4));
 		assertNull(fachada.encerrarTurno());
@@ -254,7 +262,7 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void usarKhan_colunaSemKhan_devolveMotivo() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
 		assertFalse(fachada.podeUsarKhanEm(1));
 		assertNotNull(fachada.usarKhan(1));
@@ -262,10 +270,63 @@ public class FachadaModeloTest {
 
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void getIdsProvinciasDoKhan_listaAsQuatro() throws IOException {
-		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		comecarPartida("JOCHI", "TOLUI");
 		int[] ids = fachada.getIdsProvinciasDoKhan();
 		Arrays.sort(ids);
 		assertTrue(Arrays.equals(new int[] { 1, 4, 10, 11 }, ids));
+	}
+
+	// CARTAS DE CONSELHEIRO
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_revelaQuatroCartasAbertasEDuasSecretasPorJogador() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertEquals(4, fachada.getCartasAbertas().length);
+		assertEquals(2, fachada.getOpcoesDeCartaSecreta(0).length);
+		assertEquals(2, fachada.getOpcoesDeCartaSecreta(1).length);
+		assertTrue(fachada.isEscolhaDeCartasPendente());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void ativarColuna_antesDeTodosEscolheremACarta_devolveFalsoENadaMuda() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertNull(fachada.escolherCartaSecreta(0, fachada.getOpcoesDeCartaSecreta(0)[0]));
+		assertEquals(1, fachada.getProximoJogadorSemCartaSecreta());
+
+		assertFalse(fachada.ativarColuna("TERCEIRA", 0));
+		assertFalse(fachada.isColunaUsada(0, "TERCEIRA"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void escolherCartaSecreta_todosEscolhem_liberaAPartidaEGuardaACarta() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		String deJochi = fachada.getOpcoesDeCartaSecreta(0)[1];
+		String deTolui = fachada.getOpcoesDeCartaSecreta(1)[0];
+
+		assertNull(fachada.escolherCartaSecreta(0, deJochi));
+		assertNull(fachada.escolherCartaSecreta(1, deTolui));
+
+		assertFalse(fachada.isEscolhaDeCartasPendente());
+		assertEquals(-1, fachada.getProximoJogadorSemCartaSecreta());
+		assertEquals(deJochi, fachada.getCartaSecretaDoJogador(0));
+		assertEquals(deTolui, fachada.getCartaSecretaDoJogador(1));
+		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void escolherCartaSecreta_cartaForaDasOpcoes_devolveMotivoEContinuaPendente() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertNotNull(fachada.escolherCartaSecreta(0, "nao_existe"));
+		assertNull(fachada.getCartaSecretaDoJogador(0));
+		assertEquals(0, fachada.getProximoJogadorSemCartaSecreta());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getVotosDaCartaSecreta_semProgresso_valeZero() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertEquals(0, fachada.getVotosDaCartaSecreta(0)); //ainda sem carta
+		assertNull(fachada.escolherCartaSecreta(0, fachada.getOpcoesDeCartaSecreta(0)[0]));
+		assertEquals(0, fachada.getVotosDaCartaSecreta(0));
 	}
 
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)

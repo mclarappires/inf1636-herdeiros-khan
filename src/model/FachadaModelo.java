@@ -160,6 +160,77 @@ public class FachadaModelo {
 		return exigirPartida().getJogador(jogador).getTabuleiroJogador().getMelhorias(converterColuna(coluna));
 	}
 
+	//CARTAS DE CONSELHEIRO
+
+	/** Ids das cartas de conselheiro aberto que ainda estão em jogo (as cumpridas saem). */
+	public String[] getCartasAbertas() {
+		List<CartaConselheiroAberto> emJogo = exigirPartida().getCartasAbertasEmJogo();
+		String[] ids = new String[emJogo.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = emJogo.get(i).getId();
+		}
+		return ids;
+	}
+
+	/** Verdadeiro enquanto algum jogador ainda não escolheu a sua carta secreta. */
+	public boolean isEscolhaDeCartasPendente() {
+		return exigirPartida().isEscolhaDeCartasPendente();
+	}
+
+	/** Índice do primeiro jogador que ainda não escolheu a carta secreta, ou -1 se todos já escolheram. */
+	public int getProximoJogadorSemCartaSecreta() {
+		Partida p = exigirPartida();
+		for (int i = 0; i < p.getJogadores().size(); i++) {
+			if (!p.getOpcoesDeCartaSecreta(p.getJogador(i)).isEmpty()) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Ids das 2 cartas secretas entre as quais o jogador escolhe (vazio depois de escolher). */
+	public String[] getOpcoesDeCartaSecreta(int jogador) {
+		Partida p = exigirPartida();
+		List<CartaConselheiroSecreto> opcoes = p.getOpcoesDeCartaSecreta(p.getJogador(jogador));
+		String[] ids = new String[opcoes.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = opcoes.get(i).getId();
+		}
+		return ids;
+	}
+
+	/** O jogador guarda a carta secreta de id dado. Devolve null se escolheu, ou o motivo. */
+	public String escolherCartaSecreta(int jogador, String id) {
+		Partida p = exigirPartida();
+		try {
+			p.escolherCartaSecreta(p.getJogador(jogador), id);
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	/** Id da carta secreta que o jogador guardou, ou null se ainda não escolheu. */
+	public String getCartaSecretaDoJogador(int jogador) {
+		CartaConselheiroSecreto carta = exigirPartida().getJogador(jogador).getCartaSecreta();
+		return carta == null ? null : carta.getId();
+	}
+
+	/** Votos (de 0 a 3) que a carta secreta do jogador renderia se o jogo acabasse agora. */
+	public int getVotosDaCartaSecreta(int jogador) {
+		Partida p = exigirPartida();
+		Jogador j = p.getJogador(jogador);
+		CartaConselheiroSecreto carta = j.getCartaSecreta();
+		return carta == null ? 0 : carta.votosFinais(j, p.getTabuleiro());
+	}
+
+	/** Votos do jogador na trilha do Kurultai (sem a carta secreta, que só conta no fim). */
+	public int getVotosDoJogador(int jogador) {
+		return exigirPartida().getJogador(jogador).getVotos();
+	}
+
 	//YURTS
 
 	/** Ids de todas as paradas do tabuleiro. */
@@ -191,6 +262,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().construirYurt(p.getTabuleiro().getParada(idParada));
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -277,6 +349,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().comprarMelhoria(p.getTabuleiro().getAreaMelhorias(), espaco);
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -290,6 +363,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().comprarMelhoriaDoTopo(p.getTabuleiro().getAreaMelhorias());
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -303,6 +377,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().pegarMelhoriaGratuita(p.getTabuleiro().getAreaMelhorias(), espaco);
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -316,6 +391,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().pegarMelhoriaGratuitaDoTopo(p.getTabuleiro().getAreaMelhorias());
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -398,6 +474,7 @@ public class FachadaModelo {
 			Tabuleiro t = p.getTabuleiro();
 			LocalDoKhan destino = local == KHAN_AREA_MELHORIAS ? t.getAreaMelhorias() : t.getProvincia(local);
 			p.getJogadorDaVez().usarKhan(t.getPeaoKhan(), destino);
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -477,6 +554,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.getJogadorDaVez().pegarTributo(p.getTabuleiro().getProvincia(idProvincia));
+			p.conferirCartasAbertas();
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -488,7 +566,12 @@ public class FachadaModelo {
 	/** Ativa a coluna para o jogador da vez. Devolve false se não for possível (coluna já usada, turno em andamento...). */
 	public boolean ativarColuna(String coluna, int indicePeao) {
 		try {
-			exigirPartida().getJogadorDaVez().ativarColuna(Coluna.valueOf(coluna), indicePeao);
+			Partida p = exigirPartida();
+			if (p.isEscolhaDeCartasPendente()) {
+				return false; //todos precisam escolher a carta secreta antes de jogar
+			}
+			p.getJogadorDaVez().ativarColuna(Coluna.valueOf(coluna), indicePeao);
+			p.conferirCartasAbertas();
 			return true;
 		} catch (IllegalStateException e) {
 			return false;
@@ -507,6 +590,7 @@ public class FachadaModelo {
 				return false;
 			}
 			jogador.mover(destino);
+			p.conferirCartasAbertas();
 			return true;
 		} catch (IllegalStateException e) {
 			return false;

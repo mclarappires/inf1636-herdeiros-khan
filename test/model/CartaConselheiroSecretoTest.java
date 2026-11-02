@@ -1,6 +1,9 @@
 package model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -82,6 +85,49 @@ public class CartaConselheiroSecretoTest {
 		assertEquals("Só a província do Khan conta", 1, new CartaBajulador().medir(azul, mapa));
 	}
 
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_viajante_paradaDuplaComDoisYurtsContaOsDois() {
+		Parada duplaLigada = new Parada(6, 2, 2, Regiao.CHINA);
+		mapa.adicionarParada(duplaLigada);
+		duplaLigada.ligar(a);
+		colocarYurts(a, duplaLigada, duplaLigada);
+		assertEquals("1 yurt em a e 2 na parada dupla", 3, new CartaViajante().medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_viajante_yurtDoToluiEmKarakorumNaoFazParteDaRede() {
+		Jogador tolui = new Jogador(Cor.AMARELO, Heroi.TOLUI, inicio, 0);
+		dupla.adicionarYurt(new Yurt(Cor.AMARELO));
+		assertEquals("Só o yurt da parada dupla conta", 1, new CartaViajante().medir(tolui, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_prefeito_doisYurtsNaMesmaParadaDuplaVizinhaContam() {
+		Cidade cidade = adicionarCidadeVizinhaDe(dupla);
+		colocarYurts(dupla, dupla);
+		assertEquals("Cidade " + cidade.getId() + " tem 2 yurts vizinhos", 1, CartaCidadesVizinhas.prefeito().medir(azul, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void medir_cidadao_yurtDoToluiEmKarakorumNaoContaComoVizinho() {
+		Jogador tolui = new Jogador(Cor.AMARELO, Heroi.TOLUI, inicio, 0);
+		adicionarCidadeVizinhaDe(inicio);
+		assertEquals(0, CartaCidadesVizinhas.cidadao().medir(tolui, mapa));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getId_cidadao_ficaSemAcentoEEmMinusculas() {
+		assertEquals("cidadao", CartaCidadesVizinhas.cidadao().getId());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criarBaralho_todasAsCartasTemImagem() {
+		for (CartaConselheiroSecreto carta : CartaConselheiroSecreto.criarBaralho()) {
+			String caminho = "resources/cartas/secretas/" + carta.getId() + ".png";
+			assertTrue("Falta a imagem " + caminho, new File(caminho).isFile());
+		}
+	}
+
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
 	public void construtor_limiaresForaDeOrdem_lancaExcecao() {
 		new CartaCidadesVizinhas("Inválida", 1, 3, 3, 4);
@@ -90,6 +136,13 @@ public class CartaConselheiroSecretoTest {
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criarBaralho_temAsDezCartas() {
 		assertEquals("O baralho secreto tem 10 cartas", 10, CartaConselheiroSecreto.criarBaralho().size());
+	}
+
+	private Cidade adicionarCidadeVizinhaDe(Parada vizinha) {
+		Cidade cidade = new Cidade(20, Regiao.RUSSIA);
+		cidade.ligarParada(vizinha);
+		mapa.adicionarCidade(cidade);
+		return cidade;
 	}
 
 	private void colocarPunhos(Coluna coluna, int quantidade) {
