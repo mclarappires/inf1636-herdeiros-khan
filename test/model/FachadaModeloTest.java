@@ -375,6 +375,29 @@ public class FachadaModeloTest {
 		assertFalse(fachada.podeEntregarEm(2));
 	}
 
+	// CIDADES
+
+	/** Em Karakorum não há cidade adjacente: nenhuma das 3 cidades visíveis pode ser atacada. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeAtacarCidade_inicioEmKarakorum_falsoENenhumaConquistada() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		assertTrue(fachada.ativarColuna("PRIMEIRA", 0));
+		assertEquals(3, fachada.getIdsCidadesVisiveis().length);
+		for (int id : fachada.getIdsCidadesVisiveis()) {
+			assertFalse("Cidade " + id, fachada.podeAtacarCidade(id));
+		}
+		assertEquals(0, fachada.getIdsCidadesConquistadas().length);
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void atacarCidade_semColunaAtiva_devolveMotivo() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		int cidade = fachada.getIdsCidadesVisiveis()[0];
+		assertNotNull(fachada.atacarCidade(cidade, "SEDA"));
+		assertNotNull(fachada.atacarCidade(cidade, "NAO_EXISTE"));
+		assertNull(fachada.getCorDoYurtDaCidade(cidade));
+	}
+
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)
 	public void novaPartida_mapaInexistente_lancaExcecao() throws IOException {
 		fachada.novaPartida("resources/nao-existe.txt", Arrays.asList("JOCHI", "TOLUI"));

@@ -276,6 +276,49 @@ public class JogadorTest {
 		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
 	}
 
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeAtacarCidade_comEspadaJuntoDaCidade_verdadeiro() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		irAteAVizinhaComEspadas(1);
+		assertTrue("Parou ao lado da cidade e tem 1 espada", jogador.podeAtacarCidade(mapa, ID_CIDADE));
+	}
+
+	/** Ogedei começa com moedas: sem espadas e sem moedas, não pode atacar. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeAtacarCidade_semEspadasNemMoedas_falso() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		Jogador pobre = new Jogador(Cor.VERDE, Heroi.OGEDEI, inicio, 0);
+		pobre.ativarColuna(Coluna.PRIMEIRA);
+		pobre.mover(vizinha);
+		assertFalse("Sem espadas nem moedas", pobre.podeAtacarCidade(mapa, ID_CIDADE));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeAtacarCidade_segundoTesouroComUmaEspada_falso() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		irAteAVizinhaComEspadas(2);
+		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
+		assertFalse("Sobrou 1 espada e o próximo tesouro custa 2", jogador.podeAtacarCidade(mapa, ID_CIDADE));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeAtacarCidade_semParadaJuntoDaCidade_falso() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		jogador.receberTributo(TipoTributo.ESPADA);
+		jogador.ativarColuna(Coluna.PRIMEIRA); //continua em Karakorum, longe da cidade
+		assertFalse(jogador.podeAtacarCidade(mapa, ID_CIDADE));
+	}
+
+	/** Habilidade do Ogedei: sem espadas, paga com 1 moeda o primeiro tesouro da cidade. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void atacarCidade_ogedeiSemEspadas_pagaPrimeiroComMoeda() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		irAteAVizinhaComEspadas(0);
+		jogador.atacarCidade(mapa, ID_CIDADE, tesouroPresente(mapa));
+		assertEquals("Pagou 1 moeda", MOEDAS_INICIAIS - 1, jogador.getQuantidade(TipoTributo.MOEDA));
+		assertEquals("Ficou com o tesouro", 1, jogador.getQuantidadeTesouros());
+	}
+
 	// FIM DE TURNO
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)

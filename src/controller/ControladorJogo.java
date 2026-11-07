@@ -172,6 +172,19 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique num tesouro de uma cidade: o jogador da vez paga espadas para toma-lo.
+     * Devolve null se tomou, ou o motivo para a tela mostrar.
+     */
+    public String cliqueNoTesouroDaCidade(int idCidade, String tesouro) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().atacarCidade(idCidade, tesouro);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Clique no conselheiro de uma parada: o jogador da vez entrega os tesouros escolhidos
      * (tipos com repeticao). Devolve null se entregou, ou o motivo para a tela mostrar.
      */

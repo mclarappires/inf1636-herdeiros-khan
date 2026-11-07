@@ -501,6 +501,45 @@ public class FachadaModelo {
 		return ids;
 	}
 
+	/** Se o jogador da vez pode tomar agora um tesouro da cidade (para destacar no mapa). */
+	public boolean podeAtacarCidade(int idCidade) {
+		Partida p = exigirPartida();
+		return p.getJogadorDaVez().podeAtacarCidade(p.getTabuleiro(), idCidade);
+	}
+
+	/**
+	 * O jogador da vez toma 1 tesouro do tipo da cidade, pagando espadas (1 pelo primeiro da
+	 * cidade no turno, 2 pelos seguintes). Devolve null se tomou, ou o motivo de não poder.
+	 */
+	public String atacarCidade(int idCidade, String tesouro) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().atacarCidade(p.getTabuleiro(), idCidade, converterTesouro(tesouro));
+			p.conferirCartasAbertas();
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) { //cidade inexistente, longe ou tesouro desconhecido
+			return e.getMessage();
+		}
+	}
+
+	/** Ids das cidades já conquistadas, na ordem da conquista. */
+	public int[] getIdsCidadesConquistadas() {
+		List<Cidade> conquistadas = exigirPartida().getTabuleiro().getCidadesConquistadas();
+		int[] ids = new int[conquistadas.size()];
+		for (int i = 0; i < ids.length; i++) {
+			ids[i] = conquistadas.get(i).getId();
+		}
+		return ids;
+	}
+
+	/** Cor do dono do yurt de conquista da cidade, ou null se ela não tem yurt. */
+	public String getCorDoYurtDaCidade(int idCidade) {
+		Yurt y = exigirPartida().getTabuleiro().getCidade(idCidade).getYurtDeConquista();
+		return y == null ? null : y.getDono().name();
+	}
+
 	/** Nomes dos tipos de tesouro, como no enum TipoTesouro. */
 	public String[] getTiposDeTesouro() {
 		TipoTesouro[] tipos = TipoTesouro.values();

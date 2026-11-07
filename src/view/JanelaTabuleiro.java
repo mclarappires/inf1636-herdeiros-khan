@@ -9,7 +9,9 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -98,6 +100,7 @@ public class JanelaTabuleiro extends JFrame {
         painel.setPeoes(peoesDaPartida());
         painel.setTributos(tributosDaPartida());
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
+        painel.setConquistas(conquistasDaPartida());
         painel.setYurts(yurtsDaPartida());
         painel.setAreaDeMelhorias(areaDaPartida());
         painel.setConselheiros(conselheirosDaPartida());
@@ -267,6 +270,7 @@ public class JanelaTabuleiro extends JFrame {
         if (!fachada.temPartida()) {
             return lista;
         }
+        boolean jogando = !fachada.isEscolhaDeCartasPendente();
         for (int id : fachada.getIdsCidadesVisiveis()) {
             List<String> tesouros = new ArrayList<String>();
             for (String tipo : fachada.getTiposDeTesouro()) {
@@ -274,9 +278,25 @@ public class JanelaTabuleiro extends JFrame {
                     tesouros.add(tipo);
                 }
             }
-            lista.add(new CidadeNaTela(id, tesouros));
+            lista.add(new CidadeNaTela(id, tesouros, jogando && fachada.podeAtacarCidade(id)));
         }
         return lista;
+    }
+
+    /** Cidade conquistada -> cor do yurt do conquistador (as sem yurt ficam de fora). */
+    private static Map<Integer, Color> conquistasDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        Map<Integer, Color> conquistas = new HashMap<Integer, Color>();
+        if (!fachada.temPartida()) {
+            return conquistas;
+        }
+        for (int id : fachada.getIdsCidadesConquistadas()) {
+            String cor = fachada.getCorDoYurtDaCidade(id);
+            if (cor != null) {
+                conquistas.put(id, CoresJogador.de(cor));
+            }
+        }
+        return conquistas;
     }
 
     /**

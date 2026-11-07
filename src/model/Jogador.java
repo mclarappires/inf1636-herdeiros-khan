@@ -194,12 +194,8 @@ class Jogador {
 		}
 
 		int jaTomados = contar(tesourosTomadosNoTurno, idCidade);
-		int custo = Cidade.custoEmEspadas(jaTomados + 1) - Cidade.custoEmEspadas(jaTomados);
-		TipoTributo pagamento = TipoTributo.ESPADA;
-		//Ogedei pode pagar com uma moeda o primeiro tesouro de uma cidade
-		if (heroi == Heroi.OGEDEI && jaTomados == 0 && getDisponivel(TipoTributo.ESPADA) < custo) {
-			pagamento = TipoTributo.MOEDA;
-		}
+		int custo = custoDoProximoTesouro(jaTomados);
+		TipoTributo pagamento = pagamentoDoAtaque(jaTomados, custo);
 		if (getDisponivel(pagamento) < custo) {
 			throw new IllegalStateException("Faltam espadas para atacar a cidade " + idCidade);
 		}
@@ -214,6 +210,39 @@ class Jogador {
 			yurtsDisponiveis--;
 		}
 		return conquistou;
+	}
+
+	/** Diz se atacarCidade aceitaria tomar agora o próximo tesouro da cidade, sem alterar nada. */
+	boolean podeAtacarCidade(Tabuleiro tabuleiro, int idCidade) {
+		if (colunaAtiva == null || tabuleiro == null) {
+			return false;
+		}
+		Cidade alvo;
+		try {
+			alvo = tabuleiro.getCidade(idCidade);
+		} catch (IllegalArgumentException e) { //cidade inexistente
+			return false;
+		}
+		if (!tabuleiro.getCidadesVisiveis().contains(alvo) || !alvo.temTesouro()
+				|| !visitouParadaJuntoDe(alvo)) {
+			return false;
+		}
+		int jaTomados = contar(tesourosTomadosNoTurno, idCidade);
+		int custo = custoDoProximoTesouro(jaTomados);
+		return getDisponivel(pagamentoDoAtaque(jaTomados, custo)) >= custo;
+	}
+
+	/** Espadas do próximo tesouro de uma cidade: 1 pelo primeiro do turno, 2 pelos seguintes. */
+	private static int custoDoProximoTesouro(int jaTomados) {
+		return Cidade.custoEmEspadas(jaTomados + 1) - Cidade.custoEmEspadas(jaTomados);
+	}
+
+	/** Ogedei pode pagar com uma moeda o primeiro tesouro de uma cidade quando faltam espadas. */
+	private TipoTributo pagamentoDoAtaque(int jaTomados, int custo) {
+		if (heroi == Heroi.OGEDEI && jaTomados == 0 && getDisponivel(TipoTributo.ESPADA) < custo) {
+			return TipoTributo.MOEDA;
+		}
+		return TipoTributo.ESPADA;
 	}
 
 	/** Gasta um tributo de yurt para construir em uma parada visitada no turno. */

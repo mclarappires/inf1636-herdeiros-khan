@@ -94,6 +94,12 @@ class PainelTabuleiro extends JPanel {
     private static final double LARGURA_TESOURO = 0.23;
 
     private final List<CidadeNaTela> cidadesVisiveis = new ArrayList<CidadeNaTela>();
+
+    /** Cidade conquistada -> cor do yurt do conquistador, desenhado no centro da cidade. */
+    private final Map<Integer, Color> conquistas = new HashMap<Integer, Color>();
+    private final Map<Color, BufferedImage> spritesYurt = new HashMap<Color, BufferedImage>();
+    /** Largura do yurt de conquista, em fracao da largura da imagem do tabuleiro. */
+    private static final double LARGURA_YURT_CONQUISTA = 0.045;
     private final Map<Integer, BufferedImage> spritesCidade = new HashMap<Integer, BufferedImage>();
 
     private final List<PilhaDeTributos> tributos = new ArrayList<PilhaDeTributos>();
@@ -181,6 +187,13 @@ class PainelTabuleiro extends JPanel {
         repaint();
     }
 
+    /** Troca as cidades conquistadas exibidas (cada uma com a cor do yurt do conquistador). */
+    void setConquistas(Map<Integer, Color> novas) {
+        conquistas.clear();
+        conquistas.putAll(novas);
+        repaint();
+    }
+
     /** Troca os conselheiros exibidos (peca de bonus de cada um e se aceita entrega agora). */
     void setConselheiros(List<ConselheiroNaTela> novos) {
         conselheiros.clear();
@@ -237,6 +250,7 @@ class PainelTabuleiro extends JPanel {
         g2.drawImage(imagemTabuleiro, imgX, imgY, imgLargura, imgAltura, null);
 
         desenharCidades(g2);
+        desenharConquistas(g2);
         desenharBonus(g2);
         desenharTributos(g2);
         desenharAreaDeMelhorias(g2);
@@ -259,13 +273,16 @@ class PainelTabuleiro extends JPanel {
         }
     }
 
-    /** Desenha a peca de cada cidade revelada e, em fileira na parte de baixo dela, os tesouros que restam. */
+    /**
+     * Desenha a peca de cada cidade revelada e, em fileira na parte de baixo dela, os tesouros
+     * que restam. A cidade que o jogador da vez pode atacar agora ganha contorno dourado.
+     */
     private void desenharCidades(Graphics2D g2) {
         if (posicoesCidades == null) {
             return;
         }
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         int lado = (int) (LARGURA_CIDADE * imgLargura);
-        int diametro = (int) (lado * LARGURA_TESOURO);
         for (CidadeNaTela cidade : cidadesVisiveis) {
             double[] p = posicoesCidades.get(cidade.getId());
             if (p == null) {
@@ -277,20 +294,97 @@ class PainelTabuleiro extends JPanel {
             BufferedImage sprite = spritesCidade.get(cidade.getId());
             int cx = imgX + (int) (p[0] * imgLargura);
             int cy = imgY + (int) (p[1] * imgAltura);
+            if (cidade.isAtacavel()) {
+                desenharContorno(g2, cx - lado / 2, cy - lado / 2, lado, lado, DOURADO);
+            }
             if (sprite != null) {
                 g2.drawImage(sprite, cx - lado / 2, cy - lado / 2, lado, lado, null);
             }
 
             List<String> tesouros = cidade.getTesouros();
-            int passo = diametro + 2;
-            int x0 = cx - (tesouros.size() * passo - 2) / 2;
-            int y0 = cy + (int) (lado * 0.5) - diametro - 3;
             for (int i = 0; i < tesouros.size(); i++) {
                 BufferedImage tesouro = SpriteTesouro.de(tesouros.get(i));
+                int[] t = posicaoDoTesouro(p, tesouros.size(), i);
                 if (tesouro != null) {
-                    g2.drawImage(tesouro, x0 + i * passo, y0, diametro, diametro, null);
+                    g2.drawImage(tesouro, t[0], t[1], t[2], t[2], null);
                 }
             }
+        }
+    }
+
+    /**
+     * Canto superior esquerdo e diametro {x, y, d} do i-esimo de n tesouros da cidade cujo centro
+     * esta em p (fracoes da imagem). Usado no desenho e no clique, para os dois baterem.
+     */
+    private int[] posicaoDoTesouro(double[] p, int n, int i) {
+        int lado = (int) (LARGURA_CIDADE * imgLargura);
+        int diametro = (int) (lado * LARGURA_TESOURO);
+        int cx = imgX + (int) (p[0] * imgLargura);
+        int cy = imgY + (int) (p[1] * imgAltura);
+        int passo = diametro + 2;
+        int x0 = cx - (n * passo - 2) / 2;
+        int y0 = cy + (int) (lado * 0.5) - diametro - 3;
+        return new int[] { x0 + i * passo, y0, diametro };
+    }
+
+    /**
+     * Tesouro de uma cidade atacavel sob o clique (em pixels do painel): devolve
+     * {id da cidade, tipo do tesouro}, ou null se o clique nao caiu em nenhum.
+     */
+    private String[] tesouroNoClique(int px, int py) {
+        if (posicoesCidades == null) {
+            return null;
+        }
+        for (CidadeNaTela cidade : cidadesVisiveis) {
+            double[] p = posicoesCidades.get(cidade.getId());
+            if (!cidade.isAtacavel() || p == null) {
+                continue;
+            }
+            List<String> tesouros = cidade.getTesouros();
+            for (int i = 0; i < tesouros.size(); i++) {
+                int[] t = posicaoDoTesouro(p, tesouros.size(), i);
+                int raio = t[2] / 2;
+                int dx = px - (t[0] + raio);
+                int dy = py - (t[1] + raio);
+                if (dx * dx + dy * dy <= (raio + 2) * (raio + 2)) {
+                    return new String[] { String.valueOf(cidade.getId()), tesouros.get(i) };
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Clique num tesouro de cidade: paga espadas para toma-lo e avisa se nao puder. */
+    private void aoClicarTesouro(int idCidade, String tesouro) {
+        String motivo = ControladorJogo.getInstancia().cliqueNoTesouroDaCidade(idCidade, tesouro);
+        if (motivo != null) {
+            mostrarMensagem("Ataque recusado: " + motivo);
+        } else {
+            mensagem = null;
+            repaint();
+        }
+    }
+
+    /** Yurt do conquistador no centro de cada cidade ja conquistada. */
+    private void desenharConquistas(Graphics2D g2) {
+        if (posicoesCidades == null) {
+            return;
+        }
+        int largura = (int) (LARGURA_YURT_CONQUISTA * imgLargura);
+        int altura = largura * SpriteYurt.ALTURA / SpriteYurt.LARGURA;
+        for (Map.Entry<Integer, Color> e : conquistas.entrySet()) {
+            double[] p = posicoesCidades.get(e.getKey());
+            if (p == null) {
+                continue;
+            }
+            BufferedImage yurt = spritesYurt.get(e.getValue());
+            if (yurt == null) {
+                yurt = SpriteYurt.criar(e.getValue());
+                spritesYurt.put(e.getValue(), yurt);
+            }
+            int cx = imgX + (int) (p[0] * imgLargura);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            g2.drawImage(yurt, cx - largura / 2, cy - altura / 2, largura, altura, null);
         }
     }
 
@@ -451,6 +545,7 @@ class PainelTabuleiro extends JPanel {
         linhas.add(areaDeMelhorias != null && areaDeMelhorias.isGratuita()
                 ? "Melhoria grátis: clique numa peça da área ou na pilha"
                 : "Clique numa peça da área: comprar (" + FachadaModelo.CUSTO_MELHORIA + " moedas)");
+        linhas.add("Tesouro de cidade destacada: atacar (1 espada; os seguintes, 2)");
 
         int larguraMaxima = (int) (0.385 * imgLargura);
         int tamanhoFonte = Math.max(imgLargura / 62, 9);
@@ -459,8 +554,7 @@ class PainelTabuleiro extends JPanel {
             g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanhoFonte));
             medidas = g2.getFontMetrics();
             tamanhoFonte--;
-        } while (tamanhoFonte >= 8 && (medidas.stringWidth(linhas.get(0)) > larguraMaxima - 12
-                || medidas.stringWidth(linhas.get(1)) > larguraMaxima - 12));
+        } while (tamanhoFonte >= 8 && maiorLinha(linhas, medidas) > larguraMaxima - 12);
 
         int altura = linhas.size() * medidas.getHeight() + 8;
         int x = imgX + (int) (0.60 * imgLargura);
@@ -472,6 +566,14 @@ class PainelTabuleiro extends JPanel {
         for (int i = 0; i < linhas.size(); i++) {
             g2.drawString(linhas.get(i), x + 8, y + 4 + medidas.getAscent() + i * medidas.getHeight());
         }
+    }
+
+    private static int maiorLinha(List<String> linhas, FontMetrics medidas) {
+        int maior = 0;
+        for (String linha : linhas) {
+            maior = Math.max(maior, medidas.stringWidth(linha));
+        }
+        return maior;
     }
 
     /** Desenha as pecas da area de melhorias, o destaque das que podem ser pegas e a pilha. */
@@ -770,6 +872,12 @@ class PainelTabuleiro extends JPanel {
             Integer conselheiro = conselheiroNoClique(fx, fy);
             if (conselheiro != null) {
                 aoClicarConselheiro(conselheiro);
+                return;
+            }
+            // tesouros so recebem clique nas cidades que o jogador da vez pode atacar agora
+            String[] tesouro = tesouroNoClique(e.getX(), e.getY());
+            if (tesouro != null) {
+                aoClicarTesouro(Integer.parseInt(tesouro[0]), tesouro[1]);
                 return;
             }
             // os lugares do Khan so recebem clique enquanto ele precisa ser usado
