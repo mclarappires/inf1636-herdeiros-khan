@@ -319,6 +319,78 @@ public class JogadorTest {
 		assertEquals("Ficou com o tesouro", 1, jogador.getQuantidadeTesouros());
 	}
 
+	// PEÇAS DE BÔNUS
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarBonus_moedas_recebeDuasMoedas() {
+		ganharBonusEmKarakorum(PecaBonus.MOEDAS);
+		assertTrue("Peça ganha e ainda não usada", jogador.podeUsarBonus(PecaBonus.MOEDAS, null));
+		jogador.usarBonus(PecaBonus.MOEDAS);
+		assertEquals("2 peças de moeda a mais", MOEDAS_INICIAIS + 2, jogador.getQuantidade(TipoTributo.MOEDA));
+		assertTrue(jogador.isBonusUsado(PecaBonus.MOEDAS));
+		assertFalse("Só vale uma vez", jogador.podeUsarBonus(PecaBonus.MOEDAS, null));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void usarBonus_mesmaPecaDuasVezes_lancaExcecao() {
+		ganharBonusEmKarakorum(PecaBonus.ESPADAS);
+		jogador.usarBonus(PecaBonus.ESPADAS);
+		jogador.usarBonus(PecaBonus.ESPADAS);
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarBonus_movimentos_somaTresMovimentosEUmPunho() {
+		ganharBonusEmKarakorum(PecaBonus.MOVIMENTOS);
+		int movimentos = jogador.getMovimentosRestantes();
+		int punhos = jogador.getPunhosRestantes();
+		jogador.usarBonus(PecaBonus.MOVIMENTOS);
+		assertEquals(movimentos + 3, jogador.getMovimentosRestantes());
+		assertEquals(punhos + 1, jogador.getPunhosRestantes());
+	}
+
+	/** O bônus só vale durante o turno, depois de ativar uma coluna. */
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void usarBonus_foraDoTurno_lancaExcecao() {
+		ganharBonusEmKarakorum(PecaBonus.YURTS);
+		jogador.encerrarTurno();
+		jogador.usarBonus(PecaBonus.YURTS);
+	}
+
+	/** Manual: o Baú sorteia 3 tesouros da pilha; o jogador fica com 1 e descarta os outros. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void usarBonus_bau_sorteiaTresEFicaComOEscolhido() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		ganharBonusEmKarakorum(PecaBonus.TESOUROS);
+		int reserva = mapa.getTesourosNaReserva();
+		jogador.usarBonus(PecaBonus.TESOUROS, mapa);
+		assertEquals("3 tesouros sorteados", 3, jogador.getOpcoesDoBau().size());
+		assertEquals("Os 3 saem da reserva", reserva - 3, mapa.getTesourosNaReserva());
+
+		jogador.escolherTesouroDoBau(jogador.getOpcoesDoBau().get(0));
+		assertEquals("Fica só com o escolhido", 1, jogador.getQuantidadeTesouros());
+		assertTrue(jogador.getOpcoesDoBau().isEmpty());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void encerrarTurno_escolhaDoBauPendente_lancaExcecao() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		ganharBonusEmKarakorum(PecaBonus.TESOUROS);
+		jogador.usarBonus(PecaBonus.TESOUROS, mapa);
+		jogador.encerrarTurno();
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)
+	public void escolherTesouroDoBau_tipoQueNaoSaiu_lancaExcecao() {
+		Tabuleiro mapa = montarTabuleiroComCidadeJuntoDaVizinha();
+		ganharBonusEmKarakorum(PecaBonus.TESOUROS);
+		jogador.usarBonus(PecaBonus.TESOUROS, mapa);
+		for (TipoTesouro tipo : TipoTesouro.values()) { //5 tipos e só 3 sorteados: algum ficou de fora
+			if (!jogador.getOpcoesDoBau().contains(tipo)) {
+				jogador.escolherTesouroDoBau(tipo);
+			}
+		}
+	}
+
 	// FIM DE TURNO
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
@@ -381,6 +453,19 @@ public class JogadorTest {
 		}
 		jogador.ativarColuna(Coluna.PRIMEIRA);
 		jogador.mover(paradaDupla);
+	}
+
+	/** Põe a peça em Karakorum e faz o jogador (que começa lá) ser o primeiro a entregar ali. */
+	private void ganharBonusEmKarakorum(PecaBonus peca) {
+		inicio.colocarBonus(peca);
+		Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>(inicio.getPedido());
+		for (Map.Entry<TipoTesouro, Integer> e : oferta.entrySet()) {
+			for (int i = 0; i < e.getValue(); i++) {
+				jogador.receberTesouro(e.getKey());
+			}
+		}
+		jogador.ativarColuna(Coluna.PRIMEIRA);
+		jogador.entregarTesouros(inicio, oferta);
 	}
 
 	private Map<TipoTesouro, Integer> ofertaDeFerro(int quantidade) {

@@ -28,6 +28,10 @@ class Jogador {
 	private final Map<PecaBonus, Boolean> bonus = new HashMap<PecaBonus, Boolean>(); //peça -> já foi usada
 	private CartaConselheiroSecreto cartaSecreta = null;
 
+	/** Tesouros que o Baú sorteia; o jogador fica com um. */
+	static final int TESOUROS_DO_BAU = 3;
+	private final List<TipoTesouro> opcoesDoBau = new LinkedList<TipoTesouro>();
+
 	//ESTADO DO TURNO (vale da ativação da coluna até encerrarTurno)
 
 	private Coluna colunaAtiva = null;
@@ -467,8 +471,16 @@ class Jogador {
 		return reais;
 	}
 
-	/** Usa uma peça de bônus, que só vale uma vez. */
+	/** Usa uma peça de bônus que não seja o Baú (ele precisa do tabuleiro para sortear os tesouros). */
 	void usarBonus(PecaBonus peca) {
+		usarBonus(peca, null);
+	}
+
+	/**
+	 * Usa uma peça de bônus, que só vale uma vez. O Baú sorteia até 3 tesouros da reserva do
+	 * tabuleiro; o jogador fica com um deles por escolherTesouroDoBau e os outros são descartados.
+	 */
+	void usarBonus(PecaBonus peca, Tabuleiro tabuleiro) {
 		exigirTurnoAtivo();
 		Boolean usada = bonus.get(peca);
 		if (usada == null) {
@@ -476,6 +488,17 @@ class Jogador {
 		}
 		if (usada) {
 			throw new IllegalStateException("Peça de bônus " + peca + " já foi usada");
+		}
+		if (!opcoesDoBau.isEmpty()) {
+			throw new IllegalStateException("Escolha antes o tesouro do Baú");
+		}
+		if (peca == PecaBonus.TESOUROS) {
+			if (tabuleiro == null) {
+				throw new IllegalArgumentException("O Baú precisa do tabuleiro para sortear os tesouros");
+			}
+			if (tabuleiro.getTesourosNaReserva() == 0) {
+				throw new IllegalStateException("Não há tesouros na reserva para o Baú");
+			}
 		}
 		bonus.put(peca, true);
 
@@ -500,9 +523,35 @@ class Jogador {
 			punhosRestantes += 2;
 			break;
 		case TESOUROS:
-			//quem controla a reserva sorteia os 3 tesouros e entrega o escolhido por receberTesouro
+			opcoesDoBau.addAll(tabuleiro.retirarTesourosDaReserva(TESOUROS_DO_BAU));
 			break;
 		}
+	}
+
+	/** Diz se usarBonus(peca, tabuleiro) seria aceito agora, sem alterar nada. */
+	boolean podeUsarBonus(PecaBonus peca, Tabuleiro tabuleiro) {
+		if (colunaAtiva == null || peca == null || !bonus.containsKey(peca) || isBonusUsado(peca)
+				|| !opcoesDoBau.isEmpty()) {
+			return false;
+		}
+		return peca != PecaBonus.TESOUROS || (tabuleiro != null && tabuleiro.getTesourosNaReserva() > 0);
+	}
+
+	/** Fica com um dos tesouros sorteados pelo Baú; os outros são descartados. */
+	void escolherTesouroDoBau(TipoTesouro tipo) {
+		if (opcoesDoBau.isEmpty()) {
+			throw new IllegalStateException("Não há tesouros do Baú para escolher");
+		}
+		if (!opcoesDoBau.contains(tipo)) {
+			throw new IllegalArgumentException("O tesouro " + tipo + " não saiu no Baú");
+		}
+		receberTesouro(tipo);
+		opcoesDoBau.clear();
+	}
+
+	/** Tesouros sorteados pelo Baú esperando a escolha do jogador (vazio fora da escolha). */
+	List<TipoTesouro> getOpcoesDoBau() {
+		return Collections.unmodifiableList(opcoesDoBau);
 	}
 
 	/** O Khan é obrigatório quando a coluna ativada tem o ícone dele. */
@@ -517,6 +566,9 @@ class Jogador {
 		exigirTurnoAtivo();
 		if (khanPendente) {
 			throw new IllegalStateException("O Khan precisa ser usado antes do fim do turno");
+		}
+		if (!opcoesDoBau.isEmpty()) {
+			throw new IllegalStateException("Escolha o tesouro do Baú antes de passar a vez");
 		}
 		Parada posicao = peaoAtivo.getPosicao();
 		if (!peaoAtivo.podeTerminarEm(posicao)) {

@@ -199,6 +199,18 @@ class Tabuleiro {
 		return conquistou;
 	}
 	
+	/** Tira até n tesouros do topo da reserva (já embaralhada), como no uso do Baú. */
+	List<TipoTesouro> retirarTesourosDaReserva(int n) {
+		if (n < 0) {
+			throw new IllegalArgumentException("Quantidade negativa");
+		}
+		List<TipoTesouro> retirados = new LinkedList<TipoTesouro>();
+		while (retirados.size() < n && !pilhaTesouros.isEmpty()) {
+			retirados.add(pilhaTesouros.removeFirst());
+		}
+		return retirados;
+	}
+
 	boolean todasCidadesConquistadas() {
 		return preparado && cidadesNaoReveladas.isEmpty() && cidadesVisiveis.isEmpty();
 	}

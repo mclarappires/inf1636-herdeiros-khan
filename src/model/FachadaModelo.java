@@ -677,10 +677,65 @@ public class FachadaModelo {
 	}
 
 	public boolean isBonusUsado(int jogador, String bonus) {
+		return exigirPartida().getJogador(jogador).isBonusUsado(converterBonus(bonus));
+	}
+
+	/** Se o jogador da vez pode usar agora a peça de bônus (para destacar no inventário). */
+	public boolean podeUsarBonus(String bonus) {
+		Partida p = exigirPartida();
 		try {
-			return exigirPartida().getJogador(jogador).isBonusUsado(PecaBonus.valueOf(bonus));
+			return p.getJogadorDaVez().podeUsarBonus(converterBonus(bonus), p.getTabuleiro());
+		} catch (IllegalArgumentException e) { //nome desconhecido
+			return false;
+		}
+	}
+
+	/**
+	 * O jogador da vez usa a peça de bônus. No Baú ("TESOUROS"), depois disso o jogador ainda
+	 * escolhe um dos tesouros de getOpcoesDoBau. Devolve null se usou, ou o motivo de não poder.
+	 */
+	public String usarBonus(String bonus) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().usarBonus(converterBonus(bonus), p.getTabuleiro());
+			p.conferirCartasAbertas();
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	/** Tesouros sorteados pelo Baú do jogador da vez, esperando a escolha (vazio fora dela). */
+	public String[] getOpcoesDoBau() {
+		List<TipoTesouro> opcoes = exigirPartida().getJogadorDaVez().getOpcoesDoBau();
+		String[] nomes = new String[opcoes.size()];
+		for (int i = 0; i < nomes.length; i++) {
+			nomes[i] = opcoes.get(i).name();
+		}
+		return nomes;
+	}
+
+	/** O jogador da vez fica com o tesouro do Baú; os outros são descartados. Devolve null ou o motivo. */
+	public String escolherTesouroDoBau(String tesouro) {
+		Partida p = exigirPartida();
+		try {
+			p.getJogadorDaVez().escolherTesouroDoBau(converterTesouro(tesouro));
+			p.conferirCartasAbertas();
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	private static PecaBonus converterBonus(String nome) {
+		try {
+			return PecaBonus.valueOf(nome);
 		} catch (RuntimeException e) { //nome nulo ou desconhecido
-			throw new IllegalArgumentException("Peça de bônus desconhecida: " + bonus);
+			throw new IllegalArgumentException("Peça de bônus desconhecida: " + nome);
 		}
 	}
 

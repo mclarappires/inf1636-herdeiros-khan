@@ -711,7 +711,7 @@ class PainelTabuleiro extends JPanel {
     }
 
     /** Mostra um aviso por alguns segundos. */
-    private void mostrarMensagem(String texto) {
+    void mostrarMensagem(String texto) {
         mensagem = texto;
         relogioDaMensagem.restart();
         repaint();

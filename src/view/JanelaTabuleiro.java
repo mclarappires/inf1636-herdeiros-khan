@@ -41,7 +41,7 @@ public class JanelaTabuleiro extends JFrame {
     private final PainelTabuleiroJogador painelJogador;
     private final PainelEscolhaCarta painelEscolha;
     private final PainelCartasAbertas painelAbertas = new PainelCartasAbertas();
-    private final PainelTesouros painelTesouros = new PainelTesouros();
+    private final PainelTesouros painelTesouros = new PainelTesouros(this);
 
     private final CardLayout cartoes = new CardLayout();
     private final JPanel centro = new JPanel(cartoes);
@@ -155,6 +155,11 @@ public class JanelaTabuleiro extends JFrame {
     public void mostrarEscolhaDeCarta() {
         painelEscolha.atualizar();
         cartoes.show(centro, CARTAO_ESCOLHA);
+    }
+
+    /** Aviso temporario na faixa do mapa (por exemplo, por que uma peca de bonus nao pode ser usada). */
+    void mostrarMensagem(String texto) {
+        painel.mostrarMensagem(texto);
     }
 
     /** Volta a mostrar o mapa no centro da janela. */

@@ -172,6 +172,29 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique numa peca de bonus do inventario: o jogador da vez a usa. No Bau, a tela ainda
+     * pede a escolha do tesouro (escolherTesouroDoBau). Devolve null se usou, ou o motivo.
+     */
+    public String usarBonus(String bonus) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().usarBonus(bonus);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /** O jogador da vez fica com um dos tesouros sorteados pelo Bau. Devolve null ou o motivo. */
+    public String escolherTesouroDoBau(String tesouro) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().escolherTesouroDoBau(tesouro);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Clique num tesouro de uma cidade: o jogador da vez paga espadas para toma-lo.
      * Devolve null se tomou, ou o motivo para a tela mostrar.
      */
