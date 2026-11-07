@@ -33,6 +33,11 @@ class Partida {
 	private final List<Jogador> jogadores = new LinkedList<Jogador>(); //na ordem de jogada
 	private int indiceDaVez = 0;
 
+	//fim de jogo: disparado ao completar o conselho ou conquistar todas as cidades
+	private boolean fimDisparado = false;
+	private int turnosAteOFim = 0; //turnos que ainda serão jogados depois do disparo
+	private boolean terminada = false;
+
 	private final List<CartaConselheiroAberto> cartasAbertas = new LinkedList<CartaConselheiroAberto>();
 	//as 2 cartas secretas de cada jogador até ele escolher uma; depois a lista fica vazia
 	private final Map<Jogador, List<CartaConselheiroSecreto>> opcoesSecretas =
@@ -188,9 +193,52 @@ class Partida {
 	 * sobe e a vez continua com ele.
 	 */
 	void encerrarTurnoDaVez() {
+		if (terminada) {
+			throw new IllegalStateException("A partida já terminou");
+		}
 		conferirCartasAbertas();
 		getJogadorDaVez().encerrarTurno();
 		indiceDaVez = (indiceDaVez + 1) % jogadores.size();
+		atualizarFimDeJogo();
+	}
+
+	//FIM DE JOGO
+
+	/**
+	 * Quando o conselho se completa ou todas as cidades são conquistadas, termina-se a rodada
+	 * atual (até chegar de novo a vez do 1º jogador) e joga-se mais uma rodada completa.
+	 * Chamado depois de passar a vez; o jogador que disparou o fim termina o seu turno normalmente.
+	 */
+	private void atualizarFimDeJogo() {
+		int n = jogadores.size();
+		if (fimDisparado) {
+			turnosAteOFim--;
+			terminada = turnosAteOFim == 0;
+		} else if (isConselhoCompleto() || tabuleiro.todasCidadesConquistadas()) {
+			fimDisparado = true;
+			int restantesDaRodada = indiceDaVez == 0 ? 0 : n - indiceDaVez;
+			turnosAteOFim = restantesDaRodada + n;
+		}
+	}
+
+	/** Verdadeiro depois que o fim foi disparado, mesmo que ainda faltem turnos. */
+	boolean isFimDisparado() {
+		return fimDisparado;
+	}
+
+	/** Turnos que ainda serão jogados até o fim, ou 0 se o fim ainda não foi disparado. */
+	int getTurnosAteOFim() {
+		return turnosAteOFim;
+	}
+
+	/** Verdadeiro quando a última rodada acabou; a partir daí ninguém mais joga. */
+	boolean isTerminada() {
+		return terminada;
+	}
+
+	/** Contagem de votos como seria se a partida acabasse agora; vale como final quando isTerminada(). */
+	ResultadoFinal calcularResultado() {
+		return ResultadoFinal.calcular(jogadores, tabuleiro);
 	}
 
 	//KURULTAI

@@ -20,13 +20,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import controller.ControladorJogo;
 import model.FachadaModelo;
+import model.ObservadoIF;
+import model.ObservadorIF;
 
 /**
  * Janela principal do tabuleiro (maximo 1400 x 1050). No centro fica o mapa ou, no lugar
- * dele, o tabuleiro do jogador da vez, aberto pelo botao da direita.
+ * dele, o tabuleiro do jogador da vez, a escolha da carta secreta ou a contagem final.
+ * E observadora (Observer, Cap. 17): se registra no Controller e redesenha quando o estado da
+ * partida muda ou quando o Controller manda trocar de tela.
  */
-public class JanelaTabuleiro extends JFrame {
+public class JanelaTabuleiro extends JFrame implements ObservadorIF {
 
     private static final long serialVersionUID = 1L;
 
@@ -36,11 +41,13 @@ public class JanelaTabuleiro extends JFrame {
     private static final String CARTAO_MAPA = "mapa";
     private static final String CARTAO_JOGADOR = "jogador";
     private static final String CARTAO_ESCOLHA = "escolha";
+    private static final String CARTAO_RESULTADO = "resultado";
 
     private final PainelTabuleiro painel;
     private final PainelTurno painelTurno;
     private final PainelTabuleiroJogador painelJogador;
     private final PainelEscolhaCarta painelEscolha;
+    private final PainelResultado painelResultado = new PainelResultado();
     private final PainelCartasAbertas painelAbertas = new PainelCartasAbertas();
     private final PainelTesouros painelTesouros = new PainelTesouros(this);
 
@@ -61,7 +68,7 @@ public class JanelaTabuleiro extends JFrame {
                 "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt",
                 "resources/melhorias_coordenadas.txt", "resources/bonus_coordenadas.txt",
                 "resources/kurultai_coordenadas.txt");
-        painelTurno = new PainelTurno();
+        painelTurno = new PainelTurno(this);
         painelJogador = new PainelTabuleiroJogador(this);
         painelEscolha = new PainelEscolhaCarta();
         // as dicas ficam numa faixa abaixo do mapa, para nao cobrir a trilha do Kurultai
@@ -76,11 +83,49 @@ public class JanelaTabuleiro extends JFrame {
         centro.add(mapa, CARTAO_MAPA);
         centro.add(painelJogador, CARTAO_JOGADOR);
         centro.add(painelEscolha, CARTAO_ESCOLHA);
+        centro.add(painelResultado, CARTAO_RESULTADO);
 
         add(painelTurno, BorderLayout.NORTH);
         add(centro, BorderLayout.CENTER);
         add(criarLateral(), BorderLayout.EAST);
         atualizar();
+        ControladorJogo.getInstancia().registra(this); // passa a ser avisada das mudancas
+    }
+
+    /**
+     * Aviso do observado. Se veio do Controller, troca a tela pedida; se veio da Fachada, o
+     * estado da partida mudou (peao andou, coluna ativada, vez passada...) e a janela se redesenha.
+     */
+    @Override
+    public void notify(ObservadoIF o) {
+        if (o instanceof ControladorJogo) {
+            mostrarTela(o.get(ControladorJogo.TELA));
+        } else {
+            atualizar();
+        }
+    }
+
+    private void mostrarTela(int tela) {
+        switch (tela) {
+        case ControladorJogo.TELA_MAPA:
+            mostrarMapa();
+            break;
+        case ControladorJogo.TELA_CARTELA:
+            mostrarTabuleiroJogador();
+            break;
+        case ControladorJogo.TELA_CARTAS:
+            new JanelaCartas(this).setVisible(true);
+            break;
+        case ControladorJogo.TELA_ESCOLHA_CARTA:
+            mostrarEscolhaDeCarta();
+            break;
+        case ControladorJogo.TELA_RESULTADO:
+            painelResultado.atualizar();
+            cartoes.show(centro, CARTAO_RESULTADO);
+            break;
+        default:
+            break;
+        }
     }
 
     private JPanel criarLateral() {
@@ -124,6 +169,7 @@ public class JanelaTabuleiro extends JFrame {
         painelEscolha.atualizar();
         painelAbertas.atualizar();
         painelTesouros.atualizar();
+        painelResultado.atualizar();
         atualizarBotao();
     }
 
@@ -192,13 +238,13 @@ public class JanelaTabuleiro extends JFrame {
         botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>" + nome + "</center></html>");
         botaoCartas.setText("<html><center>Cartas de<br>" + nome + "</center></html>");
         // ninguem joga nem ve cartas enquanto alguem ainda escolhe a carta secreta
-        boolean liberado = !fachada.isEscolhaDeCartasPendente();
+        boolean liberado = !fachada.isEscolhaDeCartasPendente() && !fachada.isPartidaEncerrada();
         botaoTabuleiroJogador.setEnabled(liberado);
         botaoCartas.setEnabled(liberado);
     }
 
     /** Mostra, no lugar do mapa, a escolha da carta secreta do proximo jogador. */
-    public void mostrarEscolhaDeCarta() {
+    private void mostrarEscolhaDeCarta() {
         painelEscolha.atualizar();
         cartoes.show(centro, CARTAO_ESCOLHA);
     }
@@ -209,12 +255,12 @@ public class JanelaTabuleiro extends JFrame {
     }
 
     /** Volta a mostrar o mapa no centro da janela. */
-    public void mostrarMapa() {
+    void mostrarMapa() {
         cartoes.show(centro, CARTAO_MAPA);
     }
 
     /** Mostra o tabuleiro do jogador da vez no lugar do mapa. */
-    public void mostrarTabuleiroJogador() {
+    private void mostrarTabuleiroJogador() {
         painelJogador.atualizar();
         cartoes.show(centro, CARTAO_JOGADOR);
     }
@@ -222,14 +268,14 @@ public class JanelaTabuleiro extends JFrame {
     private class OuvinteTabuleiroJogador implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            mostrarTabuleiroJogador();
+            ControladorJogo.getInstancia().abrirCartela();
         }
     }
 
     private class OuvinteCartas implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            new JanelaCartas(JanelaTabuleiro.this).setVisible(true);
+            ControladorJogo.getInstancia().abrirCartas();
         }
     }
 

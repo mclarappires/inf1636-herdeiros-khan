@@ -19,7 +19,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import controller.ControladorJogo;
@@ -47,6 +46,7 @@ class PainelSelecao extends JPanel {
     private final FachadaModelo fachada = FachadaModelo.getInstancia();
     private final String[] herois;
 
+    private final JLabel erro = new JLabel(" "); // motivo da recusa, em vermelho, sem janela que exija clique
     private final JComboBox<String> quantidade = new JComboBox<String>();
     private final List<LinhaJogador> linhas = new LinkedList<LinhaJogador>();
 
@@ -67,6 +67,9 @@ class PainelSelecao extends JPanel {
         JLabel titulo = new JLabel("Escolha dos personagens");
         titulo.setFont(FONTE_TITULO);
         topo.add(titulo, BorderLayout.NORTH);
+        erro.setFont(FONTE.deriveFont(Font.BOLD));
+        erro.setForeground(new Color(170, 20, 20));
+        topo.add(erro, BorderLayout.CENTER);
 
         JPanel numero = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         JLabel rotulo = new JLabel("Número de jogadores:");
@@ -134,9 +137,7 @@ class PainelSelecao extends JPanel {
             heroisEscolhidos.add(linhas.get(i).getHeroi());
         }
         String erro = ControladorJogo.getInstancia().iniciarPartida(heroisEscolhidos);
-        if (erro != null) {
-            JOptionPane.showMessageDialog(this, erro, "Seleção inválida", JOptionPane.WARNING_MESSAGE);
-        }
+        this.erro.setText(erro == null ? " " : erro);
     }
 
     private static JLabel criarRotulo(String texto) {

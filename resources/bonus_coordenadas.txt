@@ -1,9 +1,11 @@
-# id x y raio   centro do quadro da peca de bonus de cada conselheiro (fracao da imagem do tabuleiro)
-# id = id da parada do conselheiro no mapa_herdeiros.txt (1 = Karakorum); raio = metade do lado (fracao da largura)
-1  0.4992 0.4736 0.031
-8  0.4654 0.0699 0.032
-12 0.8320 0.0932 0.032
-13 0.0806 0.3570 0.032
-20 0.2470 0.7170 0.032
-30 0.9410 0.5800 0.032
-32 0.5900 0.8230 0.032
+# id x y raio   id = parada do conselheiro (1 = Karakorum)
+# x e y: centro do quadro impresso, em fracao da largura/altura de resources/tabuleiro.jpg
+# raio: metade do lado da peca, em fracao da largura da imagem (todos os quadros impressos tem o mesmo tamanho)
+# calibrado por deteccao dos 7 quadros no tabuleiro.jpg; se as pecas ficarem maiores ou menores que o quadro, mude so o raio
+1 0.5018 0.4819 0.0345
+8 0.4776 0.0549 0.0345
+12 0.8333 0.0976 0.0345
+13 0.0813 0.3531 0.0345
+20 0.2482 0.7156 0.0345
+30 0.9491 0.5774 0.0345
+32 0.5844 0.8201 0.0345

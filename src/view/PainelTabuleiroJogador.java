@@ -28,9 +28,9 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.Timer;
 
 import controller.ControladorJogo;
 import model.FachadaModelo;
@@ -74,6 +74,8 @@ class PainelTabuleiroJogador extends JPanel {
 
     private final JLabel titulo = new JLabel();
     private final JLabel instrucao = new JLabel();
+    private final JLabel aviso = new JLabel(" "); // recusas aparecem aqui, em vermelho, por alguns segundos
+    private final Timer relogioDoAviso = new Timer(4000, new OuvinteAviso());
     private final JPanel escolhaPeao = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
     private final JRadioButton[] botoesPeao = {new JRadioButton(), new JRadioButton()};
     private final AreaTabuleiro area = new AreaTabuleiro();
@@ -102,7 +104,11 @@ class PainelTabuleiroJogador extends JPanel {
         titulo.setFont(FONTE_TITULO);
         instrucao.setFont(FONTE);
         textos.add(titulo, BorderLayout.NORTH);
-        textos.add(instrucao, BorderLayout.SOUTH);
+        textos.add(instrucao, BorderLayout.CENTER);
+        aviso.setFont(FONTE.deriveFont(Font.BOLD));
+        aviso.setForeground(new Color(170, 20, 20));
+        textos.add(aviso, BorderLayout.SOUTH);
+        relogioDoAviso.setRepeats(false);
         topo.add(textos, BorderLayout.WEST);
 
         JLabel rotulo = new JLabel("Peão que age:");
@@ -182,17 +188,31 @@ class PainelTabuleiroJogador extends JPanel {
         }
         String coluna = colunas[indiceColuna];
         String ativa = fachada.getColunaAtiva();
-        String aviso = null;
+        String recusa = null;
         if (ativa != null) {
-            aviso = "Você já ativou a coluna " + nomeDaColuna(ativa) + " neste turno.";
+            recusa = "Você já ativou a coluna " + nomeDaColuna(ativa) + " neste turno.";
         } else if (fachada.isColunaUsada(fachada.getJogadorDaVez(), coluna)) {
-            aviso = "A coluna " + nomeDaColuna(coluna)
+            recusa = "A coluna " + nomeDaColuna(coluna)
                     + " já foi usada. Ative a coluna branca para recuperar as peças.";
         } else if (!ControladorJogo.getInstancia().ativarColuna(coluna, peaoEscolhido())) {
-            aviso = "Não foi possível ativar a coluna " + nomeDaColuna(coluna) + ".";
+            recusa = "Não foi possível ativar a coluna " + nomeDaColuna(coluna) + ".";
         }
-        if (aviso != null) {
-            JOptionPane.showMessageDialog(this, aviso, "Ativar coluna", JOptionPane.WARNING_MESSAGE);
+        if (recusa != null) {
+            mostrarAviso(recusa);
+        }
+    }
+
+    /** Escreve a recusa abaixo da instrucao (sem janela que exija clique) e a apaga depois de 4 segundos. */
+    private void mostrarAviso(String texto) {
+        aviso.setText(texto);
+        relogioDoAviso.restart();
+    }
+
+    /** Apaga o aviso quando o tempo acaba (classe ouvinte, sem lambda). */
+    private class OuvinteAviso implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            aviso.setText(" ");
         }
     }
 
@@ -481,7 +501,7 @@ class PainelTabuleiroJogador extends JPanel {
     private class OuvinteFechar implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            janela.mostrarMapa();
+            ControladorJogo.getInstancia().abrirMapa();
         }
     }
 }

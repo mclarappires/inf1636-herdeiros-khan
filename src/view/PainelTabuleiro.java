@@ -980,7 +980,7 @@ class PainelTabuleiro extends JPanel {
         }
         String motivo = ControladorJogo.getInstancia().cliqueNaProvincia(idProvincia);
         if (motivo != null) {
-            JOptionPane.showMessageDialog(this, motivo, "Pegar tributo", JOptionPane.WARNING_MESSAGE);
+            mostrarMensagem(motivo);
         }
     }
 
@@ -1000,7 +1000,7 @@ class PainelTabuleiro extends JPanel {
         }
         String motivo = ControladorJogo.getInstancia().cliqueNoKhan(local);
         if (motivo != null) {
-            JOptionPane.showMessageDialog(this, motivo, "Usar o Khan", JOptionPane.WARNING_MESSAGE);
+            mostrarMensagem(motivo);
         }
     }
 

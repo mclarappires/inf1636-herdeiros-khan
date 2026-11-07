@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,7 +15,7 @@ import java.util.Random;
 import java.util.Set;
 
 /** Único ponto de acesso ao model para view e controller; troca dados só por String e int. */
-public class FachadaModelo {
+public class FachadaModelo implements ObservadoIF {
 
 	public static final int MIN_JOGADORES = Partida.MIN_JOGADORES;
 	public static final int MAX_JOGADORES = Partida.MAX_JOGADORES;
@@ -32,11 +33,63 @@ public class FachadaModelo {
 	/** Item do pedido do conselheiro que aceita tesouros de qualquer tipo. */
 	public static final String TESOURO_QUALQUER = "QUALQUER";
 
+	//OBSERVER: códigos de get(int) e tipos de evento
+
+	/** get(EVENTO) devolve o tipo do último evento (um dos EVENTO_*). */
+	public static final int EVENTO = 0;
+	/** get(JOGADOR_DA_VEZ) devolve o índice do jogador que está jogando. */
+	public static final int JOGADOR_DA_VEZ = 1;
+
+	public static final int EVENTO_PARTIDA_NOVA = 1;
+	/** Qualquer mudança de estado: tributo, yurt, melhoria, cidade, entrega, bônus, carta secreta... */
+	public static final int EVENTO_ESTADO_ALTERADO = 2;
+	public static final int EVENTO_PEAO_MOVIDO = 3;
+	public static final int EVENTO_COLUNA_ATIVADA = 4;
+	public static final int EVENTO_VEZ_PASSADA = 5;
+	/** A última rodada acabou: a contagem final já pode ser mostrada. */
+	public static final int EVENTO_FIM_DE_JOGO = 6;
+
 	private static FachadaModelo instancia = null;
 
 	private Partida partida = null;
+	private final List<ObservadorIF> observadores = new ArrayList<ObservadorIF>();
+	private int ultimoEvento = 0;
 
 	private FachadaModelo() {
+	}
+
+	//OBSERVER
+
+	@Override
+	public void add(ObservadorIF o) {
+		if (o != null && !observadores.contains(o)) {
+			observadores.add(o);
+		}
+	}
+
+	@Override
+	public void remove(ObservadorIF o) {
+		observadores.remove(o);
+	}
+
+	/** Dado pedido pelo observador depois do aviso (EVENTO ou JOGADOR_DA_VEZ). */
+	@Override
+	public int get(int i) {
+		if (i == EVENTO) {
+			return ultimoEvento;
+		}
+		if (i == JOGADOR_DA_VEZ) {
+			return partida == null ? -1 : partida.getIndiceDaVez();
+		}
+		throw new IllegalArgumentException("Dado desconhecido: " + i);
+	}
+
+	//avisa todos os observadores (numa cópia, porque um observador pode se remover ao ser avisado)
+	private void notificar(int evento) {
+		ultimoEvento = evento;
+		for (ObservadorIF o : new ArrayList<ObservadorIF>(observadores)) {
+			o.notify(this);
+		}
 	}
 
 	public static FachadaModelo getInstancia() {
@@ -85,6 +138,7 @@ public class FachadaModelo {
 		}
 		//só troca a partida atual se a nova for válida
 		partida = new Partida(tabuleiro, heroisEscolhidos);
+		notificar(EVENTO_PARTIDA_NOVA);
 	}
 
 	public boolean temPartida() {
@@ -210,6 +264,7 @@ public class FachadaModelo {
 		Partida p = exigirPartida();
 		try {
 			p.escolherCartaSecreta(p.getJogador(jogador), id);
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -284,6 +339,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().construirYurt(p.getTabuleiro().getParada(idParada));
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -371,6 +427,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().comprarMelhoria(p.getTabuleiro().getAreaMelhorias(), espaco);
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -385,6 +442,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().comprarMelhoriaDoTopo(p.getTabuleiro().getAreaMelhorias());
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -399,6 +457,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().pegarMelhoriaGratuita(p.getTabuleiro().getAreaMelhorias(), espaco);
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -413,6 +472,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().pegarMelhoriaGratuitaDoTopo(p.getTabuleiro().getAreaMelhorias());
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -496,6 +556,7 @@ public class FachadaModelo {
 			LocalDoKhan destino = local == KHAN_AREA_MELHORIAS ? t.getAreaMelhorias() : t.getProvincia(local);
 			p.getJogadorDaVez().usarKhan(t.getPeaoKhan(), destino);
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -531,6 +592,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().atacarCidade(p.getTabuleiro(), idCidade, converterTesouro(tesouro));
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -666,6 +728,7 @@ public class FachadaModelo {
 				throw new IllegalArgumentException("A parada " + idParada + " não tem conselheiro");
 			}
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -714,6 +777,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().usarBonus(converterBonus(bonus), p.getTabuleiro());
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -738,6 +802,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().escolherTesouroDoBau(converterTesouro(tesouro));
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -762,6 +827,68 @@ public class FachadaModelo {
 			return ((Karakorum) p).getConselheiro();
 		}
 		throw new IllegalArgumentException("A parada " + p.getId() + " não tem conselheiro");
+	}
+
+	//FIM DE JOGO
+
+	/** Se o fim foi disparado (conselho completo ou todas as cidades conquistadas); ainda pode faltar jogar. */
+	public boolean isFimDisparado() {
+		return exigirPartida().isFimDisparado();
+	}
+
+	/** Turnos que ainda serão jogados até o fim da partida (0 se o fim ainda não foi disparado). */
+	public int getTurnosAteOFim() {
+		return exigirPartida().getTurnosAteOFim();
+	}
+
+	/** Se a última rodada já acabou; a partir daí nenhuma ação vale e a contagem final é a definitiva. */
+	public boolean isPartidaEncerrada() {
+		return exigirPartida().isTerminada();
+	}
+
+	/** Nomes das regiões que dão votos de influência ("RUSSIA", "CHINA", "PERSIA"). */
+	public String[] getRegioes() {
+		Regiao[] regioes = Regiao.values();
+		String[] nomes = new String[regioes.length];
+		for (int i = 0; i < nomes.length; i++) {
+			nomes[i] = regioes[i].name();
+		}
+		return nomes;
+	}
+
+	/** Nome da carta secreta do jogador (por exemplo, "Cidadão"), ou null se ainda não escolheu. */
+	public String getNomeDaCartaSecreta(int jogador) {
+		CartaConselheiroSecreto carta = exigirPartida().getJogador(jogador).getCartaSecreta();
+		return carta == null ? null : carta.getNome();
+	}
+
+	/** Yurts do jogador na região (as cidades conquistadas contam; o yurt de Karakorum não). */
+	public int getYurtsNaRegiao(int jogador, String regiao) {
+		return exigirPartida().calcularResultado().getYurtsNaRegiao(jogador, converterRegiao(regiao));
+	}
+
+	/** Votos de influência do jogador na região, como a contagem final os daria agora. */
+	public int getVotosDeInfluencia(int jogador, String regiao) {
+		return exigirPartida().calcularResultado().getVotosDeInfluencia(jogador, converterRegiao(regiao));
+	}
+
+	/** Votos finais do jogador: trilha do Kurultai, influência nas regiões e carta secreta. */
+	public int getVotosFinais(int jogador) {
+		return exigirPartida().calcularResultado().getTotal(jogador);
+	}
+
+	/**
+	 * Índices dos vencedores segundo a contagem de agora: mais votos, depois mais tesouros não
+	 * entregues, depois peão mais perto de Karakorum. Mais de um índice = vitória compartilhada.
+	 */
+	public int[] getVencedores() {
+		List<Integer> vencedores = exigirPartida().calcularResultado().getVencedores();
+		int[] indices = new int[vencedores.size()];
+		int i = 0;
+		for (Integer v : vencedores) {
+			indices[i++] = v;
+		}
+		return indices;
 	}
 
 	//TURNO
@@ -809,6 +936,7 @@ public class FachadaModelo {
 		try {
 			p.getJogadorDaVez().pegarTributo(p.getTabuleiro().getProvincia(idProvincia));
 			p.conferirCartasAbertas();
+			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -824,8 +952,12 @@ public class FachadaModelo {
 			if (p.isEscolhaDeCartasPendente()) {
 				return false; //todos precisam escolher a carta secreta antes de jogar
 			}
+			if (p.isTerminada()) {
+				return false;
+			}
 			p.getJogadorDaVez().ativarColuna(Coluna.valueOf(coluna), indicePeao);
 			p.conferirCartasAbertas();
+			notificar(EVENTO_COLUNA_ATIVADA);
 			return true;
 		} catch (IllegalStateException e) {
 			return false;
@@ -845,6 +977,7 @@ public class FachadaModelo {
 			}
 			jogador.mover(destino);
 			p.conferirCartasAbertas();
+			notificar(EVENTO_PEAO_MOVIDO);
 			return true;
 		} catch (IllegalStateException e) {
 			return false;
@@ -859,7 +992,9 @@ public class FachadaModelo {
 	 */
 	public String encerrarTurno() {
 		try {
-			exigirPartida().encerrarTurnoDaVez();
+			Partida p = exigirPartida();
+			p.encerrarTurnoDaVez();
+			notificar(p.isTerminada() ? EVENTO_FIM_DE_JOGO : EVENTO_VEZ_PASSADA);
 			return null;
 		} catch (IllegalStateException e) {
 			return e.getMessage();
@@ -889,6 +1024,14 @@ public class FachadaModelo {
 			return Heroi.valueOf(nome);
 		} catch (RuntimeException e) { //nome nulo ou desconhecido
 			throw new IllegalArgumentException("Herói desconhecido: " + nome);
+		}
+	}
+
+	private static Regiao converterRegiao(String nome) {
+		try {
+			return Regiao.valueOf(nome);
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Região desconhecida: " + nome);
 		}
 	}
 

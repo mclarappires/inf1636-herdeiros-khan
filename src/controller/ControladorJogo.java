@@ -1,16 +1,32 @@
 package controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.SwingUtilities;
 
 import model.FachadaModelo;
+import model.ObservadoIF;
+import model.ObservadorIF;
 import view.JanelaInicio;
 import view.JanelaTabuleiro;
 
-/** Liga as telas ao model e decide qual janela aparece. */
-public class ControladorJogo {
+/**
+ * Liga as telas ao model e decide qual janela aparece. A tela se registra aqui (registra) e
+ * passa a ser avisada de duas coisas: das mudancas no estado da partida, que a Fachada
+ * notifica, e das mudancas de tela (mapa, cartela, cartas...), que o Controller notifica.
+ */
+public class ControladorJogo implements ObservadoIF {
+
+    /** get(TELA) devolve a tela que deve aparecer (uma das TELA_*). */
+    public static final int TELA = 100;
+
+    public static final int TELA_MAPA = 1;
+    public static final int TELA_CARTELA = 2;
+    public static final int TELA_CARTAS = 3;
+    public static final int TELA_ESCOLHA_CARTA = 4;
+    public static final int TELA_RESULTADO = 5;
 
     private static final String ARQUIVO_MAPA = "resources/mapa_herdeiros.txt";
 
@@ -19,7 +35,75 @@ public class ControladorJogo {
     private JanelaInicio janelaInicio = null;
     private JanelaTabuleiro janelaTabuleiro = null;
 
+    private final List<ObservadorIF> observadoresDeTela = new ArrayList<ObservadorIF>();
+    private int telaAtual = TELA_MAPA;
+
     private ControladorJogo() {
+    }
+
+    //OBSERVER
+
+    /**
+     * A tela pede para ser avisada: das mudancas na partida (o pedido segue para a Fachada) e
+     * das mudancas de tela (guardado aqui).
+     */
+    public void registra(ObservadorIF o) {
+        FachadaModelo.getInstancia().add(o);
+        add(o);
+    }
+
+    /** Cancela os dois registros feitos por registra. */
+    public void cancelaRegistro(ObservadorIF o) {
+        FachadaModelo.getInstancia().remove(o);
+        remove(o);
+    }
+
+    @Override
+    public void add(ObservadorIF o) {
+        if (o != null && !observadoresDeTela.contains(o)) {
+            observadoresDeTela.add(o);
+        }
+    }
+
+    @Override
+    public void remove(ObservadorIF o) {
+        observadoresDeTela.remove(o);
+    }
+
+    /** Tela que o observador deve mostrar: get(TELA). */
+    @Override
+    public int get(int i) {
+        if (i == TELA) {
+            return telaAtual;
+        }
+        throw new IllegalArgumentException("Dado desconhecido: " + i);
+    }
+
+    //avisa as telas registradas (numa copia, porque uma tela pode se remover ao ser avisada)
+    private void mostrarTela(int tela) {
+        telaAtual = tela;
+        for (ObservadorIF o : new ArrayList<ObservadorIF>(observadoresDeTela)) {
+            o.notify(this);
+        }
+    }
+
+    /** Mostra o mapa no centro da janela. */
+    public void abrirMapa() {
+        mostrarTela(TELA_MAPA);
+    }
+
+    /** Mostra o tabuleiro (cartela com as colunas) do jogador da vez. */
+    public void abrirCartela() {
+        if (partidaEmAndamento()) {
+            mostrarTela(TELA_CARTELA);
+        }
+    }
+
+    /** Abre a janela com as cartas do jogador da vez. */
+    public void abrirCartas() {
+        if (partidaEmAndamento()) {
+            mostrarTela(TELA_CARTAS);
+        }
     }
 
     public static ControladorJogo getInstancia() {
@@ -53,9 +137,13 @@ public class ControladorJogo {
             janelaInicio.dispose();
             janelaInicio = null;
         }
-        janelaTabuleiro = new JanelaTabuleiro();
-        janelaTabuleiro.mostrarEscolhaDeCarta(); // antes da primeira rodada
+        if (janelaTabuleiro != null) { // partida anterior: a janela velha deixa de ser avisada
+            cancelaRegistro(janelaTabuleiro);
+            janelaTabuleiro.dispose();
+        }
+        janelaTabuleiro = new JanelaTabuleiro(); // se registra neste controller
         janelaTabuleiro.setVisible(true);
+        mostrarTela(TELA_ESCOLHA_CARTA); // antes da primeira rodada
         return null;
     }
 
@@ -69,9 +157,8 @@ public class ControladorJogo {
         }
         FachadaModelo fachada = FachadaModelo.getInstancia();
         String motivo = fachada.escolherCartaSecreta(fachada.getProximoJogadorSemCartaSecreta(), idCarta);
-        janelaTabuleiro.atualizar();
         if (motivo == null && !fachada.isEscolhaDeCartasPendente()) {
-            janelaTabuleiro.mostrarMapa();
+            mostrarTela(TELA_MAPA);
         }
         return motivo;
     }
@@ -88,8 +175,7 @@ public class ControladorJogo {
         if (!FachadaModelo.getInstancia().ativarColuna(coluna, indicePeao)) {
             return false;
         }
-        janelaTabuleiro.atualizar();
-        janelaTabuleiro.mostrarMapa();
+        mostrarTela(TELA_MAPA);
         return true;
     }
 
@@ -101,8 +187,7 @@ public class ControladorJogo {
         if (!partidaEmAndamento()) {
             return;
         }
-        FachadaModelo.getInstancia().moverPeaoDaVez(idParada);
-        janelaTabuleiro.atualizar();
+        FachadaModelo.getInstancia().moverPeaoDaVez(idParada); // a Fachada avisa a tela
     }
 
     /**
@@ -116,7 +201,6 @@ public class ControladorJogo {
         FachadaModelo fachada = FachadaModelo.getInstancia();
         String motivo = fachada.getMelhoriasGratuitasPendentes() > 0
                 ? fachada.pegarMelhoriaGratuita(espaco) : fachada.comprarMelhoria(espaco);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -128,7 +212,6 @@ public class ControladorJogo {
         FachadaModelo fachada = FachadaModelo.getInstancia();
         String motivo = fachada.getMelhoriasGratuitasPendentes() > 0
                 ? fachada.pegarMelhoriaGratuitaDoTopo() : fachada.comprarMelhoriaDoTopo();
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -141,7 +224,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().construirYurt(idParada);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -154,7 +236,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().pegarTributo(idProvincia);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -167,7 +248,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().usarKhan(local);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -180,7 +260,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().usarBonus(bonus);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -190,7 +269,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().escolherTesouroDoBau(tesouro);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -203,7 +281,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().atacarCidade(idCidade, tesouro);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -216,7 +293,6 @@ public class ControladorJogo {
             return null;
         }
         String motivo = FachadaModelo.getInstancia().entregarTesouros(idParada, tesouros);
-        janelaTabuleiro.atualizar();
         return motivo;
     }
 
@@ -228,16 +304,18 @@ public class ControladorJogo {
         if (!partidaEmAndamento()) {
             return null;
         }
-        String motivo = FachadaModelo.getInstancia().encerrarTurno();
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String motivo = fachada.encerrarTurno();
         if (motivo == null) {
-            janelaTabuleiro.atualizar();
-            janelaTabuleiro.mostrarMapa();
+            mostrarTela(fachada.isPartidaEncerrada() ? TELA_RESULTADO : TELA_MAPA);
         }
         return motivo;
     }
 
+    /** Ha partida iniciada e a ultima rodada ainda nao acabou (depois disso nenhuma acao vale). */
     private boolean partidaEmAndamento() {
-        return janelaTabuleiro != null && FachadaModelo.getInstancia().temPartida();
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        return janelaTabuleiro != null && fachada.temPartida() && !fachada.isPartidaEncerrada();
     }
 
     public void sair() {

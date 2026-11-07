@@ -14,7 +14,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import controller.ControladorJogo;
@@ -31,13 +30,16 @@ class PainelTurno extends JPanel {
 
     private static final Font FONTE = new Font(Font.SANS_SERIF, Font.BOLD, 18);
 
+    private final JanelaTabuleiro janela;
     private final Inventario inventario = new Inventario();
     private final JButton botaoPassar = new JButton("Passar a vez");
 
     private Color corDaVez = Color.GRAY;
     private String texto = "";
+    private String textoSecundario = null; // aviso da ultima rodada, em letra menor sob o principal
 
-    PainelTurno() {
+    PainelTurno(JanelaTabuleiro janela) {
+        this.janela = janela;
         setPreferredSize(new Dimension(0, 60));
         setLayout(new BorderLayout());
 
@@ -55,9 +57,15 @@ class PainelTurno extends JPanel {
     /** Relê o estado do jogo e redesenha a faixa. */
     void atualizar() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
+        textoSecundario = null;
         if (!fachada.temPartida()) {
             corDaVez = Color.GRAY;
             texto = "Sem partida (modo de teste)";
+            inventario.setVisible(false);
+            botaoPassar.setEnabled(false);
+        } else if (fachada.isPartidaEncerrada()) {
+            corDaVez = new Color(70, 55, 40);
+            texto = "Fim de jogo";
             inventario.setVisible(false);
             botaoPassar.setEnabled(false);
         } else if (fachada.isEscolhaDeCartasPendente()) {
@@ -78,6 +86,10 @@ class PainelTurno extends JPanel {
                     fachada.getTributoDisponivel(vez, "ESPADA"), fachada.getTributoDisponivel(vez, "YURT"),
                     fachada.getMovimentosRestantes(), fachada.getPunhosRestantes(),
                     fachada.getVotosDoJogador(vez));
+            if (fachada.isFimDisparado()) {
+                int turnos = fachada.getTurnosAteOFim();
+                textoSecundario = "Fim de jogo disparado: " + (turnos == 1 ? "falta 1 turno" : "faltam " + turnos + " turnos");
+            }
             inventario.setVisible(true);
             botaoPassar.setEnabled(true);
         }
@@ -96,7 +108,14 @@ class PainelTurno extends JPanel {
         g2.setColor(corDoTexto(corDaVez));
         g2.setFont(FONTE);
         FontMetrics medidas = g2.getFontMetrics();
-        g2.drawString(texto, 16, (getHeight() + medidas.getAscent() - medidas.getDescent()) / 2);
+        int centro = (getHeight() + medidas.getAscent() - medidas.getDescent()) / 2;
+        if (textoSecundario == null) {
+            g2.drawString(texto, 16, centro);
+        } else {
+            g2.drawString(texto, 16, centro - 9);
+            g2.setFont(FONTE.deriveFont(Font.PLAIN, 13f));
+            g2.drawString(textoSecundario, 16, centro + 11);
+        }
     }
 
     /** Texto claro em fundo escuro e vice-versa. */
@@ -200,8 +219,8 @@ class PainelTurno extends JPanel {
         public void actionPerformed(ActionEvent e) {
             String motivo = ControladorJogo.getInstancia().passarTurno();
             if (motivo != null) {
-                JOptionPane.showMessageDialog(PainelTurno.this, motivo, "Passar a vez",
-                        JOptionPane.WARNING_MESSAGE);
+                janela.mostrarMensagem(motivo); // desenhada no mapa; a faixa so aparece com o mapa na tela
+                ControladorJogo.getInstancia().abrirMapa();
             }
         }
     }
