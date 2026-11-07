@@ -39,6 +39,7 @@ public class JanelaTabuleiro extends JFrame {
     private final PainelTabuleiroJogador painelJogador;
     private final PainelEscolhaCarta painelEscolha;
     private final PainelCartasAbertas painelAbertas = new PainelCartasAbertas();
+    private final PainelTesouros painelTesouros = new PainelTesouros();
 
     private final CardLayout cartoes = new CardLayout();
     private final JPanel centro = new JPanel(cartoes);
@@ -54,7 +55,7 @@ public class JanelaTabuleiro extends JFrame {
         painel = new PainelTabuleiro("resources/tabuleiro.jpg",
                 "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
                 "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt",
-                "resources/melhorias_coordenadas.txt");
+                "resources/melhorias_coordenadas.txt", "resources/bonus_coordenadas.txt");
         painelTurno = new PainelTurno();
         painelJogador = new PainelTabuleiroJogador(this);
         painelEscolha = new PainelEscolhaCarta();
@@ -80,10 +81,14 @@ public class JanelaTabuleiro extends JFrame {
         botaoCartas.addActionListener(new OuvinteCartas());
         botoes.add(botaoCartas);
 
+        JPanel topo = new JPanel(new BorderLayout(0, 4));
+        topo.add(botoes, BorderLayout.NORTH);
+        topo.add(painelTesouros, BorderLayout.CENTER);
+
         JPanel lateral = new JPanel(new BorderLayout(0, 4));
         lateral.setBorder(BorderFactory.createEmptyBorder(0, 10, 8, 10));
         lateral.setPreferredSize(new Dimension(190, 0));
-        lateral.add(botoes, BorderLayout.NORTH);
+        lateral.add(topo, BorderLayout.NORTH);
         lateral.add(painelAbertas, BorderLayout.CENTER);
         return lateral;
     }
@@ -95,11 +100,13 @@ public class JanelaTabuleiro extends JFrame {
         painel.setCidadesVisiveis(cidadesVisiveisDaPartida());
         painel.setYurts(yurtsDaPartida());
         painel.setAreaDeMelhorias(areaDaPartida());
+        painel.setConselheiros(conselheirosDaPartida());
         atualizarKhan();
         painelTurno.atualizar();
         painelJogador.atualizar();
         painelEscolha.atualizar();
         painelAbertas.atualizar();
+        painelTesouros.atualizar();
         atualizarBotao();
     }
 
@@ -218,6 +225,24 @@ public class JanelaTabuleiro extends JFrame {
         boolean pilhaDisponivel = pilha > 0 && (gratuita
                 ? fachada.podePegarMelhoriaGratuitaDoTopo() : fachada.podeComprarMelhoriaDoTopo());
         return new AreaNaTela(simbolos, cores, disponiveis, pilha, pilhaDisponivel, gratuita);
+    }
+
+    /**
+     * Um ConselheiroNaTela por conselheiro: a peca de bonus que ainda esta nele e se o jogador
+     * da vez pode entregar tesouros a ele agora (so depois de todos escolherem a carta secreta).
+     */
+    private static List<ConselheiroNaTela> conselheirosDaPartida() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<ConselheiroNaTela> lista = new ArrayList<ConselheiroNaTela>();
+        if (!fachada.temPartida()) {
+            return lista;
+        }
+        boolean jogando = !fachada.isEscolhaDeCartasPendente();
+        for (int id : fachada.getIdsConselheiros()) {
+            lista.add(new ConselheiroNaTela(id, fachada.getBonusNoConselheiro(id),
+                    jogando && fachada.podeEntregarEm(id)));
+        }
+        return lista;
     }
 
     /** Um YurtNaTela por yurt construido, na cor do dono (o Model so informa ids e cores). */

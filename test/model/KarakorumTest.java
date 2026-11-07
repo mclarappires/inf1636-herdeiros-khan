@@ -55,10 +55,12 @@ public class KarakorumTest {
 		jogador.entregarTesouros(karakorum, oferta);
 	}
 
-	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
-	public void entregarTesouros_peaoForaDeKarakorum_lancaExcecao() {
+	/** Manual: vale a parada feita no turno, mesmo que o peão já tenha seguido viagem. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void entregarTesouros_jaSaiuDeKarakorumNoTurno_aceitaAEntrega() {
 		jogador.mover(vizinha);
 		jogador.entregarTesouros(karakorum, ofertaPedida());
+		assertEquals("A entrega em Karakorum vale 2 votos", 2, jogador.getVotos());
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)

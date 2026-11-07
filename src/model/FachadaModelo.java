@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /** Único ponto de acesso ao model para view e controller; troca dados só por String e int. */
 public class FachadaModelo {
@@ -25,6 +29,8 @@ public class FachadaModelo {
 	public static final int CUSTO_MELHORIA = Jogador.CUSTO_MELHORIA;
 	/** Quantos espaços tem a área de melhorias (numerados de 0, à esquerda, a ESPACOS-1). */
 	public static final int ESPACOS_AREA_MELHORIAS = AreaMelhorias.ESPACOS;
+	/** Item do pedido do conselheiro que aceita tesouros de qualquer tipo. */
+	public static final String TESOURO_QUALQUER = "QUALQUER";
 
 	private static FachadaModelo instancia = null;
 
@@ -510,6 +516,145 @@ public class FachadaModelo {
 		return exigirPartida().getTabuleiro().getCidade(idCidade).getQuantidade(TipoTesouro.valueOf(tipo));
 	}
 
+	//CONSELHEIROS E TESOUROS
+
+	/** Ids das paradas com conselheiro (as 6 paradas duplas e Karakorum), em ordem crescente. */
+	public int[] getIdsConselheiros() {
+		List<Integer> ids = new LinkedList<Integer>();
+		for (Parada p : exigirPartida().getTabuleiro().getParadas()) {
+			if (p instanceof ParadaConselheiro || p instanceof Karakorum) {
+				ids.add(p.getId());
+			}
+		}
+		Collections.sort(ids);
+		int[] resultado = new int[ids.size()];
+		for (int i = 0; i < resultado.length; i++) {
+			resultado[i] = ids.get(i);
+		}
+		return resultado;
+	}
+
+	/** Peça de bônus ("VOTO", "MOEDAS"...) ainda sobre o conselheiro, ou null se já foi coletada. */
+	public String getBonusNoConselheiro(int idParada) {
+		Conselheiro c = conselheiroDa(exigirPartida().getTabuleiro().getParada(idParada));
+		return c.bonusJaColetado() || c.getBonus() == null ? null : c.getBonus().name();
+	}
+
+	/**
+	 * Tesouros pedidos pelo conselheiro, com repetição ({"SEDA", "SEDA"}); no conselheiro que
+	 * aceita qualquer tipo, cada tesouro pedido aparece como TESOURO_QUALQUER.
+	 */
+	public String[] getPedidoDoConselheiro(int idParada) {
+		Conselheiro c = conselheiroDa(exigirPartida().getTabuleiro().getParada(idParada));
+		List<String> pedido = new LinkedList<String>();
+		for (TipoTesouro tipo : TipoTesouro.values()) { //ordem fixa do enum
+			Integer q = c.getPedido().get(tipo);
+			for (int i = 0; q != null && i < q; i++) {
+				pedido.add(tipo.name());
+			}
+		}
+		for (int i = 0; i < c.getQuantidadeQualquerTipo(); i++) {
+			pedido.add(TESOURO_QUALQUER);
+		}
+		return pedido.toArray(new String[pedido.size()]);
+	}
+
+	public int getVotosDoConselheiro(int idParada) {
+		return conselheiroDa(exigirPartida().getTabuleiro().getParada(idParada)).getVotosPorEntrega();
+	}
+
+	/** Se o jogador da vez pode entregar agora ao conselheiro da parada (para destacar no mapa). */
+	public boolean podeEntregarEm(int idParada) {
+		Partida p = exigirPartida();
+		try {
+			Parada local = p.getTabuleiro().getParada(idParada);
+			Conselheiro c = conselheiroDa(local);
+			Jogador j = p.getJogadorDaVez();
+			if (c.getQuantidadeQualquerTipo() == 0) {
+				return j.podeEntregar(local, c, c.getPedido());
+			}
+			//qualquer tipo: basta ter tesouros suficientes, sendo pelo menos 1 real
+			int total = 0;
+			int reais = 0;
+			for (TipoTesouro tipo : TipoTesouro.values()) {
+				total += j.getDisponivel(tipo);
+				reais += j.getQuantidade(tipo);
+			}
+			return j.visitouNoTurno(local) && total >= c.getQuantidadeQualquerTipo() && reais > 0;
+		} catch (IllegalArgumentException e) { //parada inexistente ou sem conselheiro
+			return false;
+		}
+	}
+
+	/**
+	 * O jogador da vez entrega os tesouros (tipos com repetição) ao conselheiro da parada.
+	 * Devolve null se entregou, ou o motivo de não poder (não parou lá, faltam tesouros...).
+	 */
+	public String entregarTesouros(int idParada, String[] tesouros) {
+		Partida p = exigirPartida();
+		try {
+			if (tesouros == null) {
+				throw new IllegalArgumentException("Nenhum tesouro escolhido");
+			}
+			Map<TipoTesouro, Integer> oferta = new HashMap<TipoTesouro, Integer>();
+			for (String nome : tesouros) {
+				TipoTesouro tipo = converterTesouro(nome);
+				Integer q = oferta.get(tipo);
+				oferta.put(tipo, q == null ? 1 : q + 1);
+			}
+			Parada local = p.getTabuleiro().getParada(idParada);
+			Jogador j = p.getJogadorDaVez();
+			if (local instanceof Karakorum) {
+				j.entregarTesouros((Karakorum) local, oferta);
+			} else if (local instanceof ParadaConselheiro) {
+				j.entregarTesouros((ParadaConselheiro) local, oferta);
+			} else {
+				throw new IllegalArgumentException("A parada " + idParada + " não tem conselheiro");
+			}
+			p.conferirCartasAbertas();
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	/** Tesouros do tipo que o jogador pode usar agora: peças mais os tesouros virtuais do turno. */
+	public int getTesouroDisponivel(int jogador, String tipo) {
+		return exigirPartida().getJogador(jogador).getDisponivel(converterTesouro(tipo));
+	}
+
+	/** Peças de bônus que o jogador já ganhou, usadas ou não, na ordem do enum. */
+	public String[] getBonusDoJogador(int jogador) {
+		Set<PecaBonus> doJogador = exigirPartida().getJogador(jogador).getBonus();
+		List<String> nomes = new LinkedList<String>();
+		for (PecaBonus peca : PecaBonus.values()) {
+			if (doJogador.contains(peca)) {
+				nomes.add(peca.name());
+			}
+		}
+		return nomes.toArray(new String[nomes.size()]);
+	}
+
+	public boolean isBonusUsado(int jogador, String bonus) {
+		try {
+			return exigirPartida().getJogador(jogador).isBonusUsado(PecaBonus.valueOf(bonus));
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Peça de bônus desconhecida: " + bonus);
+		}
+	}
+
+	private static Conselheiro conselheiroDa(Parada p) {
+		if (p instanceof ParadaConselheiro) {
+			return ((ParadaConselheiro) p).getConselheiro();
+		}
+		if (p instanceof Karakorum) {
+			return ((Karakorum) p).getConselheiro();
+		}
+		throw new IllegalArgumentException("A parada " + p.getId() + " não tem conselheiro");
+	}
+
 	//TURNO
 
 	/** Índice (na ordem de jogada) do jogador que está jogando. */
@@ -643,6 +788,14 @@ public class FachadaModelo {
 			return Coluna.valueOf(nome);
 		} catch (RuntimeException e) { //nome nulo ou desconhecido
 			throw new IllegalArgumentException("Coluna desconhecida: " + nome);
+		}
+	}
+
+	private static TipoTesouro converterTesouro(String nome) {
+		try {
+			return TipoTesouro.valueOf(nome);
+		} catch (RuntimeException e) { //nome nulo ou desconhecido
+			throw new IllegalArgumentException("Tesouro desconhecido: " + nome);
 		}
 	}
 

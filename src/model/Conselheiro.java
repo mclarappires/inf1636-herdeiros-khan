@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,6 +123,16 @@ class Conselheiro {
 			}
 		}
 		return true;
+	}
+
+	/** Tesouros pedidos por tipo; vazio no conselheiro que aceita qualquer tipo. */
+	Map<TipoTesouro, Integer> getPedido() {
+		return Collections.unmodifiableMap(exigidos);
+	}
+
+	/** Quantos tesouros de qualquer tipo o conselheiro pede; zero se o pedido for de tipos específicos. */
+	int getQuantidadeQualquerTipo() {
+		return quantQualquerTipo;
 	}
 
 	int getVotosPorEntrega() {

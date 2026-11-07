@@ -1,0 +1,9 @@
+# id x y raio   centro do quadro da peca de bonus de cada conselheiro (fracao da imagem do tabuleiro)
+# id = id da parada do conselheiro no mapa_herdeiros.txt (1 = Karakorum); raio = metade do lado (fracao da largura)
+1  0.4992 0.4736 0.031
+8  0.4654 0.0699 0.032
+12 0.8320 0.0932 0.032
+13 0.0806 0.3570 0.032
+20 0.2470 0.7170 0.032
+30 0.9410 0.5800 0.032
+32 0.5900 0.8230 0.032

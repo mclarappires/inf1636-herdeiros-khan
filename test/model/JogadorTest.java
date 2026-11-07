@@ -226,6 +226,23 @@ public class JogadorTest {
 		assertEquals("Deveria sobrar 1 ferro", 1, jogador.getQuantidade(TipoTesouro.FERRO));
 	}
 
+	/** O peão parou no conselheiro e voltou; a parada feita no turno ainda vale para a entrega. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void entregarTesouros_conselheiroVisitadoNoTurno_aceitaMesmoDepoisDeSair() {
+		levarAoConselheiroComFerro(2);
+		jogador.mover(distante);
+		jogador.entregarTesouros(paradaDoConselheiro, ofertaDeFerro(2));
+		assertEquals("A entrega vale 1 voto", 1, jogador.getVotos());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void entregarTesouros_conselheiroNaoVisitado_lancaExcecao() {
+		jogador.receberTesouro(TipoTesouro.FERRO);
+		jogador.receberTesouro(TipoTesouro.FERRO);
+		jogador.ativarColuna(Coluna.PRIMEIRA);
+		jogador.entregarTesouros(paradaDoConselheiro, ofertaDeFerro(2));
+	}
+
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
 	public void entregarTesouros_semOsTesourosOfertados_lancaExcecao() {
 		levarAoConselheiroComFerro(1);

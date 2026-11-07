@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,10 @@ class PainelTabuleiro extends JPanel {
     private PosicoesParadas posicoesCidades;
     private PosicoesParadas posicoesKhan;
     private PosicoesParadas posicoesMelhorias;
+    private PosicoesParadas posicoesBonus;
+
+    /** Conselheiros com a peca de bonus que ainda esta sobre eles e se a entrega e possivel agora. */
+    private final List<ConselheiroNaTela> conselheiros = new ArrayList<ConselheiroNaTela>();
 
     /** Ids em melhorias_coordenadas.txt: 0 a 4 sao os espacos da area; 5 e a pilha. */
     private static final int ID_PILHA_DE_MELHORIAS = 5;
@@ -98,7 +103,7 @@ class PainelTabuleiro extends JPanel {
     private int imgX, imgY, imgLargura, imgAltura;
 
     PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias,
-            String caminhoCidades, String caminhoKhan, String caminhoMelhorias) {
+            String caminhoCidades, String caminhoKhan, String caminhoMelhorias, String caminhoBonus) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
@@ -129,6 +134,12 @@ class PainelTabuleiro extends JPanel {
         } catch (IOException e) {
             posicoesMelhorias = null;
             System.err.println("Nao foi possivel ler as posicoes das melhorias: " + caminhoMelhorias);
+        }
+        try {
+            posicoesBonus = new PosicoesParadas(caminhoBonus);
+        } catch (IOException e) {
+            posicoesBonus = null;
+            System.err.println("Nao foi possivel ler as posicoes das pecas de bonus: " + caminhoBonus);
         }
         relogioDaMensagem.setRepeats(false);
         addMouseListener(new OuvinteMouse());
@@ -167,6 +178,13 @@ class PainelTabuleiro extends JPanel {
     void setTributos(List<PilhaDeTributos> novas) {
         tributos.clear();
         tributos.addAll(novas);
+        repaint();
+    }
+
+    /** Troca os conselheiros exibidos (peca de bonus de cada um e se aceita entrega agora). */
+    void setConselheiros(List<ConselheiroNaTela> novos) {
+        conselheiros.clear();
+        conselheiros.addAll(novos);
         repaint();
     }
 
@@ -219,6 +237,7 @@ class PainelTabuleiro extends JPanel {
         g2.drawImage(imagemTabuleiro, imgX, imgY, imgLargura, imgAltura, null);
 
         desenharCidades(g2);
+        desenharBonus(g2);
         desenharTributos(g2);
         desenharAreaDeMelhorias(g2);
         desenharYurts(g2);
@@ -272,6 +291,76 @@ class PainelTabuleiro extends JPanel {
                     g2.drawImage(tesouro, x0 + i * passo, y0, diametro, diametro, null);
                 }
             }
+        }
+    }
+
+    /**
+     * Desenha a peca de bonus que ainda esta sobre cada conselheiro e destaca em dourado os
+     * conselheiros que aceitam entrega do jogador da vez agora.
+     */
+    private void desenharBonus(Graphics2D g2) {
+        if (posicoesBonus == null) {
+            return;
+        }
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        for (ConselheiroNaTela c : conselheiros) {
+            double[] p = posicoesBonus.get(c.getParada());
+            if (p == null) {
+                continue;
+            }
+            int lado = (int) (2 * p[2] * imgLargura);
+            int x = imgX + (int) (p[0] * imgLargura) - lado / 2;
+            int y = imgY + (int) (p[1] * imgAltura) - lado / 2;
+            if (c.getBonus() != null) {
+                BufferedImage sprite = SpriteBonus.de(c.getBonus());
+                if (sprite != null) {
+                    g2.drawImage(sprite, x, y, lado, lado, null);
+                }
+            }
+            if (c.isDisponivel()) {
+                desenharContorno(g2, x, y, lado, lado, DOURADO);
+            }
+        }
+    }
+
+    /** Conselheiro disponivel para entrega sob o clique, ou null. */
+    private Integer conselheiroNoClique(double fx, double fy) {
+        if (posicoesBonus == null) {
+            return null;
+        }
+        for (ConselheiroNaTela c : conselheiros) {
+            double[] p = posicoesBonus.get(c.getParada());
+            if (!c.isDisponivel() || p == null) {
+                continue;
+            }
+            double meioX = p[2];
+            double meioY = p[2] * imgLargura / imgAltura;
+            if (Math.abs(fx - p[0]) <= meioX && Math.abs(fy - p[1]) <= meioY) {
+                return c.getParada();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Clique no conselheiro: entrega o pedido dele. No conselheiro que aceita qualquer tesouro,
+     * o jogador escolhe antes quais vai entregar. Se a entrega for recusada, mostra o motivo.
+     */
+    private void aoClicarConselheiro(int idParada) {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String[] oferta = fachada.getPedidoDoConselheiro(idParada);
+        if (Arrays.asList(oferta).contains(FachadaModelo.TESOURO_QUALQUER)) {
+            oferta = JanelaEscolhaTesouros.escolher(SwingUtilities.getWindowAncestor(this), oferta.length);
+            if (oferta == null) {
+                return; // desistiu
+            }
+        }
+        String motivo = ControladorJogo.getInstancia().entregarTesouros(idParada, oferta);
+        if (motivo != null) {
+            mostrarMensagem("Entrega recusada: " + motivo);
+        } else {
+            mensagem = null;
+            repaint();
         }
     }
 
@@ -675,6 +764,12 @@ class PainelTabuleiro extends JPanel {
             Integer melhoria = melhoriaNoClique(fx, fy);
             if (melhoria != null) {
                 aoClicarMelhoria(melhoria);
+                return;
+            }
+            // so recebe clique quando a entrega e possivel, para nao atrapalhar o clique em Karakorum
+            Integer conselheiro = conselheiroNoClique(fx, fy);
+            if (conselheiro != null) {
+                aoClicarConselheiro(conselheiro);
                 return;
             }
             // os lugares do Khan so recebem clique enquanto ele precisa ser usado

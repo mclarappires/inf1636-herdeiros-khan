@@ -172,6 +172,19 @@ public class ControladorJogo {
     }
 
     /**
+     * Clique no conselheiro de uma parada: o jogador da vez entrega os tesouros escolhidos
+     * (tipos com repeticao). Devolve null se entregou, ou o motivo para a tela mostrar.
+     */
+    public String entregarTesouros(int idParada, String[] tesouros) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        String motivo = FachadaModelo.getInstancia().entregarTesouros(idParada, tesouros);
+        janelaTabuleiro.atualizar();
+        return motivo;
+    }
+
+    /**
      * Encerra o turno do jogador da vez e mostra o mapa para o proximo.
      * Devolve null se a vez passou, ou o motivo para a tela mostrar.
      */

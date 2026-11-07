@@ -358,8 +358,9 @@ class Jogador {
 		if (oferta == null) {
 			throw new IllegalArgumentException("Oferta nula");
 		}
-		if (peaoAtivo.getPosicao() != local) {
-			throw new IllegalStateException("O peão não está na parada " + local.getId());
+		//vale qualquer conselheiro onde o peão parou no turno, mesmo que já tenha seguido viagem
+		if (!paradasVisitadas.contains(local)) {
+			throw new IllegalStateException("O peão não parou na parada " + local.getId() + " neste turno");
 		}
 		Map<TipoTesouro, Integer> reais = separarTesourosReais(oferta);
 		if (!conselheiro.aceita(oferta)) {
@@ -381,6 +382,27 @@ class Jogador {
 			}
 		}
 		return peca;
+	}
+
+	/** Diz se a entrega da oferta ao conselheiro da parada seria aceita agora, sem alterar nada. */
+	boolean podeEntregar(Parada local, Conselheiro conselheiro, Map<TipoTesouro, Integer> oferta) {
+		if (colunaAtiva == null || local == null || conselheiro == null || oferta == null
+				|| !paradasVisitadas.contains(local)) {
+			return false;
+		}
+		try {
+			separarTesourosReais(oferta);
+			return conselheiro.aceita(oferta);
+		} catch (IllegalStateException e) {
+			return false;
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+	/** Se o jogador parou na parada durante o turno atual. */
+	boolean visitouNoTurno(Parada p) {
+		return colunaAtiva != null && paradasVisitadas.contains(p);
 	}
 
 	/**
@@ -613,6 +635,11 @@ class Jogador {
 
 	Set<PecaBonus> getBonus() {
 		return Collections.unmodifiableSet(bonus.keySet());
+	}
+
+	/** Se a peça de bônus do jogador já foi usada; falso se ele não tem a peça. */
+	boolean isBonusUsado(PecaBonus peca) {
+		return Boolean.TRUE.equals(bonus.get(peca));
 	}
 
 	CartaConselheiroSecreto getCartaSecreta() {

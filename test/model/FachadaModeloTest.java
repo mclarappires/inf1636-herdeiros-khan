@@ -1,5 +1,6 @@
 package model;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -8,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -327,6 +330,49 @@ public class FachadaModeloTest {
 		assertEquals(0, fachada.getVotosDaCartaSecreta(0)); //ainda sem carta
 		assertNull(fachada.escolherCartaSecreta(0, fachada.getOpcoesDeCartaSecreta(0)[0]));
 		assertEquals(0, fachada.getVotosDaCartaSecreta(0));
+	}
+
+	// CONSELHEIROS
+
+	/** Manual: uma peça de bônus diferente sobre cada um dos 7 conselheiros (Karakorum incluída). */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getBonusNoConselheiro_inicioDaPartida_seteBonusDiferentes() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		int[] ids = fachada.getIdsConselheiros();
+		assertArrayEquals(new int[] { 1, 8, 12, 13, 20, 30, 32 }, ids);
+		Set<String> bonus = new HashSet<String>();
+		for (int id : ids) {
+			assertNotNull("Conselheiro " + id + " sem peça de bônus", fachada.getBonusNoConselheiro(id));
+			bonus.add(fachada.getBonusNoConselheiro(id));
+		}
+		assertEquals(7, bonus.size());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getPedidoDoConselheiro_comunsKarakorumEQualquer() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		assertArrayEquals(new String[] { "SEDA", "SEDA" }, fachada.getPedidoDoConselheiro(8));
+		assertEquals(3, fachada.getPedidoDoConselheiro(1).length);
+		assertEquals(2, fachada.getVotosDoConselheiro(1));
+		String q = FachadaModelo.TESOURO_QUALQUER;
+		assertArrayEquals(new String[] { q, q, q }, fachada.getPedidoDoConselheiro(32));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void podeEntregarEm_semTesouros_eFalsoEEntregaDevolveMotivo() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		assertTrue(fachada.ativarColuna("PRIMEIRA", 0)); //o peão está em Karakorum
+		assertFalse(fachada.podeEntregarEm(1));
+		assertNotNull(fachada.entregarTesouros(1, fachada.getPedidoDoConselheiro(1)));
+		assertEquals(0, fachada.getVotosDoJogador(0));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void entregarTesouros_paradaSemConselheiro_devolveMotivo() throws IOException {
+		comecarPartida("JOCHI", "TOLUI");
+		assertTrue(fachada.ativarColuna("PRIMEIRA", 0));
+		assertNotNull(fachada.entregarTesouros(2, new String[] { "SEDA", "SEDA" }));
+		assertFalse(fachada.podeEntregarEm(2));
 	}
 
 	@Test(expected = IOException.class, timeout = DEFAULT_TIMEOUT)
