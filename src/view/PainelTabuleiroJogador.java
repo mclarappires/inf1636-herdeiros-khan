@@ -11,10 +11,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +81,7 @@ class PainelTabuleiroJogador extends JPanel {
     private final Map<String, Image> imagensHerois = new HashMap<String, Image>();
     private final Map<String, BufferedImage> spritesTributo = new HashMap<String, BufferedImage>();
     private final Map<String, BufferedImage> spritesPeca = new HashMap<String, BufferedImage>();
+    private final Map<String, BufferedImage> imagensAtivacao = new HashMap<String, BufferedImage>();
 
     private int jogadorMostrado = -1;
 
@@ -216,6 +219,14 @@ class PainelTabuleiroJogador extends JPanel {
         return spritesPeca.get(chave);
     }
 
+    /** Peça de ativação do herói; null se o arquivo não existir, e aí a coluna mostra "USADA". */
+    private BufferedImage imagemDaAtivacao(String heroi) {
+        if (!imagensAtivacao.containsKey(heroi)) {
+            imagensAtivacao.put(heroi, SpriteAtivacao.criar(heroi));
+        }
+        return imagensAtivacao.get(heroi);
+    }
+
     private BufferedImage iconeDaMelhoria(String simbolo) {
         if (simbolo.equals("MOEDA") || simbolo.equals("ESPADA") || simbolo.equals("YURT")) {
             if (!spritesTributo.containsKey(simbolo)) {
@@ -286,10 +297,11 @@ class PainelTabuleiroJogador extends JPanel {
             g2.drawImage(imagem, imgX, imgY, imgLargura, imgAltura, null);
 
             String ativa = fachada.getColunaAtiva();
+            BufferedImage ativacao = imagemDaAtivacao(fachada.getHeroiDoJogador(vez));
             for (int k = 0; k < colunas.length; k++) {
                 desenharMelhorias(g2, fachada, vez, k);
                 if (fachada.isColunaUsada(vez, colunas[k])) {
-                    desenharUsada(g2, k);
+                    desenharUsada(g2, k, ativacao);
                 }
                 if (colunas[k].equals(ativa)) {
                     contornarColuna(g2, k, DOURADO, 6f);
@@ -361,15 +373,29 @@ class PainelTabuleiroJogador extends JPanel {
             escreverCentralizado(g2, "ocupado", x, y, l, a, Color.WHITE, a / 5);
         }
 
-        /** Peca de ativacao ja esta na coluna: escurece os icones da base. */
-        private void desenharUsada(Graphics2D g2, int k) {
+        /**
+         * Peca de ativacao ja esta na coluna: escurece os icones da base e desenha por cima a
+         * peca do heroi, recortada em circulo para esconder o fundo branco do JPEG.
+         */
+        private void desenharUsada(Graphics2D g2, int k, BufferedImage peca) {
             int x = px(X_COLUNAS[k]);
             int y = py(Y_BASE);
             int l = tamanho(LARGURA_COLUNA, imgLargura);
             int a = tamanho(ALTURA_BASE, imgAltura);
             g2.setColor(new Color(0, 0, 0, 160));
             g2.fillRect(x, y, l, a);
-            escreverCentralizado(g2, "USADA", x, y, l, a, Color.WHITE, a / 3);
+            if (peca == null) {
+                escreverCentralizado(g2, "USADA", x, y, l, a, Color.WHITE, a / 3);
+                return;
+            }
+            int d = (int) (Math.min(l, a) * 0.95);
+            int xPeca = x + (l - d) / 2;
+            int yPeca = y + (a - d) / 2;
+            double margem = d * 0.02;
+            Shape clipAnterior = g2.getClip();
+            g2.clip(new Ellipse2D.Double(xPeca + margem, yPeca + margem, d - 2 * margem, d - 2 * margem));
+            g2.drawImage(peca, xPeca, yPeca, d, d, null);
+            g2.setClip(clipAnterior);
         }
 
         private void contornarColuna(Graphics2D g2, int k, Color cor, float espessura) {
