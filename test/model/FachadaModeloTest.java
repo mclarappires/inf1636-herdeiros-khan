@@ -375,6 +375,16 @@ public class FachadaModeloTest {
 		assertFalse(fachada.podeEntregarEm(2));
 	}
 
+	// KURULTAI
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getVotosDoConselho_inicioComTresJogadores_zeroDeQuatorze() throws IOException {
+		comecarPartida("JOCHI", "TOLUI", "ALTANI");
+		assertEquals(0, fachada.getVotosDoConselho());
+		assertEquals(14, fachada.getVotosParaReunirConselho());
+		assertFalse(fachada.isConselhoCompleto());
+	}
+
 	// CIDADES
 
 	/** Em Karakorum não há cidade adjacente: nenhuma das 3 cidades visíveis pode ser atacada. */

@@ -48,6 +48,34 @@ public class PartidaTest {
 		}
 	}
 
+	// KURULTAI
+
+	/** Manual: a ficha neutra dispara o fim em 10 / 14 / 16 / 17 votos para 2 / 3 / 4 / 5 jogadores. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getVotosParaReunirConselho_dependeDoNumeroDeJogadores() {
+		assertEquals(10, new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI)).getVotosParaReunirConselho());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getVotosParaReunirConselho_cincoJogadores_dezessete() {
+		Partida p = new Partida(tabuleiro,
+				herois(Heroi.ALTANI, Heroi.CHAGATAI, Heroi.JOCHI, Heroi.OGEDEI, Heroi.TOLUI));
+		assertEquals(17, p.getVotosParaReunirConselho());
+	}
+
+	/** A ficha neutra avança a cada voto de qualquer jogador; ao chegar no limite, o conselho está completo. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void getVotosDoConselho_somaOsVotosDeTodos() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI));
+		assertEquals(0, p.getVotosDoConselho());
+		p.getJogador(0).adicionarVotos(6);
+		p.getJogador(1).adicionarVotos(3);
+		assertEquals(9, p.getVotosDoConselho());
+		assertFalse("9 de 10 votos", p.isConselhoCompleto());
+		p.getJogador(1).adicionarVotos(1);
+		assertTrue("Chegou a 10 com 2 jogadores", p.isConselhoCompleto());
+	}
+
 	@Test(timeout = DEFAULT_TIMEOUT)
 	public void criar_mantemAOrdemDasEscolhas() {
 		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI));

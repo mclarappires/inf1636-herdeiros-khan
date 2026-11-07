@@ -237,6 +237,21 @@ public class FachadaModelo {
 		return exigirPartida().getJogador(jogador).getVotos();
 	}
 
+	/** Posição da ficha neutra na trilha do Kurultai: total de votos ganhos por todos até agora. */
+	public int getVotosDoConselho() {
+		return exigirPartida().getVotosDoConselho();
+	}
+
+	/** Casa da trilha que completa o conselho e dispara o fim (10, 14, 16 ou 17, pelo número de jogadores). */
+	public int getVotosParaReunirConselho() {
+		return exigirPartida().getVotosParaReunirConselho();
+	}
+
+	/** Se a ficha neutra já chegou ao limite, isto é, se o fim da partida foi disparado. */
+	public boolean isConselhoCompleto() {
+		return exigirPartida().isConselhoCompleto();
+	}
+
 	//YURTS
 
 	/** Ids de todas as paradas do tabuleiro. */

@@ -19,6 +19,16 @@ class Partida {
 	/** Cartas secretas entregues a cada jogador, das quais ele guarda uma. */
 	static final int CARTAS_SECRETAS_POR_JOGADOR = 2;
 
+	/** Número de jogadores -> votos da ficha neutra que completam o Kurultai e disparam o fim. */
+	private static final Map<Integer, Integer> VOTOS_PARA_REUNIR = new HashMap<Integer, Integer>();
+
+	static {
+		VOTOS_PARA_REUNIR.put(2, 10);
+		VOTOS_PARA_REUNIR.put(3, 14);
+		VOTOS_PARA_REUNIR.put(4, 16);
+		VOTOS_PARA_REUNIR.put(5, 17);
+	}
+
 	private final Tabuleiro tabuleiro;
 	private final List<Jogador> jogadores = new LinkedList<Jogador>(); //na ordem de jogada
 	private int indiceDaVez = 0;
@@ -181,6 +191,31 @@ class Partida {
 		conferirCartasAbertas();
 		getJogadorDaVez().encerrarTurno();
 		indiceDaVez = (indiceDaVez + 1) % jogadores.size();
+	}
+
+	//KURULTAI
+
+	/**
+	 * Posição da ficha neutra na trilha do Kurultai: ela avança a cada voto que qualquer jogador
+	 * ganha durante o jogo, então é a soma dos votos de todos (os votos de influência e das
+	 * cartas secretas só são contados no fim e não entram aqui).
+	 */
+	int getVotosDoConselho() {
+		int total = 0;
+		for (Jogador j : jogadores) {
+			total += j.getVotos();
+		}
+		return total;
+	}
+
+	/** Votos da ficha neutra que completam o conselho: 10, 14, 16 ou 17 para 2, 3, 4 ou 5 jogadores. */
+	int getVotosParaReunirConselho() {
+		return VOTOS_PARA_REUNIR.get(jogadores.size());
+	}
+
+	/** Verdadeiro quando a ficha neutra chegou ao limite: o fim da partida foi disparado. */
+	boolean isConselhoCompleto() {
+		return getVotosDoConselho() >= getVotosParaReunirConselho();
 	}
 
 	//CONSULTAS

@@ -1,0 +1,22 @@
+# id x y raio   casas da trilha do Kurultai (fracao da imagem do tabuleiro); id = numero de votos
+# 0 = fora da trilha, ao lado do assento (onde as fichas comecam); 1 = casa com o assento impresso
+# linha de cima: 1 a 10, da esquerda para a direita; linha de baixo: 11 a 17, da direita para a esquerda
+# marcas impressas: "2" na casa 10, "3" na 14, "4" na 16 e "5" na 17 (fim de jogo por numero de jogadores)
+0  0.3305 0.8993 0.025
+1  0.3924 0.8993 0.029
+2  0.4554 0.8993 0.029
+3  0.5184 0.8993 0.029
+4  0.5814 0.8993 0.029
+5  0.6444 0.8993 0.029
+6  0.7074 0.8993 0.029
+7  0.7704 0.8993 0.029
+8  0.8334 0.8993 0.029
+9  0.8964 0.8993 0.029
+10 0.9594 0.8993 0.029
+11 0.9294 0.9558 0.029
+12 0.8664 0.9558 0.029
+13 0.8034 0.9558 0.029
+14 0.7404 0.9558 0.029
+15 0.6775 0.9558 0.029
+16 0.6145 0.9558 0.029
+17 0.5515 0.9558 0.029

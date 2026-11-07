@@ -54,6 +54,15 @@ class PainelTabuleiro extends JPanel {
     private PosicoesParadas posicoesKhan;
     private PosicoesParadas posicoesMelhorias;
     private PosicoesParadas posicoesBonus;
+    private PosicoesParadas posicoesKurultai;
+
+    /** Fichas da trilha do Kurultai (jogadores e neutra) e a casa que completa o conselho. */
+    private final List<FichaNaTela> fichas = new ArrayList<FichaNaTela>();
+    private int casaDoFim = -1;
+    /** Ultima casa da trilha; quem tem mais votos fica nela, com o total escrito na ficha. */
+    private static final int ULTIMA_CASA_KURULTAI = 17;
+    /** Diametro de uma ficha do Kurultai, em fracao da largura da imagem do tabuleiro. */
+    private static final double DIAMETRO_FICHA = 0.019;
 
     /** Conselheiros com a peca de bonus que ainda esta sobre eles e se a entrega e possivel agora. */
     private final List<ConselheiroNaTela> conselheiros = new ArrayList<ConselheiroNaTela>();
@@ -109,7 +118,8 @@ class PainelTabuleiro extends JPanel {
     private int imgX, imgY, imgLargura, imgAltura;
 
     PainelTabuleiro(String caminhoImagem, String caminhoPosicoes, String caminhoProvincias,
-            String caminhoCidades, String caminhoKhan, String caminhoMelhorias, String caminhoBonus) {
+            String caminhoCidades, String caminhoKhan, String caminhoMelhorias, String caminhoBonus,
+            String caminhoKurultai) {
         carregarImagem(caminhoImagem);
         try {
             posicoes = new PosicoesParadas(caminhoPosicoes);
@@ -146,6 +156,12 @@ class PainelTabuleiro extends JPanel {
         } catch (IOException e) {
             posicoesBonus = null;
             System.err.println("Nao foi possivel ler as posicoes das pecas de bonus: " + caminhoBonus);
+        }
+        try {
+            posicoesKurultai = new PosicoesParadas(caminhoKurultai);
+        } catch (IOException e) {
+            posicoesKurultai = null;
+            System.err.println("Nao foi possivel ler as casas do Kurultai: " + caminhoKurultai);
         }
         relogioDaMensagem.setRepeats(false);
         addMouseListener(new OuvinteMouse());
@@ -184,6 +200,14 @@ class PainelTabuleiro extends JPanel {
     void setTributos(List<PilhaDeTributos> novas) {
         tributos.clear();
         tributos.addAll(novas);
+        repaint();
+    }
+
+    /** Troca as fichas da trilha do Kurultai e a casa que completa o conselho. */
+    void setKurultai(List<FichaNaTela> novas, int casaQueCompleta) {
+        fichas.clear();
+        fichas.addAll(novas);
+        casaDoFim = casaQueCompleta;
         repaint();
     }
 
@@ -254,11 +278,11 @@ class PainelTabuleiro extends JPanel {
         desenharBonus(g2);
         desenharTributos(g2);
         desenharAreaDeMelhorias(g2);
+        desenharKurultai(g2);
         desenharYurts(g2);
         desenharPeoes(g2);
         desenharKhan(g2);
 
-        desenharDicas(g2);
         desenharMensagem(g2);
 
         if (mostrarMarcadores && posicoes != null) {
@@ -534,46 +558,72 @@ class PainelTabuleiro extends JPanel {
     }
 
     /**
-     * Dicas fixas no canto de baixo do mapa (sobre a trilha do Kurultai, que ainda nao e usada):
-     * como construir yurts e como comprar melhorias.
+     * Fichas na trilha do Kurultai: cada jogador na casa dos seus votos e a ficha neutra (branca)
+     * na soma dos votos de todos. A casa que completa o conselho com este numero de jogadores
+     * ganha um anel dourado. Quem passa da ultima casa fica nela, com o total escrito na ficha.
      */
-    private void desenharDicas(Graphics2D g2) {
-        FachadaModelo fachada = FachadaModelo.getInstancia();
-        List<String> linhas = new ArrayList<String>();
-        linhas.add("Botão direito numa parada: construir yurt"
-                + (fachada.temPartida() ? " (você tem " + fachada.getYurtsParaConstruir() + ")" : ""));
-        linhas.add(areaDeMelhorias != null && areaDeMelhorias.isGratuita()
-                ? "Melhoria grátis: clique numa peça da área ou na pilha"
-                : "Clique numa peça da área: comprar (" + FachadaModelo.CUSTO_MELHORIA + " moedas)");
-        linhas.add("Tesouro de cidade destacada: atacar (1 espada; os seguintes, 2)");
-
-        int larguraMaxima = (int) (0.385 * imgLargura);
-        int tamanhoFonte = Math.max(imgLargura / 62, 9);
-        FontMetrics medidas;
-        do {
-            g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanhoFonte));
-            medidas = g2.getFontMetrics();
-            tamanhoFonte--;
-        } while (tamanhoFonte >= 8 && maiorLinha(linhas, medidas) > larguraMaxima - 12);
-
-        int altura = linhas.size() * medidas.getHeight() + 8;
-        int x = imgX + (int) (0.60 * imgLargura);
-        int y = imgY + (int) (0.992 * imgAltura) - altura;
+    private void desenharKurultai(Graphics2D g2) {
+        if (posicoesKurultai == null || fichas.isEmpty()) {
+            return;
+        }
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setColor(new Color(0, 0, 0, 175));
-        g2.fillRoundRect(x, y, larguraMaxima, altura, 12, 12);
-        g2.setColor(Color.WHITE);
-        for (int i = 0; i < linhas.size(); i++) {
-            g2.drawString(linhas.get(i), x + 8, y + 4 + medidas.getAscent() + i * medidas.getHeight());
+        double[] fim = posicoesKurultai.get(casaDoFim);
+        if (fim != null) {
+            int r = (int) (fim[2] * imgLargura);
+            int cx = imgX + (int) (fim[0] * imgLargura);
+            int cy = imgY + (int) (fim[1] * imgAltura);
+            g2.setColor(DOURADO);
+            g2.setStroke(new BasicStroke(3f));
+            g2.drawOval(cx - r, cy - r, 2 * r, 2 * r);
+        }
+
+        Map<Integer, List<FichaNaTela>> porCasa = new HashMap<Integer, List<FichaNaTela>>();
+        for (FichaNaTela f : fichas) {
+            int casa = Math.min(f.getVotos(), ULTIMA_CASA_KURULTAI);
+            List<FichaNaTela> grupo = porCasa.get(casa);
+            if (grupo == null) {
+                grupo = new ArrayList<FichaNaTela>();
+                porCasa.put(casa, grupo);
+            }
+            grupo.add(f);
+        }
+
+        int diametro = (int) (DIAMETRO_FICHA * imgLargura);
+        int passo = diametro + 1;
+        for (Map.Entry<Integer, List<FichaNaTela>> e : porCasa.entrySet()) {
+            double[] p = posicoesKurultai.get(e.getKey());
+            if (p == null) {
+                continue;
+            }
+            int cx = imgX + (int) (p[0] * imgLargura);
+            int cy = imgY + (int) (p[1] * imgAltura);
+            List<FichaNaTela> grupo = e.getValue();
+            int colunas = Math.min(grupo.size(), 3);
+            int linhas = (grupo.size() + 2) / 3;
+            for (int i = 0; i < grupo.size(); i++) {
+                int x = cx - colunas * passo / 2 + (i % 3) * passo;
+                int y = cy - linhas * passo / 2 + (i / 3) * passo;
+                desenharFicha(g2, grupo.get(i), x, y, diametro);
+            }
         }
     }
 
-    private static int maiorLinha(List<String> linhas, FontMetrics medidas) {
-        int maior = 0;
-        for (String linha : linhas) {
-            maior = Math.max(maior, medidas.stringWidth(linha));
+    /** Disco na cor do jogador (a neutra e branca); acima da ultima casa, mostra o total de votos. */
+    private void desenharFicha(Graphics2D g2, FichaNaTela ficha, int x, int y, int diametro) {
+        g2.setColor(ficha.getCor());
+        g2.fillOval(x, y, diametro, diametro);
+        g2.setStroke(new BasicStroke(ficha.isNeutra() ? 2f : 1.5f));
+        g2.setColor(ficha.isNeutra() ? Color.BLACK : Color.WHITE);
+        g2.drawOval(x, y, diametro, diametro);
+        if (ficha.getVotos() > ULTIMA_CASA_KURULTAI) {
+            String n = String.valueOf(ficha.getVotos());
+            g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, Math.max(diametro * 2 / 3, 8)));
+            FontMetrics m = g2.getFontMetrics();
+            int luz = ficha.getCor().getRed() + ficha.getCor().getGreen() + ficha.getCor().getBlue();
+            g2.setColor(luz > 400 ? Color.BLACK : Color.WHITE);
+            g2.drawString(n, x + (diametro - m.stringWidth(n)) / 2,
+                    y + (diametro + m.getAscent() - m.getDescent()) / 2);
         }
-        return maior;
     }
 
     /** Desenha as pecas da area de melhorias, o destaque das que podem ser pegas e a pilha. */

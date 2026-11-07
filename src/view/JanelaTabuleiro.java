@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -47,6 +48,7 @@ public class JanelaTabuleiro extends JFrame {
     private final JPanel centro = new JPanel(cartoes);
     private final JButton botaoTabuleiroJogador = new JButton();
     private final JButton botaoCartas = new JButton();
+    private final JLabel faixaDicas = new JLabel();
 
     public JanelaTabuleiro() {
         super("Herdeiros do Khan");
@@ -57,11 +59,21 @@ public class JanelaTabuleiro extends JFrame {
         painel = new PainelTabuleiro("resources/tabuleiro.jpg",
                 "resources/paradas_coordenadas.txt", "resources/provincias_coordenadas.txt",
                 "resources/cidades_coordenadas.txt", "resources/khan_coordenadas.txt",
-                "resources/melhorias_coordenadas.txt", "resources/bonus_coordenadas.txt");
+                "resources/melhorias_coordenadas.txt", "resources/bonus_coordenadas.txt",
+                "resources/kurultai_coordenadas.txt");
         painelTurno = new PainelTurno();
         painelJogador = new PainelTabuleiroJogador(this);
         painelEscolha = new PainelEscolhaCarta();
-        centro.add(painel, CARTAO_MAPA);
+        // as dicas ficam numa faixa abaixo do mapa, para nao cobrir a trilha do Kurultai
+        faixaDicas.setOpaque(true);
+        faixaDicas.setBackground(new Color(40, 30, 25));
+        faixaDicas.setForeground(Color.WHITE);
+        faixaDicas.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        faixaDicas.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+        JPanel mapa = new JPanel(new BorderLayout());
+        mapa.add(painel, BorderLayout.CENTER);
+        mapa.add(faixaDicas, BorderLayout.SOUTH);
+        centro.add(mapa, CARTAO_MAPA);
         centro.add(painelJogador, CARTAO_JOGADOR);
         centro.add(painelEscolha, CARTAO_ESCOLHA);
 
@@ -104,13 +116,47 @@ public class JanelaTabuleiro extends JFrame {
         painel.setYurts(yurtsDaPartida());
         painel.setAreaDeMelhorias(areaDaPartida());
         painel.setConselheiros(conselheirosDaPartida());
+        atualizarKurultai();
         atualizarKhan();
+        atualizarDicas();
         painelTurno.atualizar();
         painelJogador.atualizar();
         painelEscolha.atualizar();
         painelAbertas.atualizar();
         painelTesouros.atualizar();
         atualizarBotao();
+    }
+
+    /**
+     * Fichas da trilha do Kurultai: uma por jogador, na casa dos seus votos, e a neutra (branca)
+     * na soma dos votos de todos; a casa marcada e a que completa o conselho nesta partida.
+     */
+    private void atualizarKurultai() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        List<FichaNaTela> fichas = new ArrayList<FichaNaTela>();
+        if (!fachada.temPartida()) {
+            painel.setKurultai(fichas, -1);
+            return;
+        }
+        for (int i = 0; i < fachada.getQuantidadeJogadores(); i++) {
+            fichas.add(new FichaNaTela(fachada.getVotosDoJogador(i),
+                    CoresJogador.de(fachada.getCorDoJogador(i)), false));
+        }
+        fichas.add(new FichaNaTela(fachada.getVotosDoConselho(), Color.WHITE, true));
+        painel.setKurultai(fichas, fachada.getVotosParaReunirConselho());
+    }
+
+    /** Dicas de como fazer as acoes extras, na faixa abaixo do mapa. */
+    private void atualizarDicas() {
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String yurts = fachada.temPartida() ? " (você tem " + fachada.getYurtsParaConstruir() + ")" : "";
+        String melhoria = fachada.temPartida() && fachada.getMelhoriasGratuitasPendentes() > 0
+                ? "Melhoria grátis: clique numa peça da área ou na pilha"
+                : "Peça da área de melhorias: comprar (" + FachadaModelo.CUSTO_MELHORIA + " moedas)";
+        faixaDicas.setText("<html>Botão direito numa parada: construir yurt" + yurts
+                + " &nbsp;·&nbsp; " + melhoria
+                + "<br>Tesouro de cidade destacada: atacar (1 espada; os seguintes, 2)"
+                + " &nbsp;·&nbsp; Conselheiro destacado: entregar tesouros</html>");
     }
 
     /** Lugar do Khan e, se o jogador da vez precisa usa-lo, os lugares para onde ele pode ir. */
