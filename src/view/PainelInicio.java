@@ -32,11 +32,9 @@ class PainelInicio extends JPanel {
     private static final Color FUNDO = new Color(60, 40, 25);
     private static final Color DOURADO = new Color(235, 195, 90);
 
-    private final JanelaInicio janela;
     private Image imagemFundo;
 
-    PainelInicio(JanelaInicio janela) {
-        this.janela = janela;
+    PainelInicio() {
         carregarImagem("resources/tabuleiro.jpg");
         setBackground(FUNDO);
         setLayout(new GridBagLayout());
@@ -107,10 +105,10 @@ class PainelInicio extends JPanel {
         g2.drawString(TITULO, x, y);
     }
 
-    private class OuvinteNovoJogo implements ActionListener {
+    private static class OuvinteNovoJogo implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            janela.mostrarSelecao();
+            ControladorJogo.getInstancia().novoJogo();
         }
     }
 

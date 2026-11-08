@@ -16,7 +16,6 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import controller.ControladorJogo;
@@ -173,23 +172,18 @@ class PainelTesouros extends JPanel {
     }
 
     /**
-     * Usa a peca depois de confirmar (o uso e unico). No Bau, abre em seguida a escolha de um
-     * dos tesouros sorteados. Recusas aparecem na faixa de mensagens do mapa.
+     * Usa a peca direto, sem caixa de dialogo; o efeito aparece na faixa de mensagens do mapa,
+     * assim como as recusas. No Bau, abre em seguida a escolha de um dos tesouros sorteados.
      */
     private void usar(String peca) {
-        String efeito = EFEITOS.get(peca);
-        int resposta = JOptionPane.showConfirmDialog(janela,
-                "Usar esta peça de bônus? Ela só pode ser usada uma vez.\n" + (efeito == null ? peca : efeito),
-                "Usar peça de bônus", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (resposta != JOptionPane.YES_OPTION) {
-            return;
-        }
         ControladorJogo controlador = ControladorJogo.getInstancia();
         String motivo = controlador.usarBonus(peca);
         if (motivo != null) {
             janela.mostrarMensagem("Não foi possível usar o bônus: " + motivo);
             return;
         }
+        String efeito = EFEITOS.get(peca);
+        janela.mostrarMensagem("Bônus usado — " + (efeito == null ? peca : efeito));
         String[] opcoes = FachadaModelo.getInstancia().getOpcoesDoBau();
         if (opcoes.length > 0) {
             motivo = controlador.escolherTesouroDoBau(JanelaBau.escolher(janela, opcoes));

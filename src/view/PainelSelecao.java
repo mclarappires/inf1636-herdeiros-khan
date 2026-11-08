@@ -42,7 +42,6 @@ class PainelSelecao extends JPanel {
         HABILIDADES.put("TOLUI", "Começa com um yurt em Karakorum e constrói ao lado do peão.");
     }
 
-    private final JanelaInicio janela;
     private final FachadaModelo fachada = FachadaModelo.getInstancia();
     private final String[] herois;
 
@@ -50,8 +49,7 @@ class PainelSelecao extends JPanel {
     private final JComboBox<String> quantidade = new JComboBox<String>();
     private final List<LinhaJogador> linhas = new LinkedList<LinhaJogador>();
 
-    PainelSelecao(JanelaInicio janela) {
-        this.janela = janela;
+    PainelSelecao() {
         herois = fachada.getHerois();
 
         setLayout(new BorderLayout(0, 16));
@@ -242,7 +240,7 @@ class PainelSelecao extends JPanel {
     private class OuvinteVoltar implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            janela.mostrarInicio();
+            ControladorJogo.getInstancia().mostrarInicio();
         }
     }
 

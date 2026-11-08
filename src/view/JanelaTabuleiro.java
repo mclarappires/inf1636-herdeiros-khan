@@ -285,9 +285,6 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
      */
     private static List<PeaoNaTela> peoesDaPartida() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        if (!fachada.temPartida()) {
-            return peoesDeTeste();
-        }
         List<PeaoNaTela> lista = new ArrayList<PeaoNaTela>();
         for (int i = 0; i < fachada.getQuantidadeJogadores(); i++) {
             Color cor = CoresJogador.de(fachada.getCorDoJogador(i));
@@ -413,26 +410,4 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         return lista;
     }
 
-    /** TEMPORARIO: peoes fixos so para ver o desenho funcionando sem partida. */
-    private static List<PeaoNaTela> peoesDeTeste() {
-        List<PeaoNaTela> lista = new ArrayList<PeaoNaTela>();
-        lista.add(new PeaoNaTela(1, new Color(40, 90, 200)));
-        lista.add(new PeaoNaTela(1, new Color(200, 40, 40)));
-        lista.add(new PeaoNaTela(1, new Color(40, 150, 60)));
-        lista.add(new PeaoNaTela(1, new Color(235, 195, 40)));
-        lista.add(new PeaoNaTela(13, new Color(30, 30, 30)));
-        lista.add(new PeaoNaTela(13, new Color(200, 40, 40)));
-        lista.add(new PeaoNaTela(17, new Color(40, 90, 200)));
-        return lista;
-    }
-
-    public static void main(String[] args) {
-        // Runnable de classe anonima (lambda e proibido no enunciado)
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new JanelaTabuleiro().setVisible(true);
-            }
-        });
-    }
 }

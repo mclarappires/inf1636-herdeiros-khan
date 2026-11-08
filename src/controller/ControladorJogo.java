@@ -10,6 +10,7 @@ import model.FachadaModelo;
 import model.ObservadoIF;
 import model.ObservadorIF;
 import view.JanelaInicio;
+import view.JanelaSelecao;
 import view.JanelaTabuleiro;
 
 /**
@@ -33,6 +34,7 @@ public class ControladorJogo implements ObservadoIF {
     private static ControladorJogo instancia = null;
 
     private JanelaInicio janelaInicio = null;
+    private JanelaSelecao janelaSelecao = null;
     private JanelaTabuleiro janelaTabuleiro = null;
 
     private final List<ObservadorIF> observadoresDeTela = new ArrayList<ObservadorIF>();
@@ -113,12 +115,32 @@ public class ControladorJogo implements ObservadoIF {
         return instancia;
     }
 
+    /** Abre a janela inicial (fechando a de selecao, se o jogador voltou dela). */
     public void mostrarInicio() {
         if (janelaInicio == null) {
             janelaInicio = new JanelaInicio();
         }
-        janelaInicio.mostrarInicio();
         janelaInicio.setVisible(true);
+        fecharSelecao();
+    }
+
+    /** "Novo jogo": fecha a janela inicial e abre a de escolha dos personagens. */
+    public void novoJogo() {
+        if (janelaSelecao == null) {
+            janelaSelecao = new JanelaSelecao();
+        }
+        janelaSelecao.setVisible(true);
+        if (janelaInicio != null) {
+            janelaInicio.dispose();
+            janelaInicio = null;
+        }
+    }
+
+    private void fecharSelecao() {
+        if (janelaSelecao != null) {
+            janelaSelecao.dispose();
+            janelaSelecao = null;
+        }
     }
 
     /**
@@ -133,10 +155,7 @@ public class ControladorJogo implements ObservadoIF {
         } catch (IOException e) {
             return "Nao foi possivel ler o mapa: " + ARQUIVO_MAPA;
         }
-        if (janelaInicio != null) {
-            janelaInicio.dispose();
-            janelaInicio = null;
-        }
+        fecharSelecao();
         if (janelaTabuleiro != null) { // partida anterior: a janela velha deixa de ser avisada
             cancelaRegistro(janelaTabuleiro);
             janelaTabuleiro.dispose();

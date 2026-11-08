@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -960,23 +959,12 @@ class PainelTabuleiro extends JPanel {
     }
 
     /**
-     * Clique na pilha de tributo de uma provincia: se o jogador da vez pode pegar uma peca,
-     * pede confirmacao antes; se nao pode, mostra o motivo que o Model deu.
+     * Clique na pilha de tributo de uma provincia: pega a peca direto, sem caixa de dialogo
+     * (o enunciado pede para evitar cliques extras); se nao pode, mostra o motivo na faixa.
      */
     private void aoClicarProvincia(int idProvincia) {
-        FachadaModelo fachada = FachadaModelo.getInstancia();
-        if (!fachada.temPartida()) {
+        if (!FachadaModelo.getInstancia().temPartida()) {
             return;
-        }
-        if (fachada.podePegarTributo(idProvincia)) {
-            String tipo = fachada.getTipoDaProvincia(idProvincia).toLowerCase();
-            int resposta = JOptionPane.showConfirmDialog(this,
-                    "Pegar 1 peça de " + tipo + " desta província?\nUsa 1 punho (você tem "
-                            + fachada.getPunhosRestantes() + ").",
-                    "Pegar tributo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-            if (resposta != JOptionPane.YES_OPTION) {
-                return;
-            }
         }
         String motivo = ControladorJogo.getInstancia().cliqueNaProvincia(idProvincia);
         if (motivo != null) {
@@ -985,19 +973,10 @@ class PainelTabuleiro extends JPanel {
     }
 
     /**
-     * Clique num lugar do Khan: se ele pode ir para la, pede confirmacao antes; se nao pode,
-     * mostra o motivo que o Model deu.
+     * Clique num lugar do Khan: move o Khan direto, sem caixa de dialogo; se nao pode ir
+     * para la, mostra o motivo que o Model deu.
      */
     private void aoClicarKhan(int local) {
-        if (destinosDoKhan.contains(local)) {
-            String onde = local == FachadaModelo.KHAN_AREA_MELHORIAS ? "a área de melhorias"
-                    : "esta província";
-            int resposta = JOptionPane.showConfirmDialog(this, "Mover o Khan para " + onde + "?",
-                    "Usar o Khan", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-            if (resposta != JOptionPane.YES_OPTION) {
-                return;
-            }
-        }
         String motivo = ControladorJogo.getInstancia().cliqueNoKhan(local);
         if (motivo != null) {
             mostrarMensagem(motivo);
