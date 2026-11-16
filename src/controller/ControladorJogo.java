@@ -167,19 +167,38 @@ public class ControladorJogo implements ObservadoIF {
     }
 
     /**
-     * O proximo jogador que ainda nao escolheu guarda a carta secreta de id dado. Quando todos
-     * tiverem escolhido, mostra o mapa e a partida comeca. Devolve null se deu certo, ou o motivo.
+     * O proximo jogador com escolha pendente guarda a carta secreta de id dado. Quando todos
+     * tiverem feito as escolhas iniciais, mostra o mapa e a partida comeca. Devolve null se deu
+     * certo, ou o motivo.
      */
     public String escolherCartaSecreta(String idCarta) {
         if (!partidaEmAndamento()) {
             return null;
         }
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        String motivo = fachada.escolherCartaSecreta(fachada.getProximoJogadorSemCartaSecreta(), idCarta);
-        if (motivo == null && !fachada.isEscolhaDeCartasPendente()) {
+        String motivo = fachada.escolherCartaSecreta(fachada.getProximoJogadorComEscolhaPendente(), idCarta);
+        comecarSeTodosEscolheram(motivo);
+        return motivo;
+    }
+
+    /**
+     * Jochi: o proximo jogador com escolha pendente poe a melhoria de indice dado no 1o espaco
+     * da coluna branca. Devolve null se deu certo, ou o motivo.
+     */
+    public String escolherMelhoriaInicial(int indice) {
+        if (!partidaEmAndamento()) {
+            return null;
+        }
+        FachadaModelo fachada = FachadaModelo.getInstancia();
+        String motivo = fachada.escolherMelhoriaInicial(fachada.getProximoJogadorComEscolhaPendente(), indice);
+        comecarSeTodosEscolheram(motivo);
+        return motivo;
+    }
+
+    private void comecarSeTodosEscolheram(String motivo) {
+        if (motivo == null && !FachadaModelo.getInstancia().isEscolhaInicialPendente()) {
             mostrarTela(TELA_MAPA);
         }
-        return motivo;
     }
 
     /**

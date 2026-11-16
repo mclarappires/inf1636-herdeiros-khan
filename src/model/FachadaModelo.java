@@ -191,7 +191,7 @@ public class FachadaModelo implements ObservadoIF {
 		return exigirPartida().getJogador(jogador).getPecaAtivacao(converterColuna(coluna)).isUsada();
 	}
 
-	/** Espaços de melhoria da coluna; a branca do Jochi tem um a menos. */
+	/** Espaços de melhoria da coluna (4 em todas; o 1º branco do Jochi é preenchido na preparação). */
 	public int getCapacidadeDaColuna(int jogador, String coluna) {
 		return exigirPartida().getJogador(jogador).getTabuleiroJogador().getCapacidade(converterColuna(coluna));
 	}
@@ -264,6 +264,69 @@ public class FachadaModelo implements ObservadoIF {
 		Partida p = exigirPartida();
 		try {
 			p.escolherCartaSecreta(p.getJogador(jogador), id);
+			notificar(EVENTO_ESTADO_ALTERADO);
+			return null;
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return e.getMessage();
+		}
+	}
+
+	//ESCOLHAS ANTES DA 1ª RODADA (carta secreta e, para o Jochi, melhoria inicial)
+
+	/** Verdadeiro enquanto alguém ainda deve a carta secreta ou a melhoria inicial; até lá ninguém joga. */
+	public boolean isEscolhaInicialPendente() {
+		return exigirPartida().isEscolhaInicialPendente();
+	}
+
+	/**
+	 * Índice do primeiro jogador que ainda deve alguma escolha antes da 1ª rodada (carta
+	 * secreta ou melhoria inicial), ou -1 se todos já escolheram.
+	 */
+	public int getProximoJogadorComEscolhaPendente() {
+		Partida p = exigirPartida();
+		for (int i = 0; i < p.getJogadores().size(); i++) {
+			if (p.temEscolhaInicialPendente(p.getJogador(i))) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Símbolos das melhorias reveladas para o Jochi escolher (vazio para os outros ou depois da escolha). */
+	public String[] getSimbolosDasOpcoesIniciais(int jogador) {
+		List<Melhoria> opcoes = getOpcoesIniciais(jogador);
+		String[] simbolos = new String[opcoes.size()];
+		for (int i = 0; i < simbolos.length; i++) {
+			simbolos[i] = opcoes.get(i).getSimbolo().name();
+		}
+		return simbolos;
+	}
+
+	/** Cor (coluna de origem) de cada opção de melhoria inicial, na mesma ordem dos símbolos. */
+	public String[] getCoresDasOpcoesIniciais(int jogador) {
+		List<Melhoria> opcoes = getOpcoesIniciais(jogador);
+		String[] cores = new String[opcoes.size()];
+		for (int i = 0; i < cores.length; i++) {
+			cores[i] = opcoes.get(i).getColuna().name();
+		}
+		return cores;
+	}
+
+	private List<Melhoria> getOpcoesIniciais(int jogador) {
+		Partida p = exigirPartida();
+		return p.getOpcoesDeMelhoriaInicial(p.getJogador(jogador));
+	}
+
+	/**
+	 * O jogador põe a opção de índice dado no 1º espaço da coluna branca; a outra volta ao
+	 * fundo da pilha. Devolve null se escolheu, ou o motivo.
+	 */
+	public String escolherMelhoriaInicial(int jogador, int indice) {
+		Partida p = exigirPartida();
+		try {
+			p.escolherMelhoriaInicial(p.getJogador(jogador), indice);
 			notificar(EVENTO_ESTADO_ALTERADO);
 			return null;
 		} catch (IllegalStateException e) {
@@ -949,8 +1012,8 @@ public class FachadaModelo implements ObservadoIF {
 	public boolean ativarColuna(String coluna, int indicePeao) {
 		try {
 			Partida p = exigirPartida();
-			if (p.isEscolhaDeCartasPendente()) {
-				return false; //todos precisam escolher a carta secreta antes de jogar
+			if (p.isEscolhaInicialPendente()) {
+				return false; //todos precisam escolher a carta secreta (e o Jochi a melhoria) antes de jogar
 			}
 			if (p.isTerminada()) {
 				return false;

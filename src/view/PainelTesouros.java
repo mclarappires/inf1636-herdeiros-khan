@@ -75,7 +75,7 @@ class PainelTesouros extends JPanel {
     /** Relê na fachada o inventario do jogador da vez. */
     void atualizar() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        if (!fachada.temPartida() || fachada.isEscolhaDeCartasPendente()) {
+        if (!fachada.temPartida() || fachada.isEscolhaInicialPendente()) {
             tipos = new String[0];
             bonus = new String[0];
             posicoesBonus = new int[0][];

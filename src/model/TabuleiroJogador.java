@@ -35,7 +35,22 @@ class TabuleiroJogador {
 		if (coluna == null) {
 			throw new IllegalArgumentException("Coluna nula");
 		}
-		return coluna.isBranca() ? LINHAS - heroi.getEspacosBrancosOcupados() : LINHAS;
+		return LINHAS;
+	}
+
+	/**
+	 * Melhoria escolhida na preparação para o primeiro espaço da coluna branca (só o Jochi).
+	 * Não gasta melhoria gratuita.
+	 */
+	void colocarMelhoriaInicial(Melhoria m) {
+		if (m == null) {
+			throw new IllegalArgumentException("Melhoria nula");
+		}
+		List<Melhoria> branca = melhorias.get(Coluna.BRANCA);
+		if (branca.size() >= heroi.getMelhoriasIniciaisNaBranca()) {
+			throw new IllegalStateException("O herói " + heroi + " não tem melhoria inicial a colocar");
+		}
+		branca.add(m);
 	}
 
 	/**
@@ -69,7 +84,8 @@ class TabuleiroJogador {
 		daColuna.add(m);
 
 		int linha = daColuna.size() - 1;
-		if (linhaCompleta(linha) && linha >= heroi.getEspacosBrancosOcupados()) {
+		//o espaço branco das linhas já ocupadas na preparação (Jochi) não dá melhoria grátis
+		if (linhaCompleta(linha) && linha >= heroi.getMelhoriasIniciaisNaBranca()) {
 			gratuitasPendentes++;
 		}
 	}

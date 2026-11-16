@@ -68,10 +68,12 @@ class PainelTurno extends JPanel {
             texto = "Fim de jogo";
             inventario.setVisible(false);
             botaoPassar.setEnabled(false);
-        } else if (fachada.isEscolhaDeCartasPendente()) {
-            int jogador = fachada.getProximoJogadorSemCartaSecreta();
+        } else if (fachada.isEscolhaInicialPendente()) {
+            int jogador = fachada.getProximoJogadorComEscolhaPendente();
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(jogador));
-            texto = formatar(fachada.getHeroiDoJogador(jogador)) + " escolhe a carta secreta";
+            texto = formatar(fachada.getHeroiDoJogador(jogador))
+                    + (fachada.getCartaSecretaDoJogador(jogador) == null ? " escolhe a carta secreta"
+                            : " escolhe a melhoria inicial");
             inventario.setVisible(false);
             botaoPassar.setEnabled(false);
         } else {

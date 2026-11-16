@@ -43,6 +43,11 @@ class Partida {
 	private final Map<Jogador, List<CartaConselheiroSecreto>> opcoesSecretas =
 			new HashMap<Jogador, List<CartaConselheiroSecreto>>();
 
+	/** Melhorias reveladas para o Jochi escolher a da coluna branca. */
+	static final int OPCOES_DE_MELHORIA_INICIAL = 2;
+	//só tem chave o jogador cujo herói começa com melhoria na branca; a lista esvazia ao escolher
+	private final Map<Jogador, List<Melhoria>> opcoesDeMelhoriaInicial = new HashMap<Jogador, List<Melhoria>>();
+
 	/** Cada jogador joga com a cor do seu herói. */
 	Partida(Tabuleiro tabuleiro, List<Heroi> herois) {
 		this(tabuleiro, herois, new Random());
@@ -66,6 +71,7 @@ class Partida {
 			jogadores.add(new Jogador(heroi.getCor(), heroi, inicial, moedasIniciais(i)));
 		}
 		sortearCartas(random);
+		revelarMelhoriasIniciais();
 	}
 
 	/** O primeiro e o segundo jogadores começam com 1 moeda; os demais com 2. */
@@ -155,6 +161,71 @@ class Partida {
 	boolean isEscolhaDeCartasPendente() {
 		for (List<CartaConselheiroSecreto> opcoes : opcoesSecretas.values()) {
 			if (!opcoes.isEmpty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	//MELHORIA INICIAL (Jochi)
+
+	/** O Jochi revela 2 melhorias do topo da pilha para escolher a do 1º espaço da coluna branca. */
+	private void revelarMelhoriasIniciais() {
+		AreaMelhorias area = tabuleiro.getAreaMelhorias();
+		for (Jogador j : jogadores) {
+			if (j.getHeroi().getMelhoriasIniciaisNaBranca() == 0) {
+				continue;
+			}
+			List<Melhoria> opcoes = new LinkedList<Melhoria>();
+			for (int i = 0; i < OPCOES_DE_MELHORIA_INICIAL && area.getTamanhoPilha() > 0; i++) {
+				opcoes.add(area.retirarDoTopo());
+			}
+			opcoesDeMelhoriaInicial.put(j, opcoes);
+		}
+	}
+
+	/**
+	 * O jogador põe a melhoria de índice dado no 1º espaço da coluna branca; a outra volta
+	 * para o fundo da pilha. Só vale uma vez, e só para quem recebeu as opções (Jochi).
+	 */
+	void escolherMelhoriaInicial(Jogador jogador, int indice) {
+		if (!jogadores.contains(jogador)) {
+			throw new IllegalArgumentException("Jogador não pertence a esta partida");
+		}
+		List<Melhoria> opcoes = opcoesDeMelhoriaInicial.get(jogador);
+		if (opcoes == null || opcoes.isEmpty()) {
+			throw new IllegalStateException("O jogador não tem melhoria inicial a escolher");
+		}
+		if (indice < 0 || indice >= opcoes.size()) {
+			throw new IllegalArgumentException("Opção de melhoria inexistente: " + indice);
+		}
+		jogador.getTabuleiroJogador().colocarMelhoriaInicial(opcoes.get(indice));
+		for (int i = 0; i < opcoes.size(); i++) {
+			if (i != indice) {
+				tabuleiro.getAreaMelhorias().devolverAoFundo(opcoes.get(i));
+			}
+		}
+		opcoes.clear();
+	}
+
+	/** As melhorias entre as quais o jogador ainda precisa escolher (vazio para quem não tem ou já escolheu). */
+	List<Melhoria> getOpcoesDeMelhoriaInicial(Jogador jogador) {
+		if (!jogadores.contains(jogador)) {
+			throw new IllegalArgumentException("Jogador não pertence a esta partida");
+		}
+		List<Melhoria> opcoes = opcoesDeMelhoriaInicial.get(jogador);
+		return opcoes == null ? Collections.<Melhoria>emptyList() : Collections.unmodifiableList(opcoes);
+	}
+
+	/** Se o jogador ainda deve alguma escolha antes da 1ª rodada (carta secreta ou melhoria inicial). */
+	boolean temEscolhaInicialPendente(Jogador jogador) {
+		return !getOpcoesDeCartaSecreta(jogador).isEmpty() || !getOpcoesDeMelhoriaInicial(jogador).isEmpty();
+	}
+
+	/** Verdadeiro enquanto alguém ainda deve a carta secreta ou a melhoria inicial; até lá ninguém joga. */
+	boolean isEscolhaInicialPendente() {
+		for (Jogador j : jogadores) {
+			if (temEscolhaInicialPendente(j)) {
 				return true;
 			}
 		}

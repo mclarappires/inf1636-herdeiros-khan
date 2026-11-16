@@ -139,6 +139,14 @@ class AreaMelhorias implements LocalDoKhan {
 		return pilha.removeFirst();
 	}
 
+	/** Põe a peça embaixo da pilha (a melhoria que o Jochi não escolheu na preparação). */
+	void devolverAoFundo(Melhoria m) {
+		if (m == null) {
+			throw new IllegalArgumentException("Melhoria nula");
+		}
+		pilha.addLast(m);
+	}
+
 	/**
 	 * Uso do Khan na área: revela peças da pilha nos espaços vazios. Devolve os tributos dos
 	 * ícones dos espaços que estavam vazios, que vão para quem usou o Khan.

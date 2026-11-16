@@ -27,8 +27,34 @@ public class TabuleiroJogadorTest {
 	public void colocarMelhoria_jochiCompletaPrimeiraLinha_naoGeraMelhoriaGratuita() {
 		TabuleiroJogador doJochi = new TabuleiroJogador(Heroi.JOCHI);
 		completarLinha(doJochi);
-		assertEquals("O 1º espaço branco do Jochi já vem ocupado",
+		assertEquals("O 1º espaço branco do Jochi é ocupado na preparação",
 				0, doJochi.getMelhoriasGratuitasPendentes());
+	}
+
+	/** O Jochi ocupa o 1º espaço branco na preparação; a 2ª linha já dá a melhoria grátis. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void colocarMelhoriaInicial_jochi_ocupaOPrimeiroEspacoBrancoSemGastarGratuita() {
+		TabuleiroJogador doJochi = new TabuleiroJogador(Heroi.JOCHI);
+		Melhoria inicial = new Melhoria(TipoMelhoria.MOEDA, Coluna.SEGUNDA);
+		doJochi.colocarMelhoriaInicial(inicial);
+
+		assertEquals("A coluna branca tem 4 espaços", TabuleiroJogador.LINHAS, doJochi.getCapacidade(Coluna.BRANCA));
+		assertEquals(inicial, doJochi.getMelhorias(Coluna.BRANCA).get(0));
+		completarLinha(doJochi);
+		completarLinha(doJochi);
+		assertEquals("Só a 2ª linha rende melhoria grátis", 1, doJochi.getMelhoriasGratuitasPendentes());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void colocarMelhoriaInicial_segundaVez_lancaExcecao() {
+		TabuleiroJogador doJochi = new TabuleiroJogador(Heroi.JOCHI);
+		doJochi.colocarMelhoriaInicial(new Melhoria(TipoMelhoria.MOEDA, Coluna.SEGUNDA));
+		doJochi.colocarMelhoriaInicial(new Melhoria(TipoMelhoria.PUNHO, Coluna.PRIMEIRA));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalStateException.class)
+	public void colocarMelhoriaInicial_heroiQueNaoEJochi_lancaExcecao() {
+		doOgedei.colocarMelhoriaInicial(new Melhoria(TipoMelhoria.MOEDA, Coluna.SEGUNDA));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT, expected = IllegalArgumentException.class)

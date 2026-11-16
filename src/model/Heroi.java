@@ -37,8 +37,11 @@ enum Heroi {
 		return this == ALTANI ? 2 : 1;
 	}
 
-	//Jochi já tem o primeiro espaço da coluna branca ocupado
-	public int getEspacosBrancosOcupados() {
+	/**
+	 * Melhorias que o herói põe na coluna branca na preparação: o Jochi revela 2 da pilha e
+	 * escolhe 1 para o primeiro espaço (por isso a 1ª linha completa não lhe dá melhoria grátis).
+	 */
+	public int getMelhoriasIniciaisNaBranca() {
 		return this == JOCHI ? 1 : 0;
 	}
 }

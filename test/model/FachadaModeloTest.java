@@ -21,11 +21,17 @@ public class FachadaModeloTest {
 
 	private final FachadaModelo fachada = FachadaModelo.getInstancia();
 
-	/** Cria a partida e faz cada jogador guardar a primeira carta secreta, liberando as jogadas. */
+	/**
+	 * Cria a partida e faz cada jogador guardar a primeira carta secreta (e o Jochi a primeira
+	 * melhoria inicial), liberando as jogadas.
+	 */
 	private void comecarPartida(String... herois) throws IOException {
 		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList(herois));
 		for (int i = 0; i < herois.length; i++) {
 			assertNull(fachada.escolherCartaSecreta(i, fachada.getOpcoesDeCartaSecreta(i)[0]));
+			if (fachada.getSimbolosDasOpcoesIniciais(i).length > 0) {
+				assertNull(fachada.escolherMelhoriaInicial(i, 0));
+			}
 		}
 	}
 
@@ -82,22 +88,43 @@ public class FachadaModeloTest {
 		assertFalse(fachada.isColunaUsada(1, "SEGUNDA"));
 	}
 
+	/** Só o Jochi começa com melhoria (a inicial, no 1º espaço branco); as demais colunas vêm vazias. */
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void getMelhorias_comecamVazias() throws IOException {
+	public void getMelhorias_comecamVaziasExcetoABrancaDoJochi() throws IOException {
 		comecarPartida("JOCHI", "TOLUI");
 		for (String coluna : fachada.getColunas()) {
-			assertEquals(0, fachada.getSimbolosDasMelhorias(0, coluna).length);
-			assertEquals(0, fachada.getCoresDasMelhorias(0, coluna).length);
+			int doJochi = coluna.equals("BRANCA") ? 1 : 0;
+			assertEquals(doJochi, fachada.getSimbolosDasMelhorias(0, coluna).length);
+			assertEquals(doJochi, fachada.getCoresDasMelhorias(0, coluna).length);
+			assertEquals(0, fachada.getSimbolosDasMelhorias(1, coluna).length);
 		}
 	}
 
+	/**
+	 * Jochi: depois da carta secreta ainda escolhe 1 de 2 melhorias para o 1º espaço da coluna
+	 * branca; até lá a vez não começa.
+	 */
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void getCapacidadeDaColuna_brancaDoJochiTemUmEspacoAMenos() throws IOException {
-		comecarPartida("JOCHI", "TOLUI");
-		int linhas = FachadaModelo.LINHAS_TABULEIRO_JOGADOR;
-		assertEquals(linhas - 1, fachada.getCapacidadeDaColuna(0, "BRANCA"));
-		assertEquals(linhas, fachada.getCapacidadeDaColuna(0, "PRIMEIRA"));
-		assertEquals(linhas, fachada.getCapacidadeDaColuna(1, "BRANCA"));
+	public void escolherMelhoriaInicial_jochiOcupaOPrimeiroEspacoBranco() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("TOLUI", "JOCHI"));
+		assertNull(fachada.escolherCartaSecreta(0, fachada.getOpcoesDeCartaSecreta(0)[0]));
+		assertNull(fachada.escolherCartaSecreta(1, fachada.getOpcoesDeCartaSecreta(1)[0]));
+		assertEquals(0, fachada.getSimbolosDasOpcoesIniciais(0).length);
+		String[] simbolos = fachada.getSimbolosDasOpcoesIniciais(1);
+		String[] cores = fachada.getCoresDasOpcoesIniciais(1);
+		assertEquals(2, simbolos.length);
+		assertTrue(fachada.isEscolhaInicialPendente());
+		assertEquals(1, fachada.getProximoJogadorComEscolhaPendente());
+		assertFalse("A vez só começa depois da melhoria do Jochi", fachada.ativarColuna("PRIMEIRA", 0));
+
+		assertNull(fachada.escolherMelhoriaInicial(1, 1));
+
+		assertFalse(fachada.isEscolhaInicialPendente());
+		assertEquals(-1, fachada.getProximoJogadorComEscolhaPendente());
+		assertArrayEquals(new String[] { simbolos[1] }, fachada.getSimbolosDasMelhorias(1, "BRANCA"));
+		assertArrayEquals(new String[] { cores[1] }, fachada.getCoresDasMelhorias(1, "BRANCA"));
+		assertEquals(FachadaModelo.LINHAS_TABULEIRO_JOGADOR, fachada.getCapacidadeDaColuna(1, "BRANCA"));
+		assertNotNull("Só escolhe uma vez", fachada.escolherMelhoriaInicial(1, 0));
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
@@ -313,6 +340,7 @@ public class FachadaModeloTest {
 		assertEquals(-1, fachada.getProximoJogadorSemCartaSecreta());
 		assertEquals(deJochi, fachada.getCartaSecretaDoJogador(0));
 		assertEquals(deTolui, fachada.getCartaSecretaDoJogador(1));
+		assertNull("Falta só a melhoria inicial do Jochi", fachada.escolherMelhoriaInicial(0, 0));
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
 	}
 

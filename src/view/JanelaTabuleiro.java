@@ -238,7 +238,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>" + nome + "</center></html>");
         botaoCartas.setText("<html><center>Cartas de<br>" + nome + "</center></html>");
         // ninguem joga nem ve cartas enquanto alguem ainda escolhe a carta secreta
-        boolean liberado = !fachada.isEscolhaDeCartasPendente() && !fachada.isPartidaEncerrada();
+        boolean liberado = !fachada.isEscolhaInicialPendente() && !fachada.isPartidaEncerrada();
         botaoTabuleiroJogador.setEnabled(liberado);
         botaoCartas.setEnabled(liberado);
     }
@@ -334,7 +334,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         if (!fachada.temPartida()) {
             return lista;
         }
-        boolean jogando = !fachada.isEscolhaDeCartasPendente();
+        boolean jogando = !fachada.isEscolhaInicialPendente();
         for (int id : fachada.getIdsConselheiros()) {
             lista.add(new ConselheiroNaTela(id, fachada.getBonusNoConselheiro(id),
                     jogando && fachada.podeEntregarEm(id)));
@@ -364,7 +364,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         if (!fachada.temPartida()) {
             return lista;
         }
-        boolean jogando = !fachada.isEscolhaDeCartasPendente();
+        boolean jogando = !fachada.isEscolhaInicialPendente();
         for (int id : fachada.getIdsCidadesVisiveis()) {
             List<String> tesouros = new ArrayList<String>();
             for (String tipo : fachada.getTiposDeTesouro()) {

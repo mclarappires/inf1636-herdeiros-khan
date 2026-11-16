@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -26,7 +27,9 @@ import model.FachadaModelo;
 /**
  * Antes da primeira rodada: um jogador por vez ve as suas 2 cartas de conselheiro secreto e
  * clica na que vai manter. As cartas so aparecem depois do botao, para o jogador anterior
- * nao ver as do proximo. Aparece no lugar do mapa (ver JanelaTabuleiro).
+ * nao ver as do proximo. Em seguida o Jochi ve as 2 melhorias reveladas e clica na que vai
+ * para o 1o espaco da coluna branca (nao sao secretas, aparecem direto). Aparece no lugar do
+ * mapa (ver JanelaTabuleiro).
  */
 class PainelEscolhaCarta extends JPanel {
 
@@ -39,9 +42,10 @@ class PainelEscolhaCarta extends JPanel {
     private final JLabel titulo = new JLabel();
     private final JLabel instrucao = new JLabel();
     private final JButton botaoVer = new JButton("Ver minhas cartas");
-    private final AreaCartas area = new AreaCartas();
+    private final AreaOpcoes area = new AreaOpcoes();
 
     private int jogadorMostrado = -1;
+    private boolean escolhendoMelhoria = false; // false: carta secreta; true: melhoria inicial do Jochi
     private boolean revelada = false;
 
     PainelEscolhaCarta() {
@@ -70,14 +74,16 @@ class PainelEscolhaCarta extends JPanel {
         return topo;
     }
 
-    /** Relê na fachada quem ainda precisa escolher; ao trocar de jogador, esconde as cartas. */
+    /** Rele na fachada quem ainda precisa escolher e o que; ao trocar, esconde as opcoes. */
     void atualizar() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
-        int jogador = fachada.temPartida() ? fachada.getProximoJogadorSemCartaSecreta() : -1;
-        if (jogador != jogadorMostrado) {
+        int jogador = fachada.temPartida() ? fachada.getProximoJogadorComEscolhaPendente() : -1;
+        boolean melhoria = jogador >= 0 && fachada.getCartaSecretaDoJogador(jogador) != null;
+        if (jogador != jogadorMostrado || melhoria != escolhendoMelhoria) {
             jogadorMostrado = jogador;
-            revelada = false;
-            area.limparCartas();
+            escolhendoMelhoria = melhoria;
+            revelada = melhoria; // as melhorias nao sao secretas
+            area.limparOpcoes();
         }
         if (jogador < 0) {
             titulo.setText(" ");
@@ -87,40 +93,53 @@ class PainelEscolhaCarta extends JPanel {
             return;
         }
         String heroi = fachada.getHeroiDoJogador(jogador);
-        titulo.setText("Carta secreta de " + heroi.charAt(0) + heroi.substring(1).toLowerCase());
-        instrucao.setText(revelada
-                ? "Clique na carta que deseja manter. A outra será descartada."
-                : "Passe o computador para este jogador e clique em \"Ver minhas cartas\".");
+        String nome = heroi.charAt(0) + heroi.substring(1).toLowerCase();
+        if (escolhendoMelhoria) {
+            titulo.setText("Melhoria inicial de " + nome);
+            instrucao.setText("Clique na melhoria que vai para o 1º espaço da coluna branca."
+                    + " A outra volta para o fundo da pilha.");
+        } else {
+            titulo.setText("Carta secreta de " + nome);
+            instrucao.setText(revelada
+                    ? "Clique na carta que deseja manter. A outra será descartada."
+                    : "Passe o computador para este jogador e clique em \"Ver minhas cartas\".");
+        }
         botaoVer.setVisible(!revelada);
         repaint();
     }
 
-    private void escolher(String idCarta) {
-        String motivo = ControladorJogo.getInstancia().escolherCartaSecreta(idCarta);
+    private void escolher(int indice, String idCarta) {
+        ControladorJogo controlador = ControladorJogo.getInstancia();
+        String motivo = escolhendoMelhoria ? controlador.escolherMelhoriaInicial(indice)
+                : controlador.escolherCartaSecreta(idCarta);
         if (motivo != null) {
             instrucao.setText(motivo);
         }
     }
 
-    /** As 2 opcoes do jogador, desenhadas com drawImage; um clique numa delas e a escolha. */
-    private class AreaCartas extends JPanel {
+    /**
+     * As opcoes do jogador (2 cartas ou 2 melhorias), desenhadas com drawImage; um clique numa
+     * delas e a escolha.
+     */
+    private class AreaOpcoes extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
         private static final int MARGEM = 30;
+        private static final int ALTURA_MELHORIA = 200;
 
-        private String[] ids = new String[0];
+        private String[] ids = new String[0]; // ids das cartas (vazio na escolha da melhoria)
         private Rectangle[] onde = new Rectangle[0];
         private int sobMouse = -1;
 
-        AreaCartas() {
+        AreaOpcoes() {
             setBackground(new Color(40, 30, 25));
             OuvinteMouse ouvinte = new OuvinteMouse();
             addMouseListener(ouvinte);
             addMouseMotionListener(ouvinte);
         }
 
-        void limparCartas() {
+        void limparOpcoes() {
             ids = new String[0];
             onde = new Rectangle[0];
             sobMouse = -1;
@@ -136,7 +155,20 @@ class PainelEscolhaCarta extends JPanel {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            if (escolhendoMelhoria) {
+                desenharMelhorias(g2);
+            } else {
+                desenharCartas(g2);
+            }
+            if (sobMouse >= 0 && sobMouse < onde.length && onde[sobMouse] != null) {
+                Rectangle r = onde[sobMouse];
+                g2.setColor(DOURADO);
+                g2.setStroke(new BasicStroke(5f));
+                g2.drawRect(r.x, r.y, r.width, r.height);
+            }
+        }
 
+        private void desenharCartas(Graphics2D g2) {
             ids = FachadaModelo.getInstancia().getOpcoesDeCartaSecreta(jogadorMostrado);
             onde = new Rectangle[ids.length];
             if (ids.length == 0) {
@@ -147,15 +179,41 @@ class PainelEscolhaCarta extends JPanel {
             for (int i = 0; i < ids.length; i++) {
                 int x = MARGEM + i * (largura + MARGEM);
                 onde[i] = SpriteCarta.desenhar(g2, SpriteCarta.secreta(ids[i]), x, MARGEM, largura, altura);
-                if (i == sobMouse) {
-                    g2.setColor(DOURADO);
-                    g2.setStroke(new BasicStroke(5f));
-                    g2.drawRect(onde[i].x, onde[i].y, onde[i].width, onde[i].height);
+            }
+        }
+
+        /** As melhorias lado a lado, no centro, mantendo a proporcao de cada imagem. */
+        private void desenharMelhorias(Graphics2D g2) {
+            FachadaModelo fachada = FachadaModelo.getInstancia();
+            String[] simbolos = fachada.getSimbolosDasOpcoesIniciais(jogadorMostrado);
+            String[] cores = fachada.getCoresDasOpcoesIniciais(jogadorMostrado);
+            ids = new String[0];
+            onde = new Rectangle[simbolos.length];
+            if (simbolos.length == 0) {
+                return;
+            }
+            int altura = Math.min(ALTURA_MELHORIA, getHeight() - 2 * MARGEM);
+            int espaco = getWidth() / (simbolos.length + 1);
+            for (int i = 0; i < simbolos.length; i++) {
+                BufferedImage peca = SpriteMelhoria.criar(simbolos[i], cores[i]);
+                int largura = peca == null ? altura
+                        : (int) ((double) altura * peca.getWidth() / peca.getHeight());
+                int x = espaco * (i + 1) - largura / 2;
+                int y = (getHeight() - altura) / 2;
+                onde[i] = new Rectangle(x, y, largura, altura);
+                if (peca != null) {
+                    g2.drawImage(peca, x, y, largura, altura, null);
+                } else { // sem imagem: o nome da melhoria num quadro
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.fillRect(x, y, largura, altura);
+                    g2.setColor(Color.BLACK);
+                    g2.setFont(FONTE);
+                    g2.drawString(simbolos[i], x + 10, y + altura / 2);
                 }
             }
         }
 
-        private int cartaEm(int x, int y) {
+        private int opcaoEm(int x, int y) {
             for (int i = 0; i < onde.length; i++) {
                 if (onde[i] != null && onde[i].contains(x, y)) {
                     return i;
@@ -168,15 +226,15 @@ class PainelEscolhaCarta extends JPanel {
         private class OuvinteMouse extends MouseAdapter {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int i = cartaEm(e.getX(), e.getY());
+                int i = opcaoEm(e.getX(), e.getY());
                 if (i >= 0) {
-                    escolher(ids[i]);
+                    escolher(i, i < ids.length ? ids[i] : null);
                 }
             }
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                int i = cartaEm(e.getX(), e.getY());
+                int i = opcaoEm(e.getX(), e.getY());
                 if (i != sobMouse) {
                     sobMouse = i;
                     setCursor(i >= 0 ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)

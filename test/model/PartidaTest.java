@@ -195,6 +195,93 @@ public class PartidaTest {
 		assertTrue("Tolui ainda não escolheu", p.isEscolhaDeCartasPendente());
 	}
 
+	// MELHORIA INICIAL DO JOCHI
+
+	/** O Jochi revela as 2 melhorias do topo da pilha; os outros heróis não recebem opções. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_jochiRecebeAsDuasMelhoriasDoTopoDaPilha() throws IOException {
+		//um tabuleiro igual (mesma semente) mostra o que estaria no topo da pilha depois da preparação
+		FileReader leitor = new FileReader(ARQUIVO_MAPA);
+		Tabuleiro igual;
+		try {
+			igual = CarregadorMapa.carregar(leitor, new Random(1L));
+		} finally {
+			leitor.close();
+		}
+		igual.preparar();
+		AreaMelhorias areaIgual = igual.getAreaMelhorias();
+		int pilhaDepoisDaPreparacao = areaIgual.getTamanhoPilha();
+		Melhoria primeira = areaIgual.retirarDoTopo();
+		Melhoria segunda = areaIgual.retirarDoTopo();
+
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+
+		List<Melhoria> opcoes = p.getOpcoesDeMelhoriaInicial(p.getJogador(0));
+		assertEquals(2, opcoes.size());
+		assertEquals(primeira.getSimbolo(), opcoes.get(0).getSimbolo());
+		assertEquals(primeira.getColuna(), opcoes.get(0).getColuna());
+		assertEquals(segunda.getSimbolo(), opcoes.get(1).getSimbolo());
+		assertEquals(segunda.getColuna(), opcoes.get(1).getColuna());
+		assertTrue("Tolui não escolhe melhoria", p.getOpcoesDeMelhoriaInicial(p.getJogador(1)).isEmpty());
+		assertEquals("As 2 peças saem da pilha", pilhaDepoisDaPreparacao - 2,
+				tabuleiro.getAreaMelhorias().getTamanhoPilha());
+	}
+
+	/** A escolhida vai para o 1º espaço branco; a outra volta para o fundo da pilha. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void escolherMelhoriaInicial_poeNaBrancaEDevolveAOutraAoFundo() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+		Jogador jochi = p.getJogador(0);
+		AreaMelhorias area = tabuleiro.getAreaMelhorias();
+		int pilhaAntes = area.getTamanhoPilha();
+		Melhoria escolhida = p.getOpcoesDeMelhoriaInicial(jochi).get(1);
+		Melhoria descartada = p.getOpcoesDeMelhoriaInicial(jochi).get(0);
+
+		p.escolherMelhoriaInicial(jochi, 1);
+
+		assertEquals(Arrays.asList(escolhida), jochi.getTabuleiroJogador().getMelhorias(Coluna.BRANCA));
+		assertTrue(p.getOpcoesDeMelhoriaInicial(jochi).isEmpty());
+		assertEquals("A outra volta para a pilha", pilhaAntes + 1, area.getTamanhoPilha());
+		for (int i = 0; i < pilhaAntes; i++) {
+			area.retirarDoTopo();
+		}
+		assertEquals("A outra fica no fundo", descartada, area.verTopo());
+	}
+
+	/** Ninguém joga enquanto o Jochi não escolher, mesmo com todas as cartas secretas escolhidas. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void isEscolhaInicialPendente_esperaAMelhoriaDoJochi() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.JOCHI));
+		for (Jogador j : p.getJogadores()) {
+			p.escolherCartaSecreta(j, p.getOpcoesDeCartaSecreta(j).get(0).getId());
+		}
+		assertFalse(p.isEscolhaDeCartasPendente());
+		assertTrue("Falta a melhoria do Jochi", p.isEscolhaInicialPendente());
+		p.escolherMelhoriaInicial(p.getJogador(1), 0);
+		assertFalse(p.isEscolhaInicialPendente());
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void escolherMelhoriaInicial_indiceInvalido_naoMudaNada() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+		Jogador jochi = p.getJogador(0);
+		int pilhaAntes = tabuleiro.getAreaMelhorias().getTamanhoPilha();
+		try {
+			p.escolherMelhoriaInicial(jochi, 2);
+		} catch (IllegalArgumentException e) {
+			//esperado
+		}
+		assertEquals(2, p.getOpcoesDeMelhoriaInicial(jochi).size());
+		assertTrue(jochi.getTabuleiroJogador().getMelhorias(Coluna.BRANCA).isEmpty());
+		assertEquals(pilhaAntes, tabuleiro.getAreaMelhorias().getTamanhoPilha());
+	}
+
+	@Test(expected = IllegalStateException.class, timeout = DEFAULT_TIMEOUT)
+	public void escolherMelhoriaInicial_heroiSemOpcoes_lancaExcecao() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));
+		p.escolherMelhoriaInicial(p.getJogador(1), 0);
+	}
+
 	@Test(expected = IllegalStateException.class, timeout = DEFAULT_TIMEOUT)
 	public void escolherCartaSecreta_segundaVez_lancaExcecao() {
 		Partida p = new Partida(tabuleiro, herois(Heroi.JOCHI, Heroi.TOLUI));

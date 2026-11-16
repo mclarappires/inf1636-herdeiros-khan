@@ -37,7 +37,7 @@ class PainelSelecao extends JPanel {
     static {
         HABILIDADES.put("ALTANI", "Joga com dois peões e escolhe qual deles age no turno.");
         HABILIDADES.put("CHAGATAI", "Guarda para os próximos turnos as espadas que não usou.");
-        HABILIDADES.put("JOCHI", "Começa com o primeiro espaço da coluna branca ocupado.");
+        HABILIDADES.put("JOCHI", "Revela 2 melhorias e põe uma no 1º espaço da coluna branca.");
         HABILIDADES.put("OGEDEI", "Pode pagar com moeda o primeiro tesouro de cada cidade.");
         HABILIDADES.put("TOLUI", "Começa com um yurt em Karakorum e constrói ao lado do peão.");
     }
