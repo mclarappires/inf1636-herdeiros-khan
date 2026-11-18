@@ -195,11 +195,13 @@ public class FachadaModeloTest {
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void pegarTributo_provinciaJuntoDeKarakorum_gastaUmPunho() throws IOException {
+	public void pegarTributo_provinciaVizinhaDaParadaVisitada_gastaUmPunho() throws IOException {
 		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0)); //Jochi: dois cavalos e punho
 		assertEquals(1, fachada.getPunhosRestantes());
-		assertTrue(fachada.podePegarTributo(2)); //província de yurt ao lado de Karakorum
+		assertFalse(fachada.podePegarTributo(2)); //nenhuma província é vizinha de Karakorum
+		assertTrue(fachada.moverPeaoDaVez(16)); //parada vizinha das províncias 2 e 3
+		assertTrue(fachada.podePegarTributo(2));
 
 		assertNull(fachada.pegarTributo(2));
 		assertEquals(1, fachada.getTributoDisponivel(0, "YURT"));
@@ -211,8 +213,9 @@ public class FachadaModeloTest {
 	public void pegarTributo_semPunhos_devolveMotivo() throws IOException {
 		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+		assertTrue(fachada.moverPeaoDaVez(16)); //província 3 também fica ao alcance
 		assertNull(fachada.pegarTributo(2));
-		assertFalse(fachada.podePegarTributo(3));
+		assertFalse(fachada.podePegarTributo(3)); //o único punho já foi gasto
 		assertNotNull(fachada.pegarTributo(3));
 		assertEquals(1, fachada.getTributosDaProvincia(3));
 	}
@@ -238,6 +241,7 @@ public class FachadaModeloTest {
 	public void pegarTributo_pecaFicaGuardadaParaOsProximosTurnos() throws IOException {
 		comecarPartida("JOCHI", "TOLUI");
 		assertTrue(fachada.ativarColuna("TERCEIRA", 0));
+		assertTrue(fachada.moverPeaoDaVez(16));
 		assertNull(fachada.pegarTributo(2));
 		assertNull(fachada.encerrarTurno());
 		assertEquals(1, fachada.getTributoDisponivel(0, "YURT"));
