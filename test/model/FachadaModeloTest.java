@@ -6,10 +6,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -76,6 +78,68 @@ public class FachadaModeloTest {
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void novaPartida_heroiDesconhecido_lancaExcecao() throws IOException {
 		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "GENGIS"));
+	}
+
+	// NOMES DOS JOGADORES
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_comNomes_cadaJogadorTemOSeuNaOrdem() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI", "ALTANI"),
+				Arrays.asList("Ana", "Bruno", "Caio"));
+		assertEquals("Ana", fachada.getNomeDoJogador(0));
+		assertEquals("Bruno", fachada.getNomeDoJogador(1));
+		assertEquals("TOLUI", fachada.getHeroiDoJogador(1));
+		assertEquals("Caio", fachada.getNomeDoJogador(2));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_semNomes_usaONomeDoHeroi() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"));
+		assertEquals("Jochi", fachada.getNomeDoJogador(0));
+		assertEquals("Tolui", fachada.getNomeDoJogador(1));
+	}
+
+	/** Nomes iguais a menos de maiúsculas confundiriam quem joga: são recusados. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_nomeRepetidoComOutraCaixa_recusaEMantemAPartidaAnterior() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"), Arrays.asList("Ana", "Bruno"));
+		exigirRecusaDeNomes(Arrays.asList("Ana", " ANA"));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_nomeVazioOuSoEspacos_recusaEMantemAPartidaAnterior() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"), Arrays.asList("Ana", "Bruno"));
+		exigirRecusaDeNomes(Arrays.asList("", "Caio"));
+		exigirRecusaDeNomes(Arrays.asList("Caio", "   "));
+		exigirRecusaDeNomes(Arrays.asList("Caio", null));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_nomeLongoDemais_recusaEMantemAPartidaAnterior() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"), Arrays.asList("Ana", "Bruno"));
+		StringBuilder longo = new StringBuilder();
+		for (int i = 0; i <= FachadaModelo.MAX_CARACTERES_NOME; i++) {
+			longo.append('x');
+		}
+		exigirRecusaDeNomes(Arrays.asList("Caio", longo.toString()));
+	}
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void novaPartida_quantidadeDeNomesDiferenteDaDeHerois_recusaEMantemAPartidaAnterior() throws IOException {
+		fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("JOCHI", "TOLUI"), Arrays.asList("Ana", "Bruno"));
+		exigirRecusaDeNomes(Arrays.asList("Caio"));
+	}
+
+	/** Tenta uma partida de Ogedei e Altani com os nomes dados; a partida de Ana e Bruno continua. */
+	private void exigirRecusaDeNomes(List<String> nomes) throws IOException {
+		try {
+			fachada.novaPartida(ARQUIVO_MAPA, Arrays.asList("OGEDEI", "ALTANI"), nomes);
+			fail("Nomes " + nomes + " deveriam ser recusados");
+		} catch (IllegalArgumentException esperado) {
+			assertEquals("Ana", fachada.getNomeDoJogador(0));
+			assertEquals("Bruno", fachada.getNomeDoJogador(1));
+			assertEquals("JOCHI", fachada.getHeroiDoJogador(0));
+		}
 	}
 
 	@Test(timeout = DEFAULT_TIMEOUT)

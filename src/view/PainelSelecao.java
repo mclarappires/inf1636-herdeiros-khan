@@ -20,11 +20,18 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 
 import controller.ControladorJogo;
 import model.FachadaModelo;
 
-/** Escolha do numero de jogadores e do heroi de cada um, na ordem de jogada; a cor vem do heroi. */
+/**
+ * Escolha do numero de jogadores e do nome e do heroi de cada um, na ordem de jogada; a cor vem
+ * do heroi.
+ */
 class PainelSelecao extends JPanel {
 
     private static final long serialVersionUID = 1L;
@@ -131,10 +138,12 @@ class PainelSelecao extends JPanel {
 
     private void comecar() {
         List<String> heroisEscolhidos = new LinkedList<String>();
+        List<String> nomes = new LinkedList<String>();
         for (int i = 0; i < getQuantidadeJogadores(); i++) {
             heroisEscolhidos.add(linhas.get(i).getHeroi());
+            nomes.add(linhas.get(i).getNome());
         }
-        String erro = ControladorJogo.getInstancia().iniciarPartida(heroisEscolhidos);
+        String erro = ControladorJogo.getInstancia().iniciarPartida(heroisEscolhidos, nomes);
         this.erro.setText(erro == null ? " " : erro);
     }
 
@@ -149,25 +158,38 @@ class PainelSelecao extends JPanel {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
     }
 
-    /** Uma linha por jogador; o combo guarda os nomes formatados na mesma ordem da fachada. */
+    /**
+     * Uma linha por jogador: nome, herói e cor em cima, habilidade embaixo. O combo guarda os
+     * nomes formatados na mesma ordem da fachada.
+     */
     private class LinhaJogador extends JPanel {
 
         private static final long serialVersionUID = 1L;
 
+        private final JTextField campoNome = new JTextField();
         private final JComboBox<String> comboHeroi = new JComboBox<String>();
         private final AmostraCor amostra = new AmostraCor();
         private final JLabel nomeCor = criarRotulo("");
         private final JLabel habilidade = new JLabel();
 
         LinhaJogador(int indice) {
-            setLayout(new FlowLayout(FlowLayout.LEFT, 12, 6));
+            setLayout(new BorderLayout());
             setBorder(BorderFactory.createEtchedBorder());
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+            JPanel controles = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+            add(controles, BorderLayout.NORTH);
 
             JLabel rotulo = new JLabel("Jogador " + (indice + 1));
             rotulo.setFont(FONTE.deriveFont(Font.BOLD));
             rotulo.setPreferredSize(new Dimension(90, 30));
-            add(rotulo);
+            controles.add(rotulo);
+
+            campoNome.setDocument(new DocumentoLimitado(FachadaModelo.MAX_CARACTERES_NOME));
+            campoNome.setText("Jogador " + (indice + 1));
+            campoNome.setFont(FONTE);
+            campoNome.setPreferredSize(new Dimension(180, 30));
+            controles.add(criarRotulo("Nome:"));
+            controles.add(campoNome);
 
             for (String h : herois) {
                 comboHeroi.addItem(formatar(h));
@@ -179,14 +201,20 @@ class PainelSelecao extends JPanel {
             comboHeroi.addActionListener(new OuvinteEscolha());
             nomeCor.setPreferredSize(new Dimension(80, 30));
 
-            add(criarRotulo("Herói:"));
-            add(comboHeroi);
-            add(criarRotulo("Cor:"));
-            add(amostra);
-            add(nomeCor);
+            controles.add(criarRotulo("Herói:"));
+            controles.add(comboHeroi);
+            controles.add(criarRotulo("Cor:"));
+            controles.add(amostra);
+            controles.add(nomeCor);
             habilidade.setFont(FONTE.deriveFont(Font.ITALIC, 14f));
-            add(habilidade);
+            habilidade.setBorder(BorderFactory.createEmptyBorder(0, 114, 6, 0)); // alinha com o nome
+            add(habilidade, BorderLayout.CENTER);
             atualizar();
+        }
+
+        /** O Model tira os espacos das pontas e recusa nome vazio ou repetido. */
+        String getNome() {
+            return campoNome.getText();
         }
 
         String getHeroi() {
@@ -226,6 +254,26 @@ class PainelSelecao extends JPanel {
                 g.fillRect(2, 2, getWidth() - 4, getHeight() - 4);
                 g.setColor(Color.DARK_GRAY);
                 g.drawRect(2, 2, getWidth() - 5, getHeight() - 5);
+            }
+        }
+    }
+
+    /** Documento que nao aceita texto alem do limite de caracteres. */
+    private static class DocumentoLimitado extends PlainDocument {
+
+        private static final long serialVersionUID = 1L;
+
+        private final int limite;
+
+        DocumentoLimitado(int limite) {
+            this.limite = limite;
+        }
+
+        @Override
+        public void insertString(int posicao, String texto, AttributeSet atributos)
+                throws BadLocationException {
+            if (texto != null && getLength() + texto.length() <= limite) {
+                super.insertString(posicao, texto, atributos);
             }
         }
     }

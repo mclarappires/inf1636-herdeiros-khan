@@ -19,6 +19,7 @@ public class FachadaModelo implements ObservadoIF {
 
 	public static final int MIN_JOGADORES = Partida.MIN_JOGADORES;
 	public static final int MAX_JOGADORES = Partida.MAX_JOGADORES;
+	public static final int MAX_CARACTERES_NOME = Partida.MAX_CARACTERES_NOME;
 	public static final int LINHAS_TABULEIRO_JOGADOR = TabuleiroJogador.LINHAS;
 
 	/** Local do Khan antes do primeiro uso. */
@@ -124,6 +125,14 @@ public class FachadaModelo implements ObservadoIF {
 
 	/** O herói do jogador i fica na posição i da lista, na ordem de jogada; a cor vem do herói. */
 	public void novaPartida(String caminhoMapa, List<String> herois) throws IOException {
+		novaPartida(caminhoMapa, herois, null);
+	}
+
+	/**
+	 * Como a anterior, com o nome de cada jogador na mesma ordem dos heróis. Com nomes nulo,
+	 * cada jogador leva o nome do herói. Nome vazio, repetido ou longo demais é recusado.
+	 */
+	public void novaPartida(String caminhoMapa, List<String> herois, List<String> nomes) throws IOException {
 		if (caminhoMapa == null) {
 			throw new IllegalArgumentException("Caminho do mapa nulo");
 		}
@@ -137,7 +146,7 @@ public class FachadaModelo implements ObservadoIF {
 			leitor.close();
 		}
 		//só troca a partida atual se a nova for válida
-		partida = new Partida(tabuleiro, heroisEscolhidos);
+		partida = new Partida(tabuleiro, heroisEscolhidos, nomes, new Random());
 		notificar(EVENTO_PARTIDA_NOVA);
 	}
 
@@ -147,6 +156,10 @@ public class FachadaModelo implements ObservadoIF {
 
 	public int getQuantidadeJogadores() {
 		return exigirPartida().getJogadores().size();
+	}
+
+	public String getNomeDoJogador(int indice) {
+		return exigirPartida().getJogador(indice).getNome();
 	}
 
 	public String getHeroiDoJogador(int indice) {

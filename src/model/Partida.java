@@ -13,6 +13,7 @@ class Partida {
 
 	static final int MIN_JOGADORES = 2;
 	static final int MAX_JOGADORES = 5;
+	static final int MAX_CARACTERES_NOME = 15;
 
 	/** Cartas de conselheiro aberto sorteadas em cada partida. */
 	static final int CARTAS_ABERTAS = 4;
@@ -55,6 +56,11 @@ class Partida {
 
 	/** O random sorteia as cartas de conselheiro (abertas e secretas). */
 	Partida(Tabuleiro tabuleiro, List<Heroi> herois, Random random) {
+		this(tabuleiro, herois, null, random);
+	}
+
+	/** nomes[i] é o nome do jogador i; com nomes nulo, cada jogador leva o nome do herói. */
+	Partida(Tabuleiro tabuleiro, List<Heroi> herois, List<String> nomes, Random random) {
 		if (tabuleiro == null) {
 			throw new IllegalArgumentException("Tabuleiro nulo");
 		}
@@ -62,13 +68,20 @@ class Partida {
 			throw new IllegalArgumentException("Random nulo");
 		}
 		exigirEscolhasValidas(herois);
+		if (nomes != null) {
+			exigirNomesValidos(nomes, herois.size());
+		}
 		this.tabuleiro = tabuleiro;
 		tabuleiro.preparar();
 
 		Karakorum inicial = acharKarakorum(tabuleiro);
 		for (int i = 0; i < herois.size(); i++) {
 			Heroi heroi = herois.get(i);
-			jogadores.add(new Jogador(heroi.getCor(), heroi, inicial, moedasIniciais(i)));
+			Jogador jogador = new Jogador(heroi.getCor(), heroi, inicial, moedasIniciais(i));
+			if (nomes != null) {
+				jogador.setNome(nomes.get(i));
+			}
+			jogadores.add(jogador);
 		}
 		sortearCartas(random);
 		revelarMelhoriasIniciais();
@@ -98,6 +111,27 @@ class Partida {
 			}
 			if (!heroisVistos.add(herois.get(i))) {
 				throw new IllegalArgumentException("Herói " + herois.get(i) + " escolhido mais de uma vez");
+			}
+		}
+	}
+
+	//nomes sem espaços nas pontas, não vazios, curtos e sem repetição (ignorando maiúsculas)
+	private static void exigirNomesValidos(List<String> nomes, int quantidade) {
+		if (nomes.size() != quantidade) {
+			throw new IllegalArgumentException("Cada jogador precisa de um nome");
+		}
+		Set<String> nomesVistos = new HashSet<String>();
+		for (int i = 0; i < nomes.size(); i++) {
+			String nome = nomes.get(i) == null ? "" : nomes.get(i).trim();
+			if (nome.isEmpty()) {
+				throw new IllegalArgumentException("Jogador " + (i + 1) + " sem nome");
+			}
+			if (nome.length() > MAX_CARACTERES_NOME) {
+				throw new IllegalArgumentException("O nome do jogador " + (i + 1) + " passa de "
+						+ MAX_CARACTERES_NOME + " caracteres");
+			}
+			if (!nomesVistos.add(nome.toLowerCase())) {
+				throw new IllegalArgumentException("Nome " + nome + " usado por mais de um jogador");
 			}
 		}
 	}

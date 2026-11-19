@@ -34,8 +34,7 @@ class JanelaCartas extends JDialog {
         super(dono, "Cartas", true);
         FachadaModelo fachada = FachadaModelo.getInstancia();
         jogador = fachada.getJogadorDaVez();
-        String heroi = fachada.getHeroiDoJogador(jogador);
-        setTitle("Cartas de " + heroi.charAt(0) + heroi.substring(1).toLowerCase());
+        setTitle("Cartas de " + fachada.getNomeDoJogador(jogador));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setSize(LARGURA, ALTURA);
         setLocationRelativeTo(dono);

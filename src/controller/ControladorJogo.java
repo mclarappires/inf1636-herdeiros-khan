@@ -147,9 +147,9 @@ public class ControladorJogo implements ObservadoIF {
      * Cria a partida com as escolhas da tela de selecao e abre o tabuleiro.
      * Devolve null se deu certo, ou a mensagem de erro para a tela mostrar.
      */
-    public String iniciarPartida(List<String> herois) {
+    public String iniciarPartida(List<String> herois, List<String> nomes) {
         try {
-            FachadaModelo.getInstancia().novaPartida(ARQUIVO_MAPA, herois);
+            FachadaModelo.getInstancia().novaPartida(ARQUIVO_MAPA, herois, nomes);
         } catch (IllegalArgumentException e) {
             return e.getMessage();
         } catch (IOException e) {

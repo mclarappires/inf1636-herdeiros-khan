@@ -15,6 +15,7 @@ class Jogador {
 
 	private final Cor cor;
 	private final Heroi heroi;
+	private String nome; //padrão: nome do herói ("Tolui")
 	private int votos = 0;
 	private int yurtsDisponiveis = YURTS_INICIAIS;
 
@@ -62,6 +63,7 @@ class Jogador {
 		}
 		this.cor = cor;
 		this.heroi = heroi;
+		this.nome = heroi.name().charAt(0) + heroi.name().substring(1).toLowerCase();
 		this.tabuleiroJogador = new TabuleiroJogador(heroi);
 
 		for (Coluna c : Coluna.values()) {
@@ -640,6 +642,17 @@ class Jogador {
 
 	Cor getCor() {
 		return cor;
+	}
+
+	String getNome() {
+		return nome;
+	}
+
+	void setNome(String nome) {
+		if (nome == null || nome.trim().isEmpty()) {
+			throw new IllegalArgumentException("Nome do jogador vazio");
+		}
+		this.nome = nome.trim();
 	}
 
 	Heroi getHeroi() {

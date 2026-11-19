@@ -233,8 +233,9 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
             botaoCartas.setEnabled(false);
             return;
         }
-        String heroi = fachada.getHeroiDoJogador(fachada.getJogadorDaVez());
-        String nome = heroi.charAt(0) + heroi.substring(1).toLowerCase();
+        // o texto do botao e HTML: "<" e "&" no nome precisam ser escapados
+        String nome = fachada.getNomeDoJogador(fachada.getJogadorDaVez())
+                .replace("&", "&amp;").replace("<", "&lt;");
         botaoTabuleiroJogador.setText("<html><center>Tabuleiro de<br>" + nome + "</center></html>");
         botaoCartas.setText("<html><center>Cartas de<br>" + nome + "</center></html>");
         // ninguem joga nem ve cartas enquanto alguem ainda escolhe a carta secreta

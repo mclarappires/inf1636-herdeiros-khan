@@ -71,7 +71,7 @@ class PainelTurno extends JPanel {
         } else if (fachada.isEscolhaInicialPendente()) {
             int jogador = fachada.getProximoJogadorComEscolhaPendente();
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(jogador));
-            texto = formatar(fachada.getHeroiDoJogador(jogador))
+            texto = nomeComHeroi(fachada, jogador)
                     + (fachada.getCartaSecretaDoJogador(jogador) == null ? " escolhe a carta secreta"
                             : " escolhe a melhoria inicial");
             inventario.setVisible(false);
@@ -80,7 +80,7 @@ class PainelTurno extends JPanel {
             int vez = fachada.getJogadorDaVez();
             corDaVez = CoresJogador.de(fachada.getCorDoJogador(vez));
             String ativa = fachada.getColunaAtiva();
-            texto = "Vez de " + formatar(fachada.getHeroiDoJogador(vez)) + "  |  "
+            texto = "Vez de " + nomeComHeroi(fachada, vez) + "  |  "
                     + (ativa == null ? "Ative uma coluna"
                             : "Coluna " + PainelTabuleiroJogador.nomeDaColuna(ativa))
                     + (fachada.isKhanPendente() ? "  |  Use o Khan" : "");
@@ -130,6 +130,11 @@ class PainelTurno extends JPanel {
     /** "VERMELHA" vira "Vermelha". */
     private static String formatar(String nome) {
         return nome.charAt(0) + nome.substring(1).toLowerCase();
+    }
+
+    /** "Ana (Tolui)": o heroi lembra as habilidades de quem joga. */
+    private static String nomeComHeroi(FachadaModelo fachada, int jogador) {
+        return fachada.getNomeDoJogador(jogador) + " (" + formatar(fachada.getHeroiDoJogador(jogador)) + ")";
     }
 
     /** Moedas, espadas, yurts, cavalos, punhos e votos do jogador da vez, cada um numa pilula clara. */

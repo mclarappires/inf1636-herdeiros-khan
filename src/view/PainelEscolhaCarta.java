@@ -92,8 +92,7 @@ class PainelEscolhaCarta extends JPanel {
             repaint();
             return;
         }
-        String heroi = fachada.getHeroiDoJogador(jogador);
-        String nome = heroi.charAt(0) + heroi.substring(1).toLowerCase();
+        String nome = fachada.getNomeDoJogador(jogador);
         if (escolhendoMelhoria) {
             titulo.setText("Melhoria inicial de " + nome);
             instrucao.setText("Clique na melhoria que vai para o 1º espaço da coluna branca."

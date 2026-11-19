@@ -147,7 +147,7 @@ class PainelTabuleiroJogador extends JPanel {
             jogadorMostrado = vez;
             botoesPeao[0].setSelected(true);
         }
-        titulo.setText("Tabuleiro de " + formatar(fachada.getHeroiDoJogador(vez)));
+        titulo.setText("Tabuleiro de " + fachada.getNomeDoJogador(vez));
 
         String ativa = fachada.getColunaAtiva();
         instrucao.setText(ativa == null

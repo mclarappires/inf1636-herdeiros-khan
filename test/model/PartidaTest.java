@@ -3,6 +3,7 @@ package model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -133,6 +134,44 @@ public class PartidaTest {
 	@Test(expected = IllegalArgumentException.class, timeout = DEFAULT_TIMEOUT)
 	public void criar_heroiRepetido_lancaExcecao() {
 		new Partida(tabuleiro, herois(Heroi.TOLUI, Heroi.TOLUI));
+	}
+
+	// NOMES DOS JOGADORES
+
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_semNomes_cadaJogadorLevaONomeDoHeroi() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI));
+		assertEquals("Ogedei", p.getJogador(0).getNome());
+		assertEquals("Jochi", p.getJogador(1).getNome());
+	}
+
+	/** Os espaços que o jogador digita nas pontas do nome não fazem parte dele. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_comNomes_tiraOsEspacosDasPontas() {
+		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI),
+				Arrays.asList("  Ana ", "Bruno Lima"), new Random(1L));
+		assertEquals("Ana", p.getJogador(0).getNome());
+		assertEquals("Bruno Lima", p.getJogador(1).getNome());
+	}
+
+	/** O limite de caracteres vale para o nome já sem os espaços das pontas. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_nomeNoLimiteComEspacos_aceita() {
+		String limite = "abcdefghijklmnopqrstuvwxyz".substring(0, Partida.MAX_CARACTERES_NOME);
+		Partida p = new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI),
+				Arrays.asList(" " + limite + " ", "Bia"), new Random(1L));
+		assertEquals(limite, p.getJogador(0).getNome());
+	}
+
+	/** A recusa de um nome acontece antes da preparação: o tabuleiro continua intocado. */
+	@Test(timeout = DEFAULT_TIMEOUT)
+	public void criar_nomeInvalido_naoPreparaOTabuleiro() {
+		try {
+			new Partida(tabuleiro, herois(Heroi.OGEDEI, Heroi.JOCHI), Arrays.asList("Ana", "  "), new Random(1L));
+			fail("Nome só com espaços deveria ser recusado");
+		} catch (IllegalArgumentException esperado) {
+			assertFalse(tabuleiro.isPreparado());
+		}
 	}
 
 

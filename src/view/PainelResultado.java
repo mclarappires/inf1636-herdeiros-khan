@@ -50,6 +50,7 @@ class PainelResultado extends JPanel {
     }
 
     // copia do resultado, lida da fachada em atualizar() para o desenho nao consultar o Model a cada repaint
+    private String[] nomes = new String[0];
     private String[] herois = new String[0];
     private Color[] cores = new Color[0];
     private int[] trilha = new int[0];
@@ -82,6 +83,7 @@ class PainelResultado extends JPanel {
         }
         int n = fachada.getQuantidadeJogadores();
         regioes = fachada.getRegioes();
+        nomes = new String[n];
         herois = new String[n];
         cores = new Color[n];
         trilha = new int[n];
@@ -93,6 +95,7 @@ class PainelResultado extends JPanel {
         totais = new int[n];
         vencedor = new boolean[n];
         for (int i = 0; i < n; i++) {
+            nomes[i] = fachada.getNomeDoJogador(i);
             herois[i] = formatar(fachada.getHeroiDoJogador(i));
             cores[i] = CoresJogador.de(fachada.getCorDoJogador(i));
             trilha[i] = fachada.getVotosDoJogador(i);
@@ -114,7 +117,7 @@ class PainelResultado extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (herois.length == 0) {
+        if (nomes.length == 0) {
             return;
         }
         Graphics2D g2 = (Graphics2D) g;
@@ -133,7 +136,7 @@ class PainelResultado extends JPanel {
         int y = 110;
         desenharCabecalho(g2, y, largura);
         y += 40;
-        for (int i = 0; i < herois.length; i++) {
+        for (int i = 0; i < nomes.length; i++) {
             desenharLinha(g2, i, y, largura);
             y += ALTURA_LINHA;
         }
@@ -141,15 +144,15 @@ class PainelResultado extends JPanel {
     }
 
     private String textoDoVencedor() {
-        StringBuilder nomes = new StringBuilder();
+        StringBuilder texto = new StringBuilder();
         int quantos = 0;
         for (int i = 0; i < vencedor.length; i++) {
             if (vencedor[i]) {
-                nomes.append(quantos++ == 0 ? "" : " e ").append(herois[i]);
+                texto.append(quantos++ == 0 ? "" : " e ").append(nomes[i]);
             }
         }
-        return quantos == 1 ? "Vencedor: " + nomes + " (próximo Khan)"
-                : "Vitória compartilhada: " + nomes + " governam juntos o Império Mongol";
+        return quantos == 1 ? "Vencedor: " + texto + " (próximo Khan)"
+                : "Vitória compartilhada: " + texto + " governam juntos o Império Mongol";
     }
 
     private void desenharCabecalho(Graphics2D g2, int y, int largura) {
@@ -183,8 +186,11 @@ class PainelResultado extends JPanel {
         g2.fillOval(x + 10, y + 9, 22, 22);
         g2.setColor(Color.WHITE);
         g2.drawOval(x + 10, y + 9, 22, 22);
+        // nome do jogador e, embaixo, o heroi em letra menor
         g2.setFont(FONTE_NEGRITO);
-        g2.drawString(herois[i], x + 42, base);
+        g2.drawString(nomes[i], x + 42, base - 7);
+        g2.setFont(FONTE.deriveFont(12f));
+        g2.drawString(herois[i], x + 42, base + 9);
         x += (int) (COLUNAS[0] * largura);
 
         g2.setFont(FONTE);
@@ -213,7 +219,7 @@ class PainelResultado extends JPanel {
         g2.setFont(FONTE_NEGRITO);
         g2.setColor(new Color(220, 205, 180));
         g2.drawString("Cartas de conselheiro secreto", MARGEM, y);
-        int n = herois.length;
+        int n = nomes.length;
         int coluna = largura / n;
         for (int i = 0; i < n; i++) {
             int x = MARGEM + i * coluna;
@@ -221,7 +227,7 @@ class PainelResultado extends JPanel {
             g2.setColor(cores[i]);
             g2.setFont(FONTE_NEGRITO);
             FontMetrics m = g2.getFontMetrics();
-            g2.drawString(herois[i], x + (coluna - m.stringWidth(herois[i])) / 2, y + altura);
+            g2.drawString(nomes[i], x + (coluna - m.stringWidth(nomes[i])) / 2, y + altura);
         }
     }
 
