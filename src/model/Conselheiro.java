@@ -144,6 +144,14 @@ class Conselheiro {
 	}
 
 
+	/** Restauração (LeitorPartida): a peça de bônus já foi levada por alguém. */
+	void marcarBonusColetado() {
+		if (bonus == null) {
+			throw new IllegalStateException("Conselheiro sem peça de bônus");
+		}
+		bonusColetado = true;
+	}
+
 	//retorna a pecaBonus pro primeiro jogador que concluir o conselheiro
 	PecaBonus coletarBonus() {
 		if (bonusColetado || bonus == null) {

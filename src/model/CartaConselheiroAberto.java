@@ -69,6 +69,21 @@ abstract class CartaConselheiroAberto {
 		j.adicionarVotos(VOTOS);
 	}
 
+	/** Restauração (LeitorPartida): a carta já foi cumprida; o voto já está nos votos do jogador. */
+	void marcarReivindicada() {
+		reivindicada = true;
+	}
+
+	/** Uma carta nova do baralho com o id dado. */
+	static CartaConselheiroAberto porId(String id) {
+		for (CartaConselheiroAberto carta : criarBaralho()) {
+			if (carta.getId().equals(id)) {
+				return carta;
+			}
+		}
+		throw new IllegalArgumentException("Carta aberta desconhecida: " + id);
+	}
+
 	/** As 14 cartas abertas do jogo, sem embaralhar. */
 	static List<CartaConselheiroAberto> criarBaralho() {
 		List<CartaConselheiroAberto> baralho = new LinkedList<CartaConselheiroAberto>();

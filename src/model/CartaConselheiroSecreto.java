@@ -62,6 +62,16 @@ abstract class CartaConselheiroSecreto {
 		return votos;
 	}
 
+	/** Uma carta nova do baralho com o id dado ("cidadao", "viajante"...). */
+	static CartaConselheiroSecreto porId(String id) {
+		for (CartaConselheiroSecreto carta : criarBaralho()) {
+			if (carta.getId().equals(id)) {
+				return carta;
+			}
+		}
+		throw new IllegalArgumentException("Carta secreta desconhecida: " + id);
+	}
+
 	/** As 10 cartas secretas do jogo, sem embaralhar. */
 	static List<CartaConselheiroSecreto> criarBaralho() {
 		List<CartaConselheiroSecreto> baralho = new LinkedList<CartaConselheiroSecreto>();

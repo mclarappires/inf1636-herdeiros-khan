@@ -173,7 +173,34 @@ class AreaMelhorias implements LocalDoKhan {
 		return reabastecer();
 	}
 
+	/** Restauração (LeitorPartida): troca a pilha (topo primeiro) e as peças dos espaços. */
+	void restaurar(List<Melhoria> novaPilha, Map<Integer, Melhoria> novosEspacos) {
+		if (novaPilha == null || novosEspacos == null) {
+			throw new IllegalArgumentException("Pilha e espaços são obrigatórios");
+		}
+		for (Melhoria m : novaPilha) {
+			if (m == null) {
+				throw new IllegalArgumentException("Pilha com melhoria nula");
+			}
+		}
+		for (Map.Entry<Integer, Melhoria> e : novosEspacos.entrySet()) {
+			exigirEspacoValido(e.getKey());
+			if (e.getValue() == null) {
+				throw new IllegalArgumentException("Espaço " + e.getKey() + " com melhoria nula");
+			}
+		}
+		pilha.clear();
+		pilha.addAll(novaPilha);
+		espacos.clear();
+		espacos.putAll(novosEspacos);
+	}
+
 	//CONSULTAS
+
+	/** Melhorias da pilha, do topo para o fundo. */
+	List<Melhoria> getPilha() {
+		return Collections.unmodifiableList(pilha);
+	}
 
 	/** Melhoria no espaço, ou null se ele estiver vazio. */
 	Melhoria getMelhoria(int espaco) {

@@ -60,6 +60,15 @@ class Provincia implements LocalDoKhan {
 		return true;
 	}
 	
+	/** Restauração (LeitorPartida): peças de tributo sobre a província, de 0 a 3. */
+	void definirQuantidade(int quantidade) {
+		if (quantidade < 0 || quantidade > MAXIMO_TRIBUTOS) {
+			throw new IllegalArgumentException("Província " + id + " aceita de 0 a "
+					+ MAXIMO_TRIBUTOS + " tributos: " + quantidade);
+		}
+		this.quantidade = quantidade;
+	}
+
 	TipoTributo retirarTributo() {
 		if(quantidade == 0) {
 			throw new IllegalStateException("Província " + id + " está vazia");

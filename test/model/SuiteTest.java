@@ -20,7 +20,8 @@ import org.junit.runners.Suite;
 	PeaoKhanTest.class,
 	ConselheiroTest.class,
 	PartidaTest.class,
-	FachadaModeloTest.class
+	FachadaModeloTest.class,
+	PersistenciaTest.class
 })
 public class SuiteTest {
 }

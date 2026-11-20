@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import controller.ControladorJogo;
@@ -32,7 +33,10 @@ class PainelInicio extends JPanel {
     private static final Color FUNDO = new Color(60, 40, 25);
     private static final Color DOURADO = new Color(235, 195, 90);
 
+    private static final Color VERMELHO = new Color(255, 110, 100);
+
     private Image imagemFundo;
+    private final JLabel mensagem = new JLabel(" ");
 
     PainelInicio() {
         carregarImagem("resources/tabuleiro.jpg");
@@ -42,16 +46,22 @@ class PainelInicio extends JPanel {
         JPanel botoes = new JPanel(new GridLayout(3, 1, 0, 14));
         botoes.setOpaque(false);
         botoes.add(criarBotao("Novo jogo", new OuvinteNovoJogo()));
-        JButton carregar = criarBotao("Carregar jogo", null);
-        carregar.setEnabled(false);
-        carregar.setToolTipText("Em breve");
-        botoes.add(carregar);
+        botoes.add(criarBotao("Carregar jogo", new OuvinteCarregar()));
         botoes.add(criarBotao("Sair", new OuvinteSair()));
 
         // botoes um pouco abaixo do centro, deixando o titulo em cima
         GridBagConstraints posicao = new GridBagConstraints();
+        posicao.gridy = 0;
         posicao.insets = new Insets(160, 0, 0, 0);
         add(botoes, posicao);
+
+        // recusa ao carregar, sem dialogo
+        mensagem.setForeground(VERMELHO);
+        mensagem.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
+        GridBagConstraints posicaoMensagem = new GridBagConstraints();
+        posicaoMensagem.gridy = 1;
+        posicaoMensagem.insets = new Insets(18, 20, 0, 20);
+        add(mensagem, posicaoMensagem);
     }
 
     private static JButton criarBotao(String texto, ActionListener ouvinte) {
@@ -109,6 +119,18 @@ class PainelInicio extends JPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             ControladorJogo.getInstancia().novoJogo();
+        }
+    }
+
+    private class OuvinteCarregar implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String caminho = EscolhaDeArquivo.paraAbrir(PainelInicio.this);
+            if (caminho == null) {
+                return; // cancelou
+            }
+            String motivo = ControladorJogo.getInstancia().carregarPartida(caminho);
+            mensagem.setText(motivo == null ? " " : motivo);
         }
     }
 

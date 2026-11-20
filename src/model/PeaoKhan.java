@@ -20,6 +20,11 @@ class PeaoKhan {
 		return ganhos;
 	}
 
+	/** Restauração (LeitorPartida): põe o Khan no lugar salvo (null = fora) sem dar tributos. */
+	void restaurar(LocalDoKhan salvo) {
+		local = salvo;
+	}
+
 	/** Lugar atual do Khan, ou null se ele ainda não entrou no tabuleiro. */
 	LocalDoKhan getLocal() {
 		return local;

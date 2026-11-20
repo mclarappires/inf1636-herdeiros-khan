@@ -87,6 +87,40 @@ class Partida {
 		revelarMelhoriasIniciais();
 	}
 
+	/**
+	 * Restauração de uma partida salva (LeitorPartida): o tabuleiro e os jogadores já vêm com
+	 * o estado lido do arquivo; nada é preparado nem sorteado. As escolhas iniciais já foram feitas.
+	 */
+	Partida(Tabuleiro tabuleiro, List<Jogador> jogadores, List<CartaConselheiroAberto> abertas,
+			int indiceDaVez, boolean fimDisparado, int turnosAteOFim, boolean terminada) {
+		if (tabuleiro == null || jogadores == null || abertas == null) {
+			throw new IllegalArgumentException("Tabuleiro, jogadores e cartas são obrigatórios");
+		}
+		if (jogadores.size() < MIN_JOGADORES || jogadores.size() > MAX_JOGADORES) {
+			throw new IllegalArgumentException("A partida precisa de " + MIN_JOGADORES
+					+ " a " + MAX_JOGADORES + " jogadores");
+		}
+		if (indiceDaVez < 0 || indiceDaVez >= jogadores.size()) {
+			throw new IllegalArgumentException("Jogador da vez inexistente: " + indiceDaVez);
+		}
+		if (turnosAteOFim < 0) {
+			throw new IllegalArgumentException("Turnos até o fim negativos");
+		}
+		this.tabuleiro = tabuleiro;
+		this.jogadores.addAll(jogadores);
+		for (Jogador j : jogadores) {
+			if (j.getCartaSecreta() == null) {
+				throw new IllegalArgumentException("Jogador " + j.getNome() + " sem carta secreta");
+			}
+			opcoesSecretas.put(j, new LinkedList<CartaConselheiroSecreto>());
+		}
+		this.cartasAbertas.addAll(abertas);
+		this.indiceDaVez = indiceDaVez;
+		this.fimDisparado = fimDisparado;
+		this.turnosAteOFim = turnosAteOFim;
+		this.terminada = terminada;
+	}
+
 	/** O primeiro e o segundo jogadores começam com 1 moeda; os demais com 2. */
 	static int moedasIniciais(int posicao) {
 		if (posicao < 0) {
@@ -96,7 +130,7 @@ class Partida {
 	}
 
 	//herói sem repetição já garante que as cores também não se repetem
-	private static void exigirEscolhasValidas(List<Heroi> herois) {
+	static void exigirEscolhasValidas(List<Heroi> herois) {
 		if (herois == null) {
 			throw new IllegalArgumentException("Escolha dos heróis é obrigatória");
 		}
@@ -116,7 +150,7 @@ class Partida {
 	}
 
 	//nomes sem espaços nas pontas, não vazios, curtos e sem repetição (ignorando maiúsculas)
-	private static void exigirNomesValidos(List<String> nomes, int quantidade) {
+	static void exigirNomesValidos(List<String> nomes, int quantidade) {
 		if (nomes.size() != quantidade) {
 			throw new IllegalArgumentException("Cada jogador precisa de um nome");
 		}
@@ -279,6 +313,11 @@ class Partida {
 		}
 	}
 
+	/** As 4 cartas abertas da partida, cumpridas ou não, na ordem do sorteio. */
+	List<CartaConselheiroAberto> getCartasAbertas() {
+		return Collections.unmodifiableList(cartasAbertas);
+	}
+
 	/** Cartas abertas que ainda não foram cumpridas por ninguém. */
 	List<CartaConselheiroAberto> getCartasAbertasEmJogo() {
 		List<CartaConselheiroAberto> emJogo = new LinkedList<CartaConselheiroAberto>();
@@ -344,6 +383,16 @@ class Partida {
 	/** Contagem de votos como seria se a partida acabasse agora; vale como final quando isTerminada(). */
 	ResultadoFinal calcularResultado() {
 		return ResultadoFinal.calcular(jogadores, tabuleiro);
+	}
+
+	//SALVAR
+
+	/**
+	 * Só se salva entre jogadas: a partida não acabou, as escolhas iniciais já foram feitas e
+	 * o jogador da vez ainda não ativou coluna (o estado do turno está vazio).
+	 */
+	boolean podeSalvar() {
+		return !terminada && !isEscolhaInicialPendente() && getJogadorDaVez().getColunaAtiva() == null;
 	}
 
 	//KURULTAI

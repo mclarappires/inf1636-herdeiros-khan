@@ -110,6 +110,15 @@ class Cidade {
 		yurtConquista = yurt;
 	}
  
+	/** Restauração (LeitorPartida): marca a cidade como conquistada, com o yurt do conquistador ou sem yurt. */
+	void restaurarConquista(Yurt yurt) {
+		if (temTesouro()) {
+			throw new IllegalStateException("Cidade " + id + " ainda tem tesouros");
+		}
+		conquistada = true;
+		yurtConquista = yurt;
+	}
+
 	Yurt getYurtDeConquista() {
 		return yurtConquista;
 	}

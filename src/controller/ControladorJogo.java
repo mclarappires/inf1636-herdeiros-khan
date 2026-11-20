@@ -156,14 +156,48 @@ public class ControladorJogo implements ObservadoIF {
             return "Nao foi possivel ler o mapa: " + ARQUIVO_MAPA;
         }
         fecharSelecao();
+        abrirTabuleiro(TELA_ESCOLHA_CARTA); // antes da primeira rodada
+        return null;
+    }
+
+    /**
+     * "Carregar jogo": rele a partida salva no arquivo escolhido e abre o tabuleiro no mapa,
+     * na vez de quem ia jogar. Devolve null se deu certo, ou o motivo para a tela mostrar.
+     */
+    public String carregarPartida(String caminho) {
+        String motivo = FachadaModelo.getInstancia().carregarPartida(ARQUIVO_MAPA, caminho);
+        if (motivo != null) {
+            return motivo;
+        }
+        if (janelaInicio != null) {
+            janelaInicio.dispose();
+            janelaInicio = null;
+        }
+        fecharSelecao();
+        abrirTabuleiro(TELA_MAPA);
+        return null;
+    }
+
+    /**
+     * "Salvar": grava a partida no arquivo escolhido. So vale entre jogadas (antes de o
+     * jogador da vez ativar uma coluna). Devolve null se salvou, ou o motivo.
+     */
+    public String salvarPartida(String caminho) {
+        if (!partidaEmAndamento()) {
+            return "Nao ha partida em andamento";
+        }
+        return FachadaModelo.getInstancia().salvarPartida(caminho);
+    }
+
+    // troca a janela do tabuleiro por uma nova, ja mostrando a tela pedida
+    private void abrirTabuleiro(int telaInicial) {
         if (janelaTabuleiro != null) { // partida anterior: a janela velha deixa de ser avisada
             cancelaRegistro(janelaTabuleiro);
             janelaTabuleiro.dispose();
         }
         janelaTabuleiro = new JanelaTabuleiro(); // se registra neste controller
         janelaTabuleiro.setVisible(true);
-        mostrarTela(TELA_ESCOLHA_CARTA); // antes da primeira rodada
-        return null;
+        mostrarTela(telaInicial);
     }
 
     /**

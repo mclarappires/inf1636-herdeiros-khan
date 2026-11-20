@@ -128,6 +128,36 @@ class TabuleiroJogador {
 		return Collections.unmodifiableList(daColuna);
 	}
 
+	//RESTAURAÇÃO (só para o LeitorPartida)
+
+	/** Troca as melhorias da coluna pelas dadas, de baixo para cima, sem dar melhoria grátis. */
+	void restaurarColuna(Coluna coluna, List<Melhoria> novas) {
+		List<Melhoria> daColuna = melhorias.get(coluna);
+		if (daColuna == null || novas == null) {
+			throw new IllegalArgumentException("Coluna ou melhorias nulas");
+		}
+		if (novas.size() > getCapacidade(coluna)) {
+			throw new IllegalArgumentException("Coluna " + coluna + " tem só " + LINHAS + " espaços");
+		}
+		for (Melhoria m : novas) {
+			if (m == null) {
+				throw new IllegalArgumentException("Melhoria nula");
+			}
+			if (!coluna.isBranca() && m.getColuna() != coluna) {
+				throw new IllegalArgumentException("Melhoria não tem a cor da coluna " + coluna);
+			}
+		}
+		daColuna.clear();
+		daColuna.addAll(novas);
+	}
+
+	void definirGratuitasPendentes(int quantidade) {
+		if (quantidade < 0 || quantidade > LINHAS) {
+			throw new IllegalArgumentException("Melhorias gratuitas inválidas: " + quantidade);
+		}
+		gratuitasPendentes = quantidade;
+	}
+
 	/** Melhorias das quatro colunas, inclusive da branca. */
 	List<Melhoria> getTodasMelhorias() {
 		List<Melhoria> todas = new LinkedList<Melhoria>();

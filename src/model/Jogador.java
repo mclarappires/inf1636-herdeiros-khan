@@ -740,6 +740,73 @@ class Jogador {
 		return cartaSecreta;
 	}
 
+	/** Espadas virtuais que sobraram de turnos anteriores (só o Chagatai guarda). */
+	int getEspadasGuardadas() {
+		return colunaAtiva == null ? contar(tributosVirtuais, TipoTributo.ESPADA) : 0;
+	}
+
+	//RESTAURAÇÃO (só para o LeitorPartida, entre turnos)
+
+	void definirVotos(int votos) {
+		exigirNaoNegativo(votos, "Votos");
+		this.votos = votos;
+	}
+
+	void definirYurtsDisponiveis(int yurts) {
+		exigirNaoNegativo(yurts, "Yurts");
+		if (yurts > YURTS_INICIAIS) {
+			throw new IllegalArgumentException("O jogador tem no máximo " + YURTS_INICIAIS + " yurts");
+		}
+		this.yurtsDisponiveis = yurts;
+	}
+
+	/** Troca as peças de tributo do jogador pelas dadas (sem os recursos virtuais). */
+	void definirTributos(Map<TipoTributo, Integer> novos) {
+		trocarConteudo(tributos, novos);
+	}
+
+	void definirTesouros(Map<TipoTesouro, Integer> novos) {
+		trocarConteudo(tesouros, novos);
+	}
+
+	/** Peças de bônus ganhas: peça -> já foi usada. */
+	void definirBonus(Map<PecaBonus, Boolean> novos) {
+		if (novos == null) {
+			throw new IllegalArgumentException("Bônus nulos");
+		}
+		bonus.clear();
+		bonus.putAll(novos);
+	}
+
+	/** Espadas virtuais guardadas de turnos anteriores (Chagatai). */
+	void guardarEspadasVirtuais(int espadas) {
+		exigirNaoNegativo(espadas, "Espadas guardadas");
+		if (espadas > 0 && heroi != Heroi.CHAGATAI) {
+			throw new IllegalArgumentException("Só o Chagatai guarda espadas virtuais");
+		}
+		tributosVirtuais.clear();
+		somar(tributosVirtuais, TipoTributo.ESPADA, espadas);
+	}
+
+	private static <K> void trocarConteudo(Map<K, Integer> mapa, Map<K, Integer> novos) {
+		if (novos == null) {
+			throw new IllegalArgumentException("Quantidades nulas");
+		}
+		mapa.clear();
+		for (Map.Entry<K, Integer> e : novos.entrySet()) {
+			if (e.getKey() == null || e.getValue() == null || e.getValue() < 0) {
+				throw new IllegalArgumentException("Quantidade inválida: " + e);
+			}
+			somar(mapa, e.getKey(), e.getValue());
+		}
+	}
+
+	private static void exigirNaoNegativo(int valor, String nome) {
+		if (valor < 0) {
+			throw new IllegalArgumentException(nome + " negativos: " + valor);
+		}
+	}
+
 	//AUXILIARES
 
 	private void exigirTurnoAtivo() {

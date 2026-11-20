@@ -215,8 +215,50 @@ class Tabuleiro {
 		return preparado && cidadesNaoReveladas.isEmpty() && cidadesVisiveis.isEmpty();
 	}
 	
+	//RESTAURAÇÃO (só para o LeitorPartida)
+
+	/**
+	 * Aplica, no lugar de preparar(), as cidades e a reserva de tesouros de uma partida salva.
+	 * Cada cidade do mapa tem de aparecer em exatamente uma das três listas.
+	 */
+	void restaurar(List<Cidade> ocultas, List<Cidade> visiveis, List<Cidade> conquistadas,
+			List<TipoTesouro> reserva) {
+		exigirNaoPreparado();
+		if (ocultas == null || visiveis == null || conquistadas == null || reserva == null) {
+			throw new IllegalArgumentException("Listas da restauração são obrigatórias");
+		}
+		List<Cidade> todas = new LinkedList<Cidade>(ocultas);
+		todas.addAll(visiveis);
+		todas.addAll(conquistadas);
+		if (todas.size() != cidades.size() || !todas.containsAll(cidades.values())) {
+			throw new IllegalArgumentException("Cada cidade do mapa precisa aparecer uma única vez");
+		}
+		for (TipoTesouro t : reserva) {
+			if (t == null) {
+				throw new IllegalArgumentException("Tesouro nulo na reserva");
+			}
+		}
+		cidadesNaoReveladas.clear();
+		cidadesNaoReveladas.addAll(ocultas);
+		cidadesVisiveis.addAll(visiveis);
+		cidadesConquistadas.addAll(conquistadas);
+		pilhaTesouros.clear();
+		pilhaTesouros.addAll(reserva);
+		preparado = true;
+	}
+
 	//CONSULTAS
-	
+
+	/** Cidades ainda não reveladas, na ordem em que serão reveladas. */
+	List<Cidade> getCidadesNaoReveladas() {
+		return Collections.unmodifiableList(cidadesNaoReveladas);
+	}
+
+	/** Tesouros da reserva, do topo para o fundo. */
+	List<TipoTesouro> getReservaDeTesouros() {
+		return Collections.unmodifiableList(pilhaTesouros);
+	}
+
 	boolean isPreparado() {
 		return preparado;
 	}

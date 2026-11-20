@@ -1,9 +1,12 @@
 package model;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -152,6 +155,71 @@ public class FachadaModelo implements ObservadoIF {
 
 	public boolean temPartida() {
 		return partida != null;
+	}
+
+	//SALVAR E CARREGAR
+
+	/** Se a partida pode ser salva agora: entre jogadas, antes de o jogador da vez ativar uma coluna. */
+	public boolean podeSalvar() {
+		return partida != null && partida.podeSalvar();
+	}
+
+	/** Grava a partida no arquivo texto (ASCII). Devolve null se salvou, ou o motivo. Não muda o estado. */
+	public String salvarPartida(String caminho) {
+		if (caminho == null) {
+			return "Arquivo não escolhido";
+		}
+		if (!podeSalvar()) {
+			return "Só é possível salvar antes de o jogador da vez ativar uma coluna";
+		}
+		try {
+			Writer escritor = new OutputStreamWriter(new FileOutputStream(caminho), "US-ASCII");
+			try {
+				GravadorPartida.gravar(partida, escritor);
+			} finally {
+				escritor.close();
+			}
+			return null;
+		} catch (IOException e) {
+			return "Não foi possível gravar o arquivo: " + e.getMessage();
+		} catch (IllegalStateException e) {
+			return e.getMessage();
+		}
+	}
+
+	/**
+	 * Relê o mapa e a partida salva e passa a jogar com ela. Devolve null se carregou, ou o
+	 * motivo; num arquivo inválido a partida atual continua como estava.
+	 */
+	public String carregarPartida(String caminhoMapa, String caminhoSalvo) {
+		if (caminhoMapa == null || caminhoSalvo == null) {
+			return "Arquivo não escolhido";
+		}
+		try {
+			Tabuleiro mapa;
+			Reader leitorMapa = new InputStreamReader(new FileInputStream(caminhoMapa), "UTF-8");
+			try {
+				mapa = CarregadorMapa.carregar(leitorMapa, new Random());
+			} finally {
+				leitorMapa.close();
+			}
+			Partida carregada;
+			Reader leitorSalvo = new InputStreamReader(new FileInputStream(caminhoSalvo), "US-ASCII");
+			try {
+				carregada = LeitorPartida.ler(leitorSalvo, mapa);
+			} finally {
+				leitorSalvo.close();
+			}
+			partida = carregada; //só troca depois de tudo lido
+			notificar(EVENTO_PARTIDA_NOVA);
+			return null;
+		} catch (IOException e) {
+			return "Não foi possível ler o arquivo: " + e.getMessage();
+		} catch (IllegalArgumentException e) {
+			return "Arquivo de partida inválido. " + e.getMessage();
+		} catch (IllegalStateException e) {
+			return "Arquivo de partida inválido. " + e.getMessage();
+		}
 	}
 
 	public int getQuantidadeJogadores() {
