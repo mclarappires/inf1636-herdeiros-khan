@@ -124,6 +124,19 @@ public class ControladorJogo implements ObservadoIF {
         fecharSelecao();
     }
 
+    /**
+     * "Sair" durante a partida: fecha o tabuleiro e volta a janela inicial, de onde se pode
+     * comecar outra partida ou carregar uma salva. O que nao foi salvo se perde.
+     */
+    public void voltarAoMenu() {
+        mostrarInicio(); // abre antes de fechar o tabuleiro, para a aplicacao nao ficar sem janela
+        if (janelaTabuleiro != null) {
+            cancelaRegistro(janelaTabuleiro);
+            janelaTabuleiro.dispose();
+            janelaTabuleiro = null; // sem tabuleiro, os cliques da partida antiga sao ignorados
+        }
+    }
+
     /** "Novo jogo": fecha a janela inicial e abre a de escolha dos personagens. */
     public void novoJogo() {
         if (janelaSelecao == null) {

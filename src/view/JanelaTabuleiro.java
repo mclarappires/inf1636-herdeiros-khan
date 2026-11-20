@@ -150,7 +150,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         arquivo.add(botaoSalvar);
         JButton botaoSair = new JButton("Sair");
         botaoSair.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        botaoSair.setToolTipText("Fecha o jogo (o que não foi salvo se perde)");
+        botaoSair.setToolTipText("Volta ao menu principal (o que não foi salvo se perde)");
         botaoSair.addActionListener(new OuvinteSair());
         arquivo.add(botaoSair);
         botoes.add(arquivo);
@@ -314,7 +314,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
     private static class OuvinteSair implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            ControladorJogo.getInstancia().sair();
+            ControladorJogo.getInstancia().voltarAoMenu();
         }
     }
 
