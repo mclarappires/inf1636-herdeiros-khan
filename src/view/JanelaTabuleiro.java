@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
     private final JPanel centro = new JPanel(cartoes);
     private final JButton botaoTabuleiroJogador = new JButton();
     private final JButton botaoCartas = new JButton();
+    private final JButton botaoSalvar = new JButton("Salvar");
     private final JLabel faixaDicas = new JLabel();
 
     public JanelaTabuleiro() {
@@ -130,7 +132,6 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
 
     private JPanel criarLateral() {
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 6));
-        botoes.setPreferredSize(new Dimension(170, 124));
         botaoTabuleiroJogador.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
         botaoTabuleiroJogador.setPreferredSize(new Dimension(170, 52));
         botaoTabuleiroJogador.addActionListener(new OuvinteTabuleiroJogador());
@@ -139,6 +140,21 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         botaoCartas.setPreferredSize(new Dimension(170, 52));
         botaoCartas.addActionListener(new OuvinteCartas());
         botoes.add(botaoCartas);
+
+        // Salvar (so entre jogadas) e Sair, lado a lado
+        JPanel arquivo = new JPanel(new GridLayout(1, 2, 6, 0));
+        arquivo.setPreferredSize(new Dimension(170, 34));
+        botaoSalvar.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        botaoSalvar.setToolTipText("Salva a partida (só antes de ativar a coluna)");
+        botaoSalvar.addActionListener(new OuvinteSalvar());
+        arquivo.add(botaoSalvar);
+        JButton botaoSair = new JButton("Sair");
+        botaoSair.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        botaoSair.setToolTipText("Fecha o jogo (o que não foi salvo se perde)");
+        botaoSair.addActionListener(new OuvinteSair());
+        arquivo.add(botaoSair);
+        botoes.add(arquivo);
+        botoes.setPreferredSize(new Dimension(170, 164));
 
         JPanel topo = new JPanel(new BorderLayout(0, 4));
         topo.add(botoes, BorderLayout.NORTH);
@@ -226,6 +242,8 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
 
     private void atualizarBotao() {
         FachadaModelo fachada = FachadaModelo.getInstancia();
+        // so entre jogadas: desabilita ao ativar a coluna e volta quando a vez passa
+        botaoSalvar.setEnabled(fachada.podeSalvar());
         if (!fachada.temPartida()) {
             botaoTabuleiroJogador.setText("<html><center>Tabuleiro<br>do jogador</center></html>");
             botaoTabuleiroJogador.setEnabled(false);
@@ -277,6 +295,26 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         @Override
         public void actionPerformed(ActionEvent e) {
             ControladorJogo.getInstancia().abrirCartas();
+        }
+    }
+
+    private class OuvinteSalvar implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String caminho = EscolhaDeArquivo.paraSalvar(JanelaTabuleiro.this);
+            if (caminho == null) {
+                return; // cancelou
+            }
+            String motivo = ControladorJogo.getInstancia().salvarPartida(caminho);
+            mostrarMensagem(motivo == null ? "Partida salva em " + caminho : motivo);
+            ControladorJogo.getInstancia().abrirMapa(); // a mensagem aparece na faixa do mapa
+        }
+    }
+
+    private static class OuvinteSair implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ControladorJogo.getInstancia().sair();
         }
     }
 

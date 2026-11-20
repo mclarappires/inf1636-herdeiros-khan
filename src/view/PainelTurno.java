@@ -33,7 +33,6 @@ class PainelTurno extends JPanel {
     private final JanelaTabuleiro janela;
     private final Inventario inventario = new Inventario();
     private final JButton botaoPassar = new JButton("Passar a vez");
-    private final JButton botaoSalvar = new JButton("Salvar");
 
     private Color corDaVez = Color.GRAY;
     private String texto = "";
@@ -49,12 +48,7 @@ class PainelTurno extends JPanel {
         botaoPassar.setFont(FONTE.deriveFont(16f));
         botaoPassar.setPreferredSize(new Dimension(150, 40));
         botaoPassar.addActionListener(new OuvintePassar());
-        botaoSalvar.setFont(FONTE.deriveFont(16f));
-        botaoSalvar.setPreferredSize(new Dimension(100, 40));
-        botaoSalvar.setToolTipText("Salva a partida (so antes de ativar a coluna)");
-        botaoSalvar.addActionListener(new OuvinteSalvar());
         direita.add(inventario);
-        direita.add(botaoSalvar);
         direita.add(botaoPassar);
         add(direita, BorderLayout.EAST);
         atualizar();
@@ -101,8 +95,6 @@ class PainelTurno extends JPanel {
             inventario.setVisible(true);
             botaoPassar.setEnabled(true);
         }
-        // so entre jogadas: desabilita ao ativar a coluna e volta quando a vez passa
-        botaoSalvar.setEnabled(fachada.podeSalvar());
         repaint();
     }
 
@@ -226,19 +218,6 @@ class PainelTurno extends JPanel {
             FontMetrics m = g2.getFontMetrics();
             g2.drawString(String.valueOf(quantidade), fim,
                     (ALTURA + m.getAscent() - m.getDescent()) / 2);
-        }
-    }
-
-    private class OuvinteSalvar implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String caminho = EscolhaDeArquivo.paraSalvar(janela);
-            if (caminho == null) {
-                return; // cancelou
-            }
-            String motivo = ControladorJogo.getInstancia().salvarPartida(caminho);
-            janela.mostrarMensagem(motivo == null ? "Partida salva em " + caminho : motivo);
-            ControladorJogo.getInstancia().abrirMapa(); // a mensagem aparece na faixa do mapa
         }
     }
 
