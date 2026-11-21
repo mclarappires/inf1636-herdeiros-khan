@@ -1,12 +1,8 @@
 package model;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -141,13 +137,7 @@ public class FachadaModelo implements ObservadoIF {
 		}
 		List<Heroi> heroisEscolhidos = converterHerois(herois);
 
-		Reader leitor = new InputStreamReader(new FileInputStream(caminhoMapa), "UTF-8");
-		Tabuleiro tabuleiro;
-		try {
-			tabuleiro = CarregadorMapa.carregar(leitor, new Random());
-		} finally {
-			leitor.close();
-		}
+		Tabuleiro tabuleiro = lerMapa(caminhoMapa);
 		//só troca a partida atual se a nova for válida
 		partida = new Partida(tabuleiro, heroisEscolhidos, nomes, new Random());
 		notificar(EVENTO_PARTIDA_NOVA);
@@ -155,6 +145,19 @@ public class FachadaModelo implements ObservadoIF {
 
 	public boolean temPartida() {
 		return partida != null;
+	}
+
+	/** Lê o arquivo do mapa (texto ASCII) com um fluxo de caracteres, como no Cap. 16. */
+	private static Tabuleiro lerMapa(String caminhoMapa) throws IOException {
+		FileReader leitor = null;
+		try {
+			leitor = new FileReader(caminhoMapa);
+			return CarregadorMapa.carregar(leitor, new Random());
+		} finally {
+			if (leitor != null) {
+				leitor.close();
+			}
+		}
 	}
 
 	//SALVAR E CARREGAR
@@ -173,11 +176,14 @@ public class FachadaModelo implements ObservadoIF {
 			return "Só é possível salvar antes de o jogador da vez ativar uma coluna";
 		}
 		try {
-			Writer escritor = new OutputStreamWriter(new FileOutputStream(caminho), "US-ASCII");
+			FileWriter escritor = null;
 			try {
+				escritor = new FileWriter(caminho);
 				GravadorPartida.gravar(partida, escritor);
 			} finally {
-				escritor.close();
+				if (escritor != null) {
+					escritor.close();
+				}
 			}
 			return null;
 		} catch (IOException e) {
@@ -196,19 +202,16 @@ public class FachadaModelo implements ObservadoIF {
 			return "Arquivo não escolhido";
 		}
 		try {
-			Tabuleiro mapa;
-			Reader leitorMapa = new InputStreamReader(new FileInputStream(caminhoMapa), "UTF-8");
-			try {
-				mapa = CarregadorMapa.carregar(leitorMapa, new Random());
-			} finally {
-				leitorMapa.close();
-			}
+			Tabuleiro mapa = lerMapa(caminhoMapa);
 			Partida carregada;
-			Reader leitorSalvo = new InputStreamReader(new FileInputStream(caminhoSalvo), "US-ASCII");
+			FileReader leitor = null;
 			try {
-				carregada = LeitorPartida.ler(leitorSalvo, mapa);
+				leitor = new FileReader(caminhoSalvo);
+				carregada = LeitorPartida.ler(leitor, mapa);
 			} finally {
-				leitorSalvo.close();
+				if (leitor != null) {
+					leitor.close();
+				}
 			}
 			partida = carregada; //só troca depois de tudo lido
 			notificar(EVENTO_PARTIDA_NOVA);

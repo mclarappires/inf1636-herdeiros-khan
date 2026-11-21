@@ -1,5 +1,6 @@
 package model;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
@@ -20,8 +21,12 @@ class GravadorPartida {
 	private GravadorPartida() {
 	}
 
-	/** Grava a partida no destino (não fecha o destino). Recusa se a partida não puder ser salva agora. */
-	static void gravar(Partida p, Writer destino) {
+	/**
+	 * Grava a partida no destino com um PrintWriter (não fecha o destino). Recusa se a partida
+	 * não puder ser salva agora. O PrintWriter não lança IOException, então o erro é conferido
+	 * com checkError() no fim.
+	 */
+	static void gravar(Partida p, Writer destino) throws IOException {
 		if (p == null || destino == null) {
 			throw new IllegalArgumentException("Partida e destino são obrigatórios");
 		}
@@ -34,7 +39,9 @@ class GravadorPartida {
 		gravarJogadores(p, saida);
 		gravarPartida(p, saida);
 		gravarTabuleiro(p.getTabuleiro(), saida);
-		saida.flush();
+		if (saida.checkError()) { //checkError() também esvazia o buffer
+			throw new IOException("falha ao gravar a partida");
+		}
 	}
 
 	//JOGADORES

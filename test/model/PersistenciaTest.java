@@ -65,7 +65,7 @@ public class PersistenciaTest {
 		}
 	}
 
-	private static String salvar(Partida p) {
+	private static String salvar(Partida p) throws IOException {
 		StringWriter texto = new StringWriter();
 		GravadorPartida.gravar(p, texto);
 		return texto.toString();
@@ -156,7 +156,7 @@ public class PersistenciaTest {
 	// SÓ ENTRE JOGADAS
 
 	@Test(timeout = DEFAULT_TIMEOUT)
-	public void salvar_colunaAtivada_recusado() {
+	public void salvar_colunaAtivada_recusado() throws IOException {
 		partida.getJogadorDaVez().ativarColuna(Coluna.BRANCA);
 		assertFalse(partida.podeSalvar());
 		try {

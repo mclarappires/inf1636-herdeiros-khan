@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 /**
  * Relê o texto gravado pelo GravadorPartida e monta uma Partida nova sobre um mapa recém
@@ -27,8 +28,25 @@ class LeitorPartida {
 		Linha(int numero, String texto) {
 			this.numero = numero;
 			this.texto = texto;
-			this.p = texto.split("\\s+");
+			this.p = separar(texto);
 		}
+	}
+
+	/** Separa a linha em tokens com um Scanner (o separador padrão são os espaços em branco). */
+	private static String[] separar(String texto) {
+		List<String> tokens = new LinkedList<String>();
+		Scanner s = null;
+		try {
+			s = new Scanner(texto);
+			while (s.hasNext()) {
+				tokens.add(s.next());
+			}
+		} finally {
+			if (s != null) {
+				s.close();
+			}
+		}
+		return tokens.toArray(new String[tokens.size()]);
 	}
 
 	/** Lê a partida salva. O mapa precisa ter sido carregado agora e não pode estar preparado. */
@@ -127,8 +145,27 @@ class LeitorPartida {
 			executar(l, new Acao() {
 				@Override
 				void fazer(Linha l) {
-					String[] partes = l.texto.split("\\s+", 4);
-					if (partes.length != 4) {
+					//as 3 primeiras palavras são tokens; o resto da linha é o nome, que pode ter espaços
+					String[] partes = new String[4];
+					int lidas = 0;
+					Scanner s = null;
+					try {
+						s = new Scanner(l.texto);
+						while (lidas < 3 && s.hasNext()) {
+							partes[lidas++] = s.next();
+						}
+						if (lidas == 3 && s.hasNextLine()) {
+							String nome = s.nextLine().trim();
+							if (!nome.isEmpty()) {
+								partes[lidas++] = nome;
+							}
+						}
+					} finally {
+						if (s != null) {
+							s.close();
+						}
+					}
+					if (lidas != 4) {
 						throw new IllegalArgumentException("esperado JOGADOR índice HEROI nome");
 					}
 					if (inteiro(partes[1]) != herois.size()) {
