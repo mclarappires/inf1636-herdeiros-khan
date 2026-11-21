@@ -18,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -124,10 +125,37 @@ public class JanelaTabuleiro extends JFrame implements ObservadorIF {
         case ControladorJogo.TELA_RESULTADO:
             painelResultado.atualizar();
             cartoes.show(centro, CARTAO_RESULTADO);
+            perguntarNovaPartida();
             break;
         default:
             break;
         }
+    }
+
+    /**
+     * Logo depois de mostrar o vencedor, pergunta se querem uma nova partida (exigido pelo
+     * enunciado). Agendado com invokeLater para a tabela do resultado ser desenhada antes.
+     * Fechar o dialogo pelo X mantem o resultado na tela, com os botoes do rodape.
+     */
+    private void perguntarNovaPartida() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (!isDisplayable()) {
+                    return; // a janela ja foi fechada
+                }
+                String[] opcoes = {"Nova partida", "Sair"};
+                int escolha = JOptionPane.showOptionDialog(JanelaTabuleiro.this,
+                        painelResultado.textoDoVencedor() + "\n\nQuerem jogar uma nova partida?",
+                        "Fim de jogo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                        null, opcoes, opcoes[0]);
+                if (escolha == 0) {
+                    ControladorJogo.getInstancia().jogarDeNovo();
+                } else if (escolha == 1) {
+                    ControladorJogo.getInstancia().sair();
+                }
+            }
+        });
     }
 
     private JPanel criarLateral() {

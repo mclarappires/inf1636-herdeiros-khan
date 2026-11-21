@@ -66,11 +66,15 @@ class PainelResultado extends JPanel {
     PainelResultado() {
         setBackground(FUNDO);
         setLayout(new BorderLayout());
+        JButton novaPartida = new JButton("Nova partida");
+        novaPartida.setFont(FONTE_NEGRITO.deriveFont(16f));
+        novaPartida.addActionListener(new OuvinteNovaPartida());
         JButton sair = new JButton("Sair do jogo");
         sair.setFont(FONTE_NEGRITO.deriveFont(16f));
         sair.addActionListener(new OuvinteSair());
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
         rodape.setOpaque(false);
+        rodape.add(novaPartida);
         rodape.add(sair);
         add(rodape, BorderLayout.SOUTH);
     }
@@ -143,7 +147,8 @@ class PainelResultado extends JPanel {
         desenharCartas(g2, y + 20, largura);
     }
 
-    private String textoDoVencedor() {
+    /** "Vencedor: ..." ou "Vitória compartilhada: ..."; tambem usado no dialogo de nova partida. */
+    String textoDoVencedor() {
         StringBuilder texto = new StringBuilder();
         int quantos = 0;
         for (int i = 0; i < vencedor.length; i++) {
@@ -239,6 +244,13 @@ class PainelResultado extends JPanel {
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(JanelaTabuleiro.LARGURA, JanelaTabuleiro.ALTURA);
+    }
+
+    private class OuvinteNovaPartida implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ControladorJogo.getInstancia().jogarDeNovo();
+        }
     }
 
     private class OuvinteSair implements ActionListener {

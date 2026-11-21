@@ -130,6 +130,19 @@ public class ControladorJogo implements ObservadoIF {
      */
     public void voltarAoMenu() {
         mostrarInicio(); // abre antes de fechar o tabuleiro, para a aplicacao nao ficar sem janela
+        fecharTabuleiro();
+    }
+
+    /**
+     * "Nova partida" no fim do jogo: fecha o tabuleiro e reabre a escolha dos personagens.
+     */
+    public void jogarDeNovo() {
+        novoJogo(); // abre antes de fechar o tabuleiro, para a aplicacao nao ficar sem janela
+        fecharTabuleiro();
+    }
+
+    // fecha a janela do tabuleiro, que deixa de ser avisada
+    private void fecharTabuleiro() {
         if (janelaTabuleiro != null) {
             cancelaRegistro(janelaTabuleiro);
             janelaTabuleiro.dispose();
@@ -204,10 +217,7 @@ public class ControladorJogo implements ObservadoIF {
 
     // troca a janela do tabuleiro por uma nova, ja mostrando a tela pedida
     private void abrirTabuleiro(int telaInicial) {
-        if (janelaTabuleiro != null) { // partida anterior: a janela velha deixa de ser avisada
-            cancelaRegistro(janelaTabuleiro);
-            janelaTabuleiro.dispose();
-        }
+        fecharTabuleiro(); // partida anterior: a janela velha deixa de ser avisada
         janelaTabuleiro = new JanelaTabuleiro(); // se registra neste controller
         janelaTabuleiro.setVisible(true);
         mostrarTela(telaInicial);
