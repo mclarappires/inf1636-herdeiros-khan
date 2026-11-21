@@ -224,7 +224,8 @@ class PainelResultado extends JPanel {
         for (int i = 0; i < n; i++) {
             int x = MARGEM + i * coluna;
             SpriteCarta.desenhar(g2, SpriteCarta.secreta(idsCartas[i]), x + 6, y + 10, coluna - 12, altura - 24);
-            g2.setColor(cores[i]);
+            // o jogador preto sumiria no fundo escuro: o nome dele vai em branco
+            g2.setColor(cores[i].equals(CoresJogador.de("PRETO")) ? Color.WHITE : cores[i]);
             g2.setFont(FONTE_NEGRITO);
             FontMetrics m = g2.getFontMetrics();
             g2.drawString(nomes[i], x + (coluna - m.stringWidth(nomes[i])) / 2, y + altura);

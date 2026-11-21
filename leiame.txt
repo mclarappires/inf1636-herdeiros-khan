@@ -1,0 +1,16 @@
+INF1636 - Programação Orientada a Objetos
+Trabalho: Herdeiros do Khan
+Prof. Ivan Mathias Filho
+
+Componentes do grupo
+--------------------
+Nome: [NOME COMPLETO]    Matrícula: 2310505
+Nome: [NOME COMPLETO]    Matrícula: 2410271
+
+Classe que contém o método main
+-------------------------------
+controller.ControladorJogo
+
+Vídeo de apresentação
+---------------------
+Link: [LINK DO GOOGLE DRIVE OU DROPBOX]
