@@ -4,8 +4,8 @@ Prof. Ivan Mathias Filho
 
 Componentes do grupo
 --------------------
-Nome: [NOME COMPLETO]    Matrícula: 2310505
-Nome: [NOME COMPLETO]    Matrícula: 2410271
+Nome: GUSTAVO ROCHA BARROS     Matrícula: 2310505
+Nome: MARIA CLARA PADILHA PIRES    Matrícula: 2410271
 
 Classe que contém o método main
 -------------------------------
@@ -13,4 +13,4 @@ controller.ControladorJogo
 
 Vídeo de apresentação
 ---------------------
-Link: [LINK DO GOOGLE DRIVE OU DROPBOX]
+Link: https://drive.google.com/file/d/1fPKMCJDJ8pdICDt4Gh0pX0PfwrRLGBRr/view?usp=sharing
